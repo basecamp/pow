@@ -22,9 +22,7 @@ exports.Application = class Application
         console.log "workerSpawn=#{id} #{pid}"
 
       @process.on "workerExit", (id) ->
-
-
-          console.log "workerExit=#{id}"
+        console.log "workerExit=#{id}"
 
       @process.on "exit", (exitCode) =>
         console.log "exit #{exitCode}"

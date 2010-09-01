@@ -24,15 +24,20 @@ exports.UnicornProcess = class UnicornProcess extends EventEmitter
       @cmd = "unicorn"
       @args = []
 
-      path.exists path.join(@path, "Gemfile"), (exists) =>
-        if exists
-          bundler.hasGem name: "unicorn", cwd: @path, (hasGem) =>
-            if hasGem
-              @cmd = "bundle"
-              @args = ["exec", "unicorn"]
-            @spawn()
-        else
+      path.exists script = path.join(@path, "script", "unicorn"), (scriptExists) =>
+        if scriptExists
+          @cmd = script
           @spawn()
+        else
+          path.exists path.join(@path, "Gemfile"), (gemfileExists) =>
+            if gemfileExists
+              bundler.hasGem name: "unicorn", cwd: @path, (hasGem) =>
+                if hasGem
+                  @cmd = "bundle"
+                  @args = ["exec", "unicorn"]
+                @spawn()
+            else
+              @spawn()
 
   kill: ->
     @process.kill() if @process

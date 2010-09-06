@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+
+var CoffeeScript = require("coffee-script");
+require("../src/pow");

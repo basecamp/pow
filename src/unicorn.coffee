@@ -3,7 +3,6 @@ sys            = require "sys"
 {spawn}        = require "child_process"
 {EventEmitter} = require "events"
 {LineBuffer}   = require "../vendor/linebuffer"
-bundler        = require "./bundler"
 
 bufferLinesFrom = (stream, encoding, callback) ->
   lineBuffer = new LineBuffer
@@ -17,36 +16,9 @@ exports.UnicornProcess = class UnicornProcess extends EventEmitter
     @path = path.dirname(@filename)
     super
 
-  run: (options) ->
-    unless @running
-      @running = true
-      @options = options || {}
-      @cmd = "unicorn"
-      @args = []
-
-      path.exists script = path.join(@path, "script", "unicorn"), (scriptExists) =>
-        if scriptExists
-          @cmd = script
-          @spawn()
-        else
-          path.exists path.join(@path, "Gemfile"), (gemfileExists) =>
-            if gemfileExists
-              bundler.hasGem name: "unicorn", cwd: @path, (hasGem) =>
-                if hasGem
-                  @cmd = "bundle"
-                  @args = ["exec", "unicorn"]
-                @spawn()
-            else
-              @spawn()
-
-  kill: ->
-    @process.kill() if @process
-
-  spawn: ->
+  run: (cmd) ->
     unless @process
-      @args.push "-p", @options.port || 0
-      @args.push "-E", "development"
-      @process = spawn @cmd, @args, cwd: @path
+      @process = spawn cmd, [@filename], cwd: @path
 
       bufferLinesFrom @process.stdout, "ascii", (line) =>
         console.log "[stdout] #{sys.inspect line}"
@@ -58,6 +30,9 @@ exports.UnicornProcess = class UnicornProcess extends EventEmitter
 
       @process.on "exit", (exitCode) =>
         @onProcessExit exitCode
+
+  kill: ->
+    @process.kill() if @process
 
   onStdoutLine: (line) ->
 

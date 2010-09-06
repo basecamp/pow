@@ -1,6 +1,6 @@
 sys = require "sys"
 {spawn} = require "child_process"
-{dirname} = require "path"
+path = require "path"
 {UnicornProcess} = require "../unicorn"
 
 exports.Application = class Application
@@ -12,7 +12,7 @@ exports.Application = class Application
     unless @process
       @exitCallback = exitCallback
       @process = new UnicornProcess @path
-      @process.run()
+      @process.run path.join(__dirname, "../../bin/pow_unicorn")
 
       @process.on "ready", (port) =>
         console.log "ready #{port}"

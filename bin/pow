@@ -1,4 +1,8 @@
 #!/usr/bin/env node
 
 var CoffeeScript = require("coffee-script");
-require("../src/pow");
+var pow = require("../src/pow");
+var path = require("path");
+
+pow.run(3000, process.argv[2] || path.join(process.env.HOME, ".pow"));
+

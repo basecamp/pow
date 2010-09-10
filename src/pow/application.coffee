@@ -1,7 +1,7 @@
-sys = require "sys"
-{spawn} = require "child_process"
-path = require "path"
-{UnicornProcess} = require "../unicorn"
+sys              = require "sys"
+path             = require "path"
+{spawn}          = require "child_process"
+{UnicornProcess} = require "./unicorn"
 
 exports.Application = class Application
   constructor: (@path) ->

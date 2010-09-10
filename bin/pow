@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+require.paths.push(__dirname + "/../vendor");
+
 var CoffeeScript = require("coffee-script");
 var pow = require("../src/pow");
 var path = require("path");

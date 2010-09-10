@@ -1,6 +1,6 @@
 {Pool}      = require "./pool"
 http        = require "http"
-{HttpProxy} = require "../../vendor/http-proxy"
+{HttpProxy} = require "http-proxy"
 
 exports.Server = class Server
   constructor: (@configuration) ->

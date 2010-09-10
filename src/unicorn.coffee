@@ -2,7 +2,7 @@ path           = require "path"
 sys            = require "sys"
 {spawn}        = require "child_process"
 {EventEmitter} = require "events"
-{LineBuffer}   = require "../vendor/linebuffer"
+{LineBuffer}   = require "linebuffer"
 
 bufferLinesFrom = (stream, encoding, callback) ->
   lineBuffer = new LineBuffer

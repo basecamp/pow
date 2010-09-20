@@ -1,33 +1,32 @@
-{Pool}      = require "./pool"
-http        = require "http"
-{HttpProxy} = require "http-proxy"
+http = require 'http'
+nack = require 'nack/pool'
+
+{BufferedReadStream} = require 'nack/buffered'
+
+idle = 1000 * 60 * 15
 
 exports.Server = class Server
   constructor: (@configuration) ->
-    @pool = new Pool
+    @applications = {}
     @server = http.createServer (req, res) =>
       @onRequest req, res
 
   listen: (port) ->
-    unless @interval
-      @server.listen port
-      @interval = setInterval (=> @reapIdleApplications()), 1000
+    @server.listen port
 
   close: ->
-    if @interval
-      @server.close()
-      clearInterval @interval
-      @interval = false
+    @server.close()
 
-  onRequest: (req, res, proxy) ->
-    host  = req.headers.host.replace /:.*/, ""
-    proxy = new HttpProxy
-    proxy.watch req, res
+  applicationForConfig: (config) ->
+    @applications[config] ?= nack.createPool config, size: 3, idle: idle
+
+  onRequest: (req, res) ->
+    reqBuf = new BufferedReadStream req
+    host = req.headers.host.replace /:.*/, ""
     @configuration.findPathForHost host, (path) =>
-      if path
-        @pool.handle path, (port) ->
-          console.log "handle path = #{path}, port = #{port}"
-          proxy.proxyRequest port, "0.0.0.0", req, res
+      if app = @applicationForConfig path
+        app.proxyRequest reqBuf, res
+        reqBuf.flush()
       else
         @respondWithError res, "unknown host #{req.headers.host}"
 
@@ -35,6 +34,3 @@ exports.Server = class Server
     res.writeHead 500, "Content-Type": "text/html"
     res.write "<h1>500 Internal Server Error</h1><p>#{err}</p>"
     res.end()
-
-  reapIdleApplications: ->
-    application.kill() for application in @pool.getIdleApplications()

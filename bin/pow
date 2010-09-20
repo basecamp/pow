@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 
-require.paths.push(__dirname + "/../vendor");
+require.paths.unshift(__dirname + "/../src")
 
 var CoffeeScript = require("coffee-script");
-var pow = require("../src/pow");
+var pow = require("pow");
 var path = require("path");
 
 pow.run(3000, process.argv[2] || path.join(process.env.HOME, ".pow"));
-

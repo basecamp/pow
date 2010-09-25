@@ -1,6 +1,7 @@
 http = require 'http'
-nack = require 'nack/pool'
 
+{createPool}         = require 'nack/pool'
+{logStream}          = require 'nack/logger'
 {BufferedReadStream} = require 'nack/buffered'
 
 idle = 1000 * 60 * 15
@@ -17,8 +18,18 @@ exports.Server = class Server
   close: ->
     @server.close()
 
+  createApplicationPool: (config) ->
+    pool = createPool config, size: 3, idle: idle
+
+    pool.on 'spawn', () ->
+      logStream pool.stdout
+      logStream pool.stderr
+
+    pool
+
   applicationForConfig: (config) ->
-    @applications[config] ?= nack.createPool config, size: 3, idle: idle
+    if config
+      @applications[config] ?= @createApplicationPool config
 
   onRequest: (req, res) ->
     reqBuf = new BufferedReadStream req
@@ -26,9 +37,9 @@ exports.Server = class Server
     @configuration.findPathForHost host, (path) =>
       if app = @applicationForConfig path
         app.proxyRequest reqBuf, res
-        reqBuf.flush()
       else
         @respondWithError res, "unknown host #{req.headers.host}"
+      reqBuf.flush()
 
   respondWithError: (res, err) ->
     res.writeHead 500, "Content-Type": "text/html"

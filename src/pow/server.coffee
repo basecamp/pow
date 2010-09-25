@@ -20,11 +20,8 @@ exports.Server = class Server
 
   createApplicationPool: (config) ->
     pool = createPool config, size: 3, idle: idle
-
-    pool.on 'spawn', () ->
-      logStream pool.stdout
-      logStream pool.stderr
-
+    logStream pool.stdout
+    logStream pool.stderr
     pool
 
   applicationForConfig: (config) ->

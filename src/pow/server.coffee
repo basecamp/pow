@@ -12,10 +12,19 @@ exports.Server = class Server
     @server = http.createServer (req, res) =>
       @onRequest req, res
 
+    process.on 'uncaughtException', (err) =>
+      @close()
+
+      process.nextTick () ->
+        throw err
+
   listen: (port) ->
     @server.listen port
 
   close: ->
+    for config, app of @applications
+      app.quit()
+
     @server.close()
 
   createApplicationPool: (config) ->

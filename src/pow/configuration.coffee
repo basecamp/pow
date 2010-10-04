@@ -41,6 +41,7 @@ exports.Configuration = class Configuration
     finalizer.increment()
 
     fs.readdir @root, (err, filenames) =>
+      throw err if err
       for filename in filenames
         finalizer.increment()
         path = join(@root, filename)

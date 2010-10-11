@@ -1,7 +1,7 @@
 http = require 'http'
+sys  = require 'sys'
 
 {createPool}         = require 'nack/pool'
-{logStream}          = require 'nack/logger'
 {BufferedReadStream} = require 'nack/buffered'
 
 idle = 1000 * 60 * 15
@@ -23,8 +23,11 @@ exports.Server = class Server
 
   createApplicationPool: (config) ->
     pool = createPool config, size: 3, idle: idle
-    logStream pool.stdout
-    logStream pool.stderr
+
+    # TODO: Pump this to a file
+    sys.pump pool.stdout, process.stdout
+    sys.pump pool.stderr, process.stdout
+
     pool
 
   applicationForConfig: (config) ->

@@ -15,6 +15,10 @@ exports.Server = class Server
   listen: (port) ->
     @server.listen port
 
+    process.on 'SIGINT',  () => @close()
+    process.on 'SIGTERM', () => @close()
+    process.on 'SIGQUIT', () => @close()
+
   close: ->
     for config, app of @applications
       app.quit()

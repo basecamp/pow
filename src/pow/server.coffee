@@ -1,4 +1,5 @@
 http = require 'http'
+path = require 'path'
 sys  = require 'sys'
 
 {createPool}         = require 'nack/pool'
@@ -26,7 +27,8 @@ exports.Server = class Server
     @server.close()
 
   createApplicationPool: (config) ->
-    pool = createPool config, size: 3, idle: idle
+    root = path.dirname config
+    pool = createPool config, size: 3, idle: idle, cwd: root
 
     # TODO: Pump this to a file
     sys.pump pool.stdout, process.stdout

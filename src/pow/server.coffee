@@ -22,7 +22,7 @@ exports.Server = class Server
 
   close: ->
     for config, app of @applications
-      app.quit()
+      app.terminate()
 
     @server.close()
 

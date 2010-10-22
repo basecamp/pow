@@ -1,3 +1,4 @@
+fs   = require 'fs'
 http = require 'http'
 path = require 'path'
 sys  = require 'sys'
@@ -33,6 +34,9 @@ exports.Server = class Server
     # TODO: Pump this to a file
     sys.pump pool.stdout, process.stdout
     sys.pump pool.stderr, process.stdout
+
+    fs.watchFile "#{root}/tmp/restart.txt", (curr, prev) ->
+      pool.quit()
 
     pool
 

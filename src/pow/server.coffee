@@ -28,7 +28,7 @@ exports.Server = class Server
 
   createApplicationPool: (config) ->
     root = path.dirname config
-    pool = createPool config, size: 3, idle: idle, cwd: root
+    pool = createPool config, size: 3, idle: idle, cwd: root, debug: true
 
     # TODO: Pump this to a file
     sys.pump pool.stdout, process.stdout

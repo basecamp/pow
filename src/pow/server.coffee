@@ -1,18 +1,17 @@
-fs   = require 'fs'
-http = require 'http'
-path = require 'path'
-sys  = require 'sys'
-
-{createPool}         = require 'nack/pool'
-{BufferedReadStream} = require 'nack/buffered'
+connect = require 'connect'
+fs      = require 'fs'
+nack    = require 'nack'
+path    = require 'path'
+sys     = require 'sys'
 
 idle = 1000 * 60 * 15
 
 exports.Server = class Server
   constructor: (@configuration) ->
     @applications = {}
-    @server = http.createServer (req, res) =>
-      @onRequest req, res
+    @server = connect.createServer connect.logger(),
+      @onRequest.bind(@),
+      connect.errorHandler dumpExceptions: true
 
   listen: (port) ->
     @server.listen port
@@ -23,43 +22,40 @@ exports.Server = class Server
 
   close: ->
     return if @closing
+    @closing = true
 
     for config, app of @applications
-      app.terminate()
+      app.close()
 
     @server.close()
 
-    @closing = true
+    process.nextTick () ->
+      process.exit 0
 
   createApplicationPool: (config) ->
     root = path.dirname config
-    pool = createPool config, size: 3, idle: idle, cwd: root, debug: true
+    app  = nack.createServer config, idle: idle
 
     # TODO: Pump this to a file
-    sys.pump pool.stdout, process.stdout
-    sys.pump pool.stderr, process.stdout
+    sys.pump app.pool.stdout, process.stdout
+    sys.pump app.pool.stderr, process.stdout
 
     fs.watchFile "#{root}/tmp/restart.txt", (curr, prev) ->
       pool.quit()
 
-    pool
+    app
 
   applicationForConfig: (config) ->
     if config
       @applications[config] ?= @createApplicationPool config
 
-  onRequest: (req, res) ->
-    reqBuf = new BufferedReadStream req
+  onRequest: (req, res, next) ->
+    pause = connect.utils.pause req
     host = req.headers.host.replace /:.*/, ""
     @configuration.findPathForHost host, (path) =>
+      pause.end()
       if app = @applicationForConfig path
-        app.proxyRequest reqBuf, res, (err) =>
-          @respondWithError res, err
+        app.handle req, res, next
+        pause.resume()
       else
-        @respondWithError res, "unknown host #{req.headers.host}"
-      reqBuf.flush()
-
-  respondWithError: (res, err) ->
-    res.writeHead 500, "Content-Type": "text/html"
-    res.write "<h1>500 Internal Server Error</h1><p>#{err}</p>"
-    res.end()
+        next new Error "unknown host #{req.headers.host}"

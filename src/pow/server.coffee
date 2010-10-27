@@ -22,10 +22,14 @@ exports.Server = class Server
     process.on 'SIGQUIT', () => @close()
 
   close: ->
+    return if @closing
+
     for config, app of @applications
       app.terminate()
 
     @server.close()
+
+    @closing = true
 
   createApplicationPool: (config) ->
     root = path.dirname config

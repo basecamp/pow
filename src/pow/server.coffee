@@ -49,7 +49,8 @@ exports.Server = class Server
     host = req.headers.host.replace /:.*/, ""
     @configuration.findPathForHost host, (path) =>
       if app = @applicationForConfig path
-        app.proxyRequest reqBuf, res
+        app.proxyRequest reqBuf, res, (err) =>
+          @respondWithError res, err
       else
         @respondWithError res, "unknown host #{req.headers.host}"
       reqBuf.flush()

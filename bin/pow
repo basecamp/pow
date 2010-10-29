@@ -6,4 +6,4 @@ var CoffeeScript = require("coffee-script");
 var pow = require("pow");
 var path = require("path");
 
-pow.run(3000, process.argv[2] || path.join(process.env.HOME, ".pow"));
+pow.run(20559, process.argv[2] || path.join(process.env.HOME, ".pow"));

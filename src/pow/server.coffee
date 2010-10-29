@@ -43,7 +43,7 @@ exports.Server = class Server
     sys.pump app.pool.stderr, process.stdout
 
     fs.watchFile "#{root}/tmp/restart.txt", (curr, prev) ->
-      pool.quit()
+      app.pool.quit()
 
     app
 

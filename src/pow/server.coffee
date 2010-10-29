@@ -43,7 +43,9 @@ exports.Server = class Server
     sys.pump app.pool.stderr, process.stdout
 
     fs.watchFile "#{root}/tmp/restart.txt", (curr, prev) ->
-      app.pool.quit()
+      fs.unlink "#{root}/tmp/restart.txt", (err) ->
+        if !err
+          app.pool.quit()
 
     app
 

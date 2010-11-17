@@ -1,5 +1,5 @@
-{Server} = require "./pow/server"
-{Configuration} = require "./pow/configuration"
+{Server} = require "./server"
+{Configuration} = require "./configuration"
 
 exports.Server = Server
 exports.Configuration = Configuration

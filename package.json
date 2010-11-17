@@ -1,0 +1,16 @@
+{ "name": "pow"
+, "description": "A node.js front for Rack applications"
+, "version": "0.1.0"
+, "author": "Sam Stephenson"
+, "repository":
+  { "type": "git"
+  , "url": "http://github.com/sstephenson/pow.git"
+  }
+, "directories": { "lib": "./lib/pow" }
+, "bin": { "pow": "./bin/pow" }
+, "dependencies": {
+    "connect": ">= 0.1.0"
+  , "nack": ">= 0.2.0"
+  }
+, "engines" : { "node" : ">=0.2.0" }
+}

@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-var CoffeeScript = require("coffee-script");
 var pow = require("pow");
 var path = require("path");
 

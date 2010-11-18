@@ -7,7 +7,7 @@
   , "url": "http://github.com/sstephenson/pow.git"
   }
 , "directories": { "lib": "./lib/pow" }
-, "bin": { "pow": "./bin/pow" }
+, "bin": { "pow": "./bin/pow", "pow_firewall": "./bin/pow_firewall" }
 , "dependencies": {
     "connect": ">= 0.1.0"
   , "nack": ">= 0.2.0"

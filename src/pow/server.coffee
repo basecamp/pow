@@ -11,8 +11,7 @@ process.env['RACK_ENV'] = 'development'
 exports.Server = class Server
   constructor: (@configuration) ->
     @applications = {}
-    @server = connect.createServer connect.logger(),
-      @onRequest.bind(@),
+    @server = connect.createServer @onRequest.bind(@),
       connect.errorHandler dumpExceptions: true
 
   listen: (port) ->

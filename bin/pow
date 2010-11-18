@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
-require.paths.unshift(__dirname + "/../src")
-
 var CoffeeScript = require("coffee-script");
 var pow = require("pow");
 var path = require("path");
+
+if (process.argv[2] === "--configure-firewall") {
+  require("pow/firewall").forwardPort(20559, process.exit);
+}
 
 pow.run(20559, process.argv[2] || path.join(process.env.HOME, ".pow"));

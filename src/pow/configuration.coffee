@@ -42,7 +42,7 @@ exports.Configuration = class Configuration
 
     fs.readdir @root, (err, filenames) =>
       throw err if err
-      for filename in filenames
+      for filename in filenames then do (filename) =>
         finalizer.increment()
         path = join(@root, filename)
         fs.lstat path, (err, stats) ->

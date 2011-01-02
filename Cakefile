@@ -8,8 +8,8 @@ task 'build', 'Build CoffeeScript source files', ->
   coffee = spawn 'coffee', ['-cw', '-o', 'lib', 'src']
   coffee.stdout.on 'data', (data) -> print data.toString()
 
-task "test", "Run the Pow test suite", ->
-  {testrunner} = require("nodeunit")
+task 'test', 'Run the Pow test suite', ->
+  {reporters} = require 'nodeunit'
   process.chdir __dirname
-  testrunner.run ["test"]
+  reporters.default.run ['test']
 

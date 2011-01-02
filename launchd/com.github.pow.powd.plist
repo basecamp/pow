@@ -6,10 +6,10 @@
 	<string>com.github.pow.powd</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>bash</string>
+		<string>sh</string>
 		<string>-i</string>
 		<string>-c</string>
-		<string>pow</string>
+		<string>$SHELL -c pow</string>
 	</array>
 	<key>KeepAlive</key>
 	<true/>

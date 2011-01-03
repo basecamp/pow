@@ -58,7 +58,8 @@ exports.Server = class Server
     @configuration.findPathForHost host, (path) =>
       pause.end()
       if app = @applicationForConfig path
-        req.headers['x-forwarded-port'] = '80'
+        req.proxyMetaVariables =
+          'SERVER_PORT': '80'
         app.handle req, res, next
         pause.resume()
       else

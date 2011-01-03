@@ -3,4 +3,8 @@
 var pow = require("pow");
 var path = require("path");
 
-pow.run(20559, process.argv[2] || path.join(process.env.HOME, ".pow"));
+var root = process.argv[2] || path.join(process.env.HOME, ".pow");
+var port = 20559;
+
+process.title = "pow";
+pow.run(port, root);

@@ -1,11 +1,24 @@
-{Server} = require "./server"
 {Configuration} = require "./configuration"
+{NameServer} = require "./name_server"
+{WebServer} = require "./web_server"
 
-exports.Server = Server
 exports.Configuration = Configuration
+exports.NameServer = NameServer
+exports.WebServer = WebServer
 
-exports.run = (port, configurationPath) ->
+exports.defaultOptions =
+  httpPort: 20559
+  dnsPort:  20560
+  configurationPath: process.env.HOME + "/.pow"
+
+exports.run = (options = {}) ->
+  {httpPort, dnsPort, configurationPath} = Object.create exports.defaultOptions, options
+
   configuration = new Configuration configurationPath
-  server = new Server configuration
-  server.listen port
-  server
+  nameServer = new NameServer
+  webServer = new WebServer configuration
+
+  nameServer.listen dnsPort
+  webServer.listen httpPort
+
+  {nameServer, webServer}

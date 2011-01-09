@@ -8,7 +8,7 @@ idle = 1000 * 60 * 15
 
 process.env['RACK_ENV'] = 'development'
 
-exports.Server = class Server
+exports.WebServer = class WebServer
   constructor: (@configuration) ->
     @applications = {}
     @server = connect.createServer @onRequest.bind(@),

@@ -6,6 +6,7 @@ module.exports = class HttpServer extends connect.Server
   constructor: (@configuration) ->
     @handlers = {}
     super [@handleRequest, connect.errorHandler showStack: true]
+    @on "close", @closeApplications
 
   getHandlerForHost: (host, callback) ->
     @configuration.findApplicationRootForHost host, (err, root) =>
@@ -25,3 +26,7 @@ module.exports = class HttpServer extends connect.Server
       req.proxyMetaVariables = SERVER_PORT: '80'
       handler.handle req, res, next
       pause.resume()
+
+  closeApplications: =>
+    for root, handler of @handlers
+      handler.close()

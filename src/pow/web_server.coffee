@@ -12,7 +12,7 @@ exports.WebServer = class WebServer
   constructor: (@configuration) ->
     @applications = {}
     @server = connect.createServer @onRequest.bind(@),
-      connect.errorHandler dumpExceptions: true
+      connect.errorHandler showStack: true
 
   listen: (port) ->
     @server.listen port

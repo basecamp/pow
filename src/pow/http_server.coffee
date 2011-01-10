@@ -32,7 +32,7 @@ module.exports = class HttpServer extends connect.Server
 
   closeApplications: =>
     for root, {app} of @handlers
-      app.close()
+      app.pool.quit()
 
   restartIfNecessary: ({root, app}, callback) ->
     fs.unlink join(root, "tmp/restart.txt"), (err) ->

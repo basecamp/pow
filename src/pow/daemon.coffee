@@ -1,5 +1,4 @@
 {EventEmitter} = require "events"
-process        = require "process"
 HttpServer     = require "./http_server"
 DnsServer      = require "./dns_server"
 

@@ -11,7 +11,7 @@
 , "dependencies": {
     "async": "0.1.7"
   , "connect": ">= 0.1.0"
-  , "nack": ">= 0.5.0"
+  , "nack": ">= 0.5.1"
   , "ndns": ">= 0.1.0"
   }
 , "engines" : { "node" : ">=0.2.0" }

@@ -1,7 +1,8 @@
-HttpServer = require "./http_server"
-DnsServer  = require "./dns_server"
+HttpServer     = require "./http_server"
+DnsServer      = require "./dns_server"
+{EventEmitter} = require "events"
 
-module.exports = class Daemon
+module.exports = class Daemon extends EventEmitter
   constructor: (@configuration) ->
     @httpServer = new HttpServer @configuration
     @dnsServer  = new DnsServer @configuration
@@ -19,6 +20,7 @@ module.exports = class Daemon
     pass = =>
       @starting = false
       @started = true
+      @emit "start"
 
     flunk = (err) =>
       @starting = false
@@ -38,7 +40,10 @@ module.exports = class Daemon
 
     stopServer = (server, callback) ->
       try
-        server.on "close", -> callback null
+        close = ->
+          server.removeListener "close", close
+          callback null
+        server.on "close", close
         server.close()
       catch err
         callback err
@@ -47,3 +52,4 @@ module.exports = class Daemon
       stopServer @dnsServer, =>
         @stopping = false
         @started  = false
+        @emit "stop"

@@ -10,6 +10,7 @@ getFilenamesForHost = (host) ->
 
 module.exports = class Configuration
   constructor: (options = {}) ->
+    @dstPort  = options.dstPort  ? 80
     @httpPort = options.httpPort ? 20559
     @dnsPort  = options.dnsPort  ? 20560
     @timeout  = options.timeout  ? 15 * 60 * 1000

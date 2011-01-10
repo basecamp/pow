@@ -20,10 +20,10 @@ module.exports = class HttpServer extends connect.Server
   handleRequest: (req, res, next) =>
     pause = connect.utils.pause req
     host  = req.headers.host.replace /:.*/, ""
-    @getHandlerForHost host, (err, handler) ->
+    @getHandlerForHost host, (err, handler) =>
       pause.end()
       return next err if err
-      req.proxyMetaVariables = SERVER_PORT: '80'
+      req.proxyMetaVariables = @configuration.dstPort
       handler.handle req, res, next
       pause.resume()
 

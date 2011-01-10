@@ -2,4 +2,6 @@
 
 var pow = require("pow");
 process.title = "pow";
-pow.run();
+
+var daemon = new pow.Daemon(new pow.Configuration);
+daemon.start();

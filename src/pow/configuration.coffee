@@ -1,62 +1,46 @@
+fs     = require "fs"
 {join} = require "path"
-fs = require "fs"
+async  = require "async"
 
-class Finalizer
-  @from: (finalizerOrCallback) ->
-    if finalizerOrCallback instanceof Finalizer
-      finalizerOrCallback
-    else
-      new Finalizer(finalizerOrCallback ? ->)
+getFilenamesForHost = (host) ->
+  parts = host.split "."
+  length = parts.length - 2
+  for i in [0..length]
+    parts.slice(i, length + 1).join "."
 
-  constructor: (callback) ->
-    @callback = callback
-    @count = 0
-    @done = no
+module.exports = class Configuration
+  constructor: (options = {}) ->
+    @httpPort = options.httpPort ? 20559
+    @dnsPort  = options.dnsPort  ? 20560
+    @timeout  = options.timeout  ? 15 * 60 * 1000
+    @domain   = options.domain   ? "test"
+    @root     = options.root     ? join process.env.HOME, ".pow"
 
-  increment: ->
-    return if @done
-    @count += 1
+  findApplicationRootForHost: (host, callback) ->
+    @gatherApplicationRoots (err, roots) =>
+      return callback err if err
+      for file in getFilenamesForHost host
+        if root = roots[file]
+          return callback null, root
+      callback null
 
-  decrement: ->
-    return if @done
-    if (@count -= 1) <= 0
-      @done = yes
-      @callback()
-
-exports.Configuration = class Configuration
-  constructor: (root) ->
-    @root = root
-
-  findPathForHost: (host, callback) ->
-    @gather (paths) =>
-      for filename in @getFilenamesForHost host
-        if path = paths[filename]
-          return callback path
-      callback false
-
-  gather: (callback) ->
-    paths = {}
-
-    finalizer = new Finalizer -> callback paths
-    finalizer.increment()
-
-    fs.readdir @root, (err, filenames) =>
-      throw err if err
-      for filename in filenames then do (filename) =>
-        finalizer.increment()
-        path = join(@root, filename)
+  gatherApplicationRoots: (callback) ->
+    roots = {}
+    fs.readdir @root, (err, files) =>
+      return callback err if err
+      async.forEach files, (file, next) =>
+        path = join @root, file
         fs.lstat path, (err, stats) ->
-          throw err if err
+          return callback err if err
           if stats.isSymbolicLink()
-            finalizer.increment()
             fs.readlink path, (err, resolvedPath) ->
-              paths[filename] = join(resolvedPath, "config.ru")
-              finalizer.decrement()
-          finalizer.decrement()
-      finalizer.decrement()
-
-  getFilenamesForHost: (host) ->
-    parts = host.split "."
-    length = parts.length - 2
-    for i in [0..length]
-      parts.slice(i, length + 1).join "."
+              return callback err if err
+              roots[file] = resolvedPath
+              next()
+          else if stats.isDirectory()
+            roots[file] = path
+            next()
+          else
+            next()
+      , (err) ->
+        callback err, roots

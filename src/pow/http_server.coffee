@@ -1,5 +1,6 @@
 fs      = require "fs"
 {join}  = require "path"
+sys     = require "sys"
 connect = require "connect"
 nack    = require "nack"
 
@@ -17,7 +18,13 @@ module.exports = class HttpServer extends connect.Server
   getHandlerForRoot: (root) ->
     @handlers[root] ||=
       root: root
-      app:  nack.createServer(join(root, "config.ru"), idle: @configuration.timeout)
+      app:  @createApplication(join(root, "config.ru"))
+
+  createApplication: (configurationPath) ->
+    app = nack.createServer(configurationPath, idle: @configuration.timeout)
+    sys.pump app.pool.stdout, process.stdout
+    sys.pump app.pool.stderr, process.stdout
+    app
 
   handleRequest: (req, res, next) =>
     pause = connect.utils.pause req

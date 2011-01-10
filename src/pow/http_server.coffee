@@ -26,7 +26,7 @@ module.exports = class HttpServer extends connect.Server
       @restartIfNecessary handler, =>
         pause.end()
         return next err if err
-        req.proxyMetaVariables = @configuration.dstPort
+        req.proxyMetaVariables = @configuration.dstPort.toString()
         handler.app.handle req, res, next
         pause.resume()
 

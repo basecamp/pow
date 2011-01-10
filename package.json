@@ -9,7 +9,8 @@
 , "directories": { "lib": "./lib/pow" }
 , "bin": { "pow": "./bin/pow", "pow_firewall": "./bin/pow_firewall" }
 , "dependencies": {
-    "connect": ">= 0.1.0"
+    "async": "0.1.7"
+  , "connect": ">= 0.1.0"
   , "nack": ">= 0.5.0"
   , "ndns": ">= 0.1.0"
   }

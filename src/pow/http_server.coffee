@@ -1,3 +1,4 @@
+fs      = require "fs"
 {join}  = require "path"
 connect = require "connect"
 nack    = require "nack"
@@ -14,19 +15,29 @@ module.exports = class HttpServer extends connect.Server
       callback null, @getHandlerForRoot root
 
   getHandlerForRoot: (root) ->
-    @handlers[root] ||= nack.createServer join(root, "config.ru"),
-      idle: @configuration.timeout
+    @handlers[root] ||=
+      root: root
+      app:  nack.createServer(join(root, "config.ru"), idle: @configuration.timeout)
 
   handleRequest: (req, res, next) =>
     pause = connect.utils.pause req
     host  = req.headers.host.replace /:.*/, ""
     @getHandlerForHost host, (err, handler) =>
-      pause.end()
-      return next err if err
-      req.proxyMetaVariables = @configuration.dstPort
-      handler.handle req, res, next
-      pause.resume()
+      @restartIfNecessary handler, =>
+        pause.end()
+        return next err if err
+        req.proxyMetaVariables = @configuration.dstPort
+        handler.app.handle req, res, next
+        pause.resume()
 
   closeApplications: =>
-    for root, handler of @handlers
-      handler.close()
+    for root, {app} of @handlers
+      app.close()
+
+  restartIfNecessary: ({root, app}, callback) ->
+    fs.unlink join(root, "tmp/restart.txt"), (err) ->
+      if err
+        callback()
+      else
+        app.pool.onNext "exit", callback
+        app.pool.quit()

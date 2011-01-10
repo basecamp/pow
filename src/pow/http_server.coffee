@@ -5,7 +5,7 @@ nack    = require "nack"
 module.exports = class HttpServer extends connect.Server
   constructor: (@configuration) ->
     @handlers = {}
-    super [@handleRequest, connect.errorHandler dumpExceptions: true]
+    super [@handleRequest, connect.errorHandler showStack: true]
 
   getHandlerForHost: (host, callback) ->
     @configuration.findApplicationRootForHost host, (err, root) =>

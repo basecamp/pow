@@ -1,5 +1,5 @@
 { "name": "pow"
-, "description": "A node.js front for Rack applications"
+, "description": "Zero-configuration development server for Rack applications"
 , "version": "0.1.0"
 , "author": "Sam Stephenson"
 , "repository":

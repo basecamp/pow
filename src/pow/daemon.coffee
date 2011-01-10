@@ -1,11 +1,15 @@
+{EventEmitter} = require "events"
+process        = require "process"
 HttpServer     = require "./http_server"
 DnsServer      = require "./dns_server"
-{EventEmitter} = require "events"
 
 module.exports = class Daemon extends EventEmitter
   constructor: (@configuration) ->
     @httpServer = new HttpServer @configuration
     @dnsServer  = new DnsServer @configuration
+    process.on "SIGINT",  @stop
+    process.on "SIGTERM", @stop
+    process.on "SIGQUIT", @stop
 
   start: ->
     return if @starting or @started
@@ -34,7 +38,7 @@ module.exports = class Daemon extends EventEmitter
         if err then flunk err
         else pass()
 
-  stop: ->
+  stop: =>
     return if @stopping or !@started
     @stopping = true
 

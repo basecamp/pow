@@ -18,7 +18,7 @@ module.exports = class HttpServer extends connect.Server
   constructor: (@configuration) ->
     super [
       o @handleRequest
-      x @handleException
+      x @handleApplicationException
       o @handleNonexistentDomain
     ]
     @handlers = {}
@@ -41,10 +41,18 @@ module.exports = class HttpServer extends connect.Server
     sys.pump app.pool.stderr, process.stdout
     app
 
+  closeApplications: =>
+    for root, {app} of @handlers
+      app.pool.quit()
+
   handleRequest: (req, res, next) =>
-    host   = getHost req
-    resume = pause req
+    host    = getHost req
+    resume  = pause req
+    req.pow = {host}
+
     @getHandlerForHost host, (err, handler) =>
+      req.pow.handler = handler
+
       if handler and not err
         @restartIfNecessary handler, =>
           req.proxyMetaVariables =
@@ -57,10 +65,6 @@ module.exports = class HttpServer extends connect.Server
         next err
         resume()
 
-  closeApplications: =>
-    for root, {app} of @handlers
-      app.pool.quit()
-
   restartIfNecessary: ({root, app}, callback) ->
     fs.unlink join(root, "tmp/restart.txt"), (err) ->
       if err
@@ -69,10 +73,8 @@ module.exports = class HttpServer extends connect.Server
         app.pool.once "exit", callback
         app.pool.quit()
 
-  handleException: (err, req, res, next) =>
-    host = getHost req
-    name = host.slice 0, host.length - @configuration.domain.length - 1
-    path = join @configuration.root, name
+  handleApplicationException: (err, req, res, next) =>
+    return next() unless req.pow?.handler
 
     res.writeHead 500, "Content-Type", "text/html; charset=utf8"
     res.end """
@@ -106,14 +108,15 @@ module.exports = class HttpServer extends connect.Server
       </head>
       <body>
         <h1>Pow can&rsquo;t start your application.</h1>
-        <h2><code>#{path}</code> raised an exception during boot.</h2>
-        <pre>#{err.stack}</pre>
+        <h2><code>#{req.pow.handler.root}</code> raised an exception during boot.</h2>
+        <pre><strong>#{err}</strong>#{"\n" + err.stack}</pre>
       </body>
       </html>
     """
 
   handleNonexistentDomain: (req, res, next) =>
-    host = getHost req
+    return next() unless req.pow
+    host = req.pow.host
     name = host.slice 0, host.length - @configuration.domain.length - 1
     path = join @configuration.root, name
 

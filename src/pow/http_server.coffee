@@ -8,6 +8,13 @@ nack    = require "nack"
 getHost = (req) ->
   req.headers.host.replace /:.*/, ""
 
+escapeHTML = (string) ->
+  string.toString()
+    .replace(/&/g,  "&amp;")
+    .replace(/</g,  "&lt;")
+    .replace(/>/g,  "&gt;")
+    .replace(/\"/g, "&quot;")
+
 # Connect depends on Function.prototype.length to determine
 # whether a given middleware is an error handler. These wrappers
 # provide compatibility with bound instance methods.
@@ -108,8 +115,8 @@ module.exports = class HttpServer extends connect.Server
       </head>
       <body>
         <h1>Pow can&rsquo;t start your application.</h1>
-        <h2><code>#{req.pow.handler.root}</code> raised an exception during boot.</h2>
-        <pre><strong>#{err}</strong>#{"\n" + err.stack}</pre>
+        <h2><code>#{escapeHTML req.pow.handler.root}</code> raised an exception during boot.</h2>
+        <pre><strong>#{escapeHTML err}</strong>#{escapeHTML "\n" + err.stack}</pre>
       </body>
       </html>
     """
@@ -150,7 +157,7 @@ module.exports = class HttpServer extends connect.Server
       </head>
       <body>
         <h1>This domain isn&rsquo;t set up yet.</h1>
-        <h2>Symlink your application to <code>#{path}</code> first.</h2>
+        <h2>Symlink your application to <code>#{escapeHTML path}</code> first.</h2>
       </body>
       </html>
     """

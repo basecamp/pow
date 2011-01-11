@@ -10,7 +10,7 @@
 , "bin": { "pow": "./bin/pow", "pow_firewall": "./bin/pow_firewall" }
 , "dependencies": {
     "async": "0.1.7"
-  , "connect": ">= 0.1.0"
+  , "connect": ">= 0.5.4"
   , "nack": ">= 0.5.1"
   , "ndns": ">= 0.1.0"
   }

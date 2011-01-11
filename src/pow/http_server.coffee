@@ -62,7 +62,7 @@ module.exports = class HttpServer extends connect.Server
       if err
         callback()
       else
-        app.pool.onNext "exit", callback
+        app.pool.once "exit", callback
         app.pool.quit()
 
   handleException: (err, req, res, next) =>

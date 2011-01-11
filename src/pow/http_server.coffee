@@ -149,7 +149,7 @@ module.exports = class HttpServer extends connect.Server
         </style>
       </head>
       <body>
-        <h1>This domain hasn&rsquo;t been set up yet.</h1>
+        <h1>This domain isn&rsquo;t set up yet.</h1>
         <h2>Symlink your application to <code>#{path}</code> first.</h2>
       </body>
       </html>

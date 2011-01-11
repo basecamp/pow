@@ -7,12 +7,18 @@ nack    = require "nack"
 getHost = (req) ->
   req.headers.host.replace /:.*/, ""
 
+# Connect depends on Function.prototype.length to determine
+# whether a given middleware is an error handler. These wrappers
+# provide compatibility with bound instance methods.
+o = (fn) -> (req, res, next)      -> fn req, res, next
+x = (fn) -> (err, req, res, next) -> fn err, req, res, next
+
 module.exports = class HttpServer extends connect.Server
   constructor: (@configuration) ->
     super [
-      @handleRequest
-      connect.errorHandler showStack: true
-      @handleNonexistentDomain
+      o @handleRequest
+      x @handleException
+      o @handleNonexistentDomain
     ]
     @handlers = {}
     @on "close", @closeApplications
@@ -59,6 +65,49 @@ module.exports = class HttpServer extends connect.Server
         app.pool.onNext "exit", callback
         app.pool.quit()
 
+  handleException: (err, req, res, next) =>
+    host = getHost req
+    name = host.slice 0, host.length - @configuration.domain.length - 1
+    path = join @configuration.root, name
+
+    res.writeHead 500, "Content-Type", "text/html; charset=utf8"
+    res.end """
+      <!doctype html>
+      <html>
+      <head>
+        <title>Pow: Error Starting Application</title>
+        <style>
+          body {
+            margin: 0;
+            padding: 0;
+          }
+          h1, h2, pre {
+            margin: 0;
+            padding: 15px 30px;
+          }
+          h1, h2 {
+            font-family: Helvetica, sans-serif;
+          }
+          h1 {
+            font-size: 36px;
+            background: #eeedea;
+            color: #c00;
+            border-bottom: 1px solid #999090;
+          }
+          h2 {
+            font-size: 18px;
+            font-weight: normal;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Pow can&rsquo;t start your application.</h1>
+        <h2><code>#{path}</code> raised an exception during boot.</h2>
+        <pre>#{err.stack}</pre>
+      </body>
+      </html>
+    """
+
   handleNonexistentDomain: (req, res, next) =>
     host = getHost req
     name = host.slice 0, host.length - @configuration.domain.length - 1
@@ -69,6 +118,7 @@ module.exports = class HttpServer extends connect.Server
       <!doctype html>
       <html>
       <head>
+        <title>Pow: No Such Application</title>
         <style>
           body {
             margin: 0;

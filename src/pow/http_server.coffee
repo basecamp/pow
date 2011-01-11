@@ -3,6 +3,7 @@ fs      = require "fs"
 sys     = require "sys"
 connect = require "connect"
 nack    = require "nack"
+{pause} = require "nack/util"
 
 getHost = (req) ->
   req.headers.host.replace /:.*/, ""
@@ -41,17 +42,20 @@ module.exports = class HttpServer extends connect.Server
     app
 
   handleRequest: (req, res, next) =>
-    pause = connect.utils.pause req
-    host  = getHost req
+    host   = getHost req
+    resume = pause req
     @getHandlerForHost host, (err, handler) =>
-      return next err unless handler
-      @restartIfNecessary handler, =>
-        pause.end()
-        return next err if err
-        req.proxyMetaVariables =
-          SERVER_PORT: @configuration.dstPort.toString()
-        handler.app.handle req, res, next
-        pause.resume()
+      if handler and not err
+        @restartIfNecessary handler, =>
+          req.proxyMetaVariables =
+            SERVER_PORT: @configuration.dstPort.toString()
+          try
+            handler.app.handle req, res, next
+          finally
+            resume()
+      else
+        next err
+        resume()
 
   closeApplications: =>
     for root, {app} of @handlers

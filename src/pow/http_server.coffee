@@ -1,6 +1,7 @@
 fs      = require "fs"
-{join}  = require "path"
 sys     = require "sys"
+{exec}  = require "child_process"
+{join}  = require "path"
 connect = require "connect"
 nack    = require "nack"
 {pause} = require "nack/util"
@@ -34,16 +35,38 @@ module.exports = class HttpServer extends connect.Server
   getHandlerForHost: (host, callback) ->
     @configuration.findApplicationRootForHost host, (err, root) =>
       return callback err if err
-      callback null, @getHandlerForRoot root
+      @getHandlerForRoot root, callback
 
-  getHandlerForRoot: (root) ->
+  getHandlerForRoot: (root, callback) ->
     return unless root
-    @handlers[root] ||=
-      root: root
-      app:  @createApplication(join(root, "config.ru"))
 
-  createApplication: (configurationPath) ->
-    app = nack.createServer(configurationPath, idle: @configuration.timeout)
+    @getEnvForRoot root, (err, env) =>
+      @handlers[root] ||=
+        root: root
+        app:  @createApplication(join(root, "config.ru"), env)
+        env:  env
+      callback null, @handlers[root]
+
+  getEnvForRoot: (root, callback) ->
+    path = join root, ".powenv"
+    fs.stat path, (err) ->
+      if err
+        callback null, {}
+      else
+        exec "source #{path}; env", (err, stdout) ->
+          return callback err if err
+
+          env = {}
+          for line in stdout.split("\n")
+            if m = line.match /(\w+)=(.+)/
+              env[m[1]] = m[2]
+
+          callback null, env
+
+  createApplication: (configurationPath, env) ->
+    app = nack.createServer configurationPath,
+      idle: @configuration.timeout
+      env: env
     sys.pump app.pool.stdout, process.stdout
     sys.pump app.pool.stderr, process.stdout
     app

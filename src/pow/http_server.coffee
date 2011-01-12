@@ -17,11 +17,7 @@ escapeHTML = (string) ->
     .replace(/\"/g, "&quot;")
 
 sourceScriptEnv = (script, callback) ->
-  dumpEnvScript = """
-    puts "{"+ENV.map{|k,v|k.inspect+": "+v.inspect}.join(", ")+"}"
-  """
-
-  exec "source #{script}; ruby -e '#{dumpEnvScript}'", (err, stdout) ->
+  exec "source #{script}; #{process.argv[0]} -e 'JSON.stringify(process.env)'", (err, stdout) ->
     return callback err if err
     try
       callback null, JSON.parse stdout

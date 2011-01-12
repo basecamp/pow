@@ -1,10 +1,11 @@
 fs      = require "fs"
 sys     = require "sys"
 {exec}  = require "child_process"
-{join}  = require "path"
 connect = require "connect"
 nack    = require "nack"
 {pause} = require "nack/util"
+
+{dirname, join}  = require "path"
 
 getHost = (req) ->
   req.headers.host.replace /:.*/, ""
@@ -17,7 +18,11 @@ escapeHTML = (string) ->
     .replace(/\"/g, "&quot;")
 
 sourceScriptEnv = (script, callback) ->
-  exec "source #{script}; #{process.argv[0]} -e 'JSON.stringify(process.env)'", (err, stdout) ->
+  command = """
+    source #{script} > /dev/null;
+    #{process.execPath} -e 'JSON.stringify(process.env)'
+  """
+  exec command, cwd: dirname(script), (err, stdout) ->
     return callback err if err
     try
       callback null, JSON.parse stdout

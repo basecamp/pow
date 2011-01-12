@@ -53,12 +53,15 @@ module.exports = class HttpServer extends connect.Server
   getHandlerForRoot: (root, callback) ->
     return unless root
 
-    @getEnvForRoot root, (err, env) =>
-      handler = @handlers[root] ||=
-        root: root
-        app:  @createApplication(join(root, "config.ru"), env)
-        env:  env
+    if handler = @handlers[root]
       callback null, handler
+    else
+      @getEnvForRoot root, (err, env) =>
+        return callback err if err
+        callback null, @handlers[root] =
+          root: root
+          app:  @createApplication(join(root, "config.ru"), env)
+          env:  env
 
   getEnvForRoot: (root, callback) ->
     path = join root, ".powrc"

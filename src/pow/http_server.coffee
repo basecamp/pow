@@ -16,6 +16,18 @@ escapeHTML = (string) ->
     .replace(/>/g,  "&gt;")
     .replace(/\"/g, "&quot;")
 
+sourceScriptEnv = (script, callback) ->
+  dumpEnvScript = """
+    puts "{"+ENV.map{|k,v|k.inspect+": "+v.inspect}.join(", ")+"}"
+  """
+
+  exec "source #{script}; ruby -e '#{dumpEnvScript}'", (err, stdout) ->
+    return callback err if err
+    try
+      callback null, JSON.parse stdout
+    catch exception
+      callback exception
+
 # Connect depends on Function.prototype.length to determine
 # whether a given middleware is an error handler. These wrappers
 # provide compatibility with bound instance methods.
@@ -41,11 +53,11 @@ module.exports = class HttpServer extends connect.Server
     return unless root
 
     @getEnvForRoot root, (err, env) =>
-      @handlers[root] ||=
+      handler = @handlers[root] ||=
         root: root
         app:  @createApplication(join(root, "config.ru"), env)
         env:  env
-      callback null, @handlers[root]
+      callback null, handler
 
   getEnvForRoot: (root, callback) ->
     path = join root, ".powenv"
@@ -53,15 +65,7 @@ module.exports = class HttpServer extends connect.Server
       if err
         callback null, {}
       else
-        exec "source #{path}; env", (err, stdout) ->
-          return callback err if err
-
-          env = {}
-          for line in stdout.split("\n")
-            if m = line.match /(\w+)=(.+)/
-              env[m[1]] = m[2]
-
-          callback null, env
+        sourceScriptEnv path, callback
 
   createApplication: (configurationPath, env) ->
     app = nack.createServer configurationPath,

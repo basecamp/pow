@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.github.pow.firewall</string>
+	<string>cx.pow.firewall</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/local/share/npm/bin/pow_firewall</string>

@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.github.pow.powd</string>
+	<string>cx.pow.powd</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>sh</string>

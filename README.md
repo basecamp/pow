@@ -1,7 +1,7 @@
 ### Installation
 
 1. Install Node.js 0.2.6 and npm.
-2. npm install https://github.com/skampler/ndns.git
+2. npm install https://github.com/skampler/ndns/tarball/master
 3. git clone https://github.com/sstephenson/pow.git && cd pow
 4. npm link
 5. sudo mkdir -p /etc/resolver

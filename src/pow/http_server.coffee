@@ -56,7 +56,7 @@ module.exports = class HttpServer extends connect.Server
       callback null, handler
 
   getEnvForRoot: (root, callback) ->
-    path = join root, ".powenv"
+    path = join root, ".powrc"
     fs.stat path, (err) ->
       if err
         callback null, {}

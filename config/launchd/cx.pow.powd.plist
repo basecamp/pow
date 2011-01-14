@@ -9,7 +9,7 @@
 		<string>sh</string>
 		<string>-i</string>
 		<string>-c</string>
-		<string>$SHELL -c pow</string>
+		<string>$SHELL --login -c pow</string>
 	</array>
 	<key>KeepAlive</key>
 	<true/>

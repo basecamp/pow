@@ -1,9 +1,9 @@
-fs      = require "fs"
-sys     = require "sys"
-{exec}  = require "child_process"
-connect = require "connect"
-nack    = require "nack"
-{pause} = require "nack/util"
+fs          = require "fs"
+sys         = require "sys"
+{exec}      = require "child_process"
+connect     = require "connect"
+{pause}     = require "nack/util"
+RackHandler = require "./rack_handler"
 
 {dirname, join}  = require "path"
 
@@ -16,18 +16,6 @@ escapeHTML = (string) ->
     .replace(/</g,  "&lt;")
     .replace(/>/g,  "&gt;")
     .replace(/\"/g, "&quot;")
-
-sourceScriptEnv = (script, callback) ->
-  command = """
-    source #{script} > /dev/null;
-    #{process.execPath} -e 'JSON.stringify(process.env)'
-  """
-  exec command, cwd: dirname(script), (err, stdout) ->
-    return callback err if err
-    try
-      callback null, JSON.parse stdout
-    catch exception
-      callback exception
 
 # Connect depends on Function.prototype.length to determine
 # whether a given middleware is an error handler. These wrappers
@@ -58,32 +46,11 @@ module.exports = class HttpServer extends connect.Server
     if handler = @handlers[root]
       callback null, handler
     else
-      @getEnvForRoot root, (err, env) =>
-        return callback err if err
-        callback null, @handlers[root] =
-          root: root
-          app:  @createApplication(join(root, "config.ru"), env)
-          env:  env
-
-  getEnvForRoot: (root, callback) ->
-    path = join root, ".powrc"
-    fs.stat path, (err) ->
-      if err
-        callback null, {}
-      else
-        sourceScriptEnv path, callback
-
-  createApplication: (configurationPath, env) ->
-    app = nack.createServer configurationPath,
-      idle: @configuration.timeout
-      env: env
-    sys.pump app.pool.stdout, process.stdout
-    sys.pump app.pool.stderr, process.stdout
-    app
+      @handlers[root] = new RackHandler @configuration, root, callback
 
   closeApplications: =>
-    for root, {app} of @handlers
-      app.pool.quit()
+    for root, handler of @handlers
+      handler.quit()
 
   logRequest: (req, res, next) =>
     @accessLog.info "[#{req.socket.remoteAddress}] #{req.method} #{req.headers.host} #{req.url}"
@@ -98,24 +65,10 @@ module.exports = class HttpServer extends connect.Server
       req.pow.handler = handler
 
       if handler and not err
-        @restartIfNecessary handler, =>
-          req.proxyMetaVariables =
-            SERVER_PORT: @configuration.dstPort.toString()
-          try
-            handler.app.handle req, res, next
-          finally
-            resume()
+        handler.handle req, res, next, resume
       else
         next err
         resume()
-
-  restartIfNecessary: ({root, app}, callback) ->
-    fs.unlink join(root, "tmp/restart.txt"), (err) ->
-      if err
-        callback()
-      else
-        app.pool.once "exit", callback
-        app.pool.quit()
 
   handleApplicationException: (err, req, res, next) =>
     return next() unless req.pow?.handler

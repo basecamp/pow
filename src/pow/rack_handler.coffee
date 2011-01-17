@@ -47,7 +47,7 @@ module.exports = class RackHandler
 
   handle: (pausedReq, res, next, resume) ->
     @ready => @restartIfNecessary =>
-      req.proxyMetaVariables =
+      pausedReq.proxyMetaVariables =
         SERVER_PORT: @configuration.dstPort.toString()
       try
         @app.handle pausedReq, res, next

@@ -1,7 +1,8 @@
 fs   = require "fs"
 nack = require "nack"
 
-{join, dirname} = require "path"
+{LineBuffer} = require "nack/util"
+{join, dirname, basename} = require "path"
 
 sourceScriptEnv = (script, callback) ->
   command = """
@@ -23,21 +24,35 @@ getEnvForRoot = (root, callback) ->
     else
       sourceScriptEnv path, callback
 
+bufferLines = (stream, callback) ->
+  buffer = new LineBuffer stream
+  buffer.on "data", callback
+  buffer
+
 module.exports = class RackHandler
   constructor: (@configuration, @root, callback) ->
+    @logger = @configuration.getLogger join "apps", basename @root
     @readyCallbacks = []
+
+    createServer = =>
+      @app = nack.createServer join(@root, "config.ru"), @env
+
+    processReadyCallbacks = =>
+      readyCallback() for readyCallback in @readyCallbacks
+      @readyCallbacks = []
+
+    installLogHandlers = =>
+      bufferLines @app.pool.stdout, (line) => @logger.info line
+      bufferLines @app.pool.stderr, (line) => @logger.warn line
+
     getEnvForRoot @root, (err, @env) =>
       if err
         callback? err
       else
-        @app = nack.createServer join(@root, "config.ru"), @env
+        createServer()
+        installLogHandlers()
         callback null, @
-        readyCallback() for readyCallback in @readyCallbacks
-        @readyCallbacks = []
-
-    # TODO
-    # sys.pump app.pool.stdout, process.stdout
-    # sys.pump app.pool.stderr, process.stdout
+        processReadyCallbacks()
 
   ready: (callback) ->
     if @app

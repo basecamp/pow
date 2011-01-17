@@ -1,28 +1,14 @@
-fs    = require "fs"
-path  = require "path"
-async = require "async"
+fs       = require "fs"
+path     = require "path"
+async    = require "async"
+Logger   = require "./logger"
+{mkdirp} = require "./util"
 
 getFilenamesForHost = (host) ->
   parts = host.split "."
   length = parts.length - 2
   for i in [0..length]
     parts.slice(i, length + 1).join "."
-
-mkdirp = (dirname, callback) ->
-  fs.lstat (p = path.normalize dirname), (err, stats) ->
-    if err
-      paths = [p].concat(p = path.dirname p until p in ["/", "."])
-      async.forEachSeries paths.reverse(), (p, next) ->
-        path.exists p, (exists) ->
-          if exists then next()
-          else fs.mkdir p, 0755, (err) ->
-            if err then callback err
-            else next()
-      , callback
-    else if stats.isDirectory()
-      callback()
-    else
-      callback "file exists"
 
 module.exports = class Configuration
   constructor: (options = {}) ->
@@ -32,6 +18,11 @@ module.exports = class Configuration
     @timeout  = options.timeout  ? 15 * 60 * 1000
     @domain   = options.domain   ? "test"
     @root     = options.root     ? path.join process.env.HOME, ".pow"
+    @logRoot  = options.logRoot  ? path.join @root, ".log"
+    @loggers  = {}
+
+  getLogger: (name) ->
+    @loggers[name] ||= new Logger path.join @logRoot, name + ".log"
 
   findApplicationRootForHost: (host, callback) ->
     @gatherApplicationRoots (err, roots) =>

@@ -38,11 +38,13 @@ x = (fn) -> (err, req, res, next) -> fn err, req, res, next
 module.exports = class HttpServer extends connect.Server
   constructor: (@configuration) ->
     super [
+      o @logRequest
       o @handleRequest
       x @handleApplicationException
       o @handleNonexistentDomain
     ]
     @handlers = {}
+    @accessLog = @configuration.getLogger "access"
     @on "close", @closeApplications
 
   getHandlerForHost: (host, callback) ->
@@ -82,6 +84,10 @@ module.exports = class HttpServer extends connect.Server
   closeApplications: =>
     for root, {app} of @handlers
       app.pool.quit()
+
+  logRequest: (req, res, next) =>
+    @accessLog.info "[#{req.socket.remoteAddress}] #{req.method} #{req.headers.host} #{req.url}"
+    next()
 
   handleRequest: (req, res, next) =>
     host    = getHost req

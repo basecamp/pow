@@ -44,9 +44,9 @@ module.exports = class RackHandler
     installLogHandlers = =>
       bufferLines @app.pool.stdout, (line) => @logger.info line
       bufferLines @app.pool.stderr, (line) => @logger.warn line
-      for event in ["ready", "spawn", "busy", "exit"] then do (event) =>
+      for event in ["spawn", "exit"] then do (event) =>
         @app.pool.on "worker:#{event}", (process) =>
-          @logger.debug "nack worker #{process.child.pid} #{event}"
+          @logger.debug "nack worker #{process.child.pid} #{event}ed"
 
     getEnvForRoot @root, (err, @env) =>
       if err

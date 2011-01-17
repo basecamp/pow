@@ -44,7 +44,7 @@ module.exports = class RackHandler
 
     installLogHandlers = =>
       bufferLines @app.pool.stdout, (line) => @logger.info line
-      bufferLines @app.pool.stderr, (line) => @logger.warn line
+      bufferLines @app.pool.stderr, (line) => @logger.warning line
 
       @app.pool.on "worker:spawn", (process) =>
         @logger.debug "nack worker #{process.child.pid} spawned"

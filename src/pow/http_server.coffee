@@ -41,9 +41,9 @@ module.exports = class HttpServer extends connect.Server
       @getHandlerForRoot root, callback
 
   getHandlerForRoot: (root, callback) ->
-    return unless root
-
-    if handler = @handlers[root]
+    if not root
+      callback()
+    else if handler = @handlers[root]
       callback null, handler
     else
       @handlers[root] = new RackHandler @configuration, root, callback
@@ -64,10 +64,14 @@ module.exports = class HttpServer extends connect.Server
     @getHandlerForHost host, (err, handler) =>
       req.pow.handler = handler
 
-      if handler and not err
-        handler.handle req, res, next, resume
+      if handler
+        if err
+          next err
+          resume()
+        else
+          handler.handle req, res, next, resume
       else
-        next err
+        @handleNonexistentDomain req, res, next
         resume()
 
   handleApplicationException: (err, req, res, next) =>

@@ -45,14 +45,14 @@ module.exports = class RackHandler
     else
       @readyCallbacks.push callback
 
-  handle: (req, res, next, callback) ->
+  handle: (pausedReq, res, next, resume) ->
     @ready => @restartIfNecessary =>
       req.proxyMetaVariables =
         SERVER_PORT: @configuration.dstPort.toString()
       try
-        @app.handle req, res, next
+        @app.handle pausedReq, res, next
       finally
-        callback()
+        resume()
 
   quit: (callback) ->
     if @app

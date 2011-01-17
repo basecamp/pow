@@ -27,6 +27,6 @@ module.exports = class Logger
 for method in Logger.LEVELS then do (method) ->
   Logger::[method] = ->
     if @buffer
-      @buffer.push method, arguments
+      @buffer.push [method, arguments]
     else
       @log[method].apply @log, arguments

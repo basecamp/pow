@@ -3,6 +3,7 @@ nack = require "nack"
 
 {LineBuffer} = require "nack/util"
 {join, dirname, basename} = require "path"
+{exec } = require "child_process"
 
 sourceScriptEnv = (script, callback) ->
   command = """

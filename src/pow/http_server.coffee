@@ -1,6 +1,5 @@
 fs          = require "fs"
 sys         = require "sys"
-{exec}      = require "child_process"
 connect     = require "connect"
 {pause}     = require "nack/util"
 RackHandler = require "./rack_handler"

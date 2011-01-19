@@ -36,7 +36,7 @@ module.exports = class RackHandler
     @readyCallbacks = []
 
     createServer = =>
-      @app = nack.createServer join(@root, "config.ru"), @env
+      @app = nack.createServer join(@root, "config.ru"), env: @env
 
     processReadyCallbacks = =>
       readyCallback() for readyCallback in @readyCallbacks

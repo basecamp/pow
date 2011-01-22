@@ -41,13 +41,13 @@ module.exports = class Configuration
         async.forEach files, (file, next) =>
           root = path.join @root, file
           fs.lstat root, (err, stats) ->
-            if stats.isSymbolicLink()
+            if stats?.isSymbolicLink()
               fs.realpath root, (err, resolvedPath) ->
                 if err then next()
                 else fs.lstat resolvedPath, (err, stats) ->
                   roots[file] = resolvedPath if stats?.isDirectory()
                   next()
-            else if stats.isDirectory()
+            else if stats?.isDirectory()
               roots[file] = root
               next()
             else

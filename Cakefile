@@ -1,5 +1,4 @@
-require.paths.push __dirname + "/lib"
-require.paths.push __dirname + "/test"
+require.paths.unshift __dirname + "/src"
 
 {print} = require 'sys'
 {spawn} = require 'child_process'

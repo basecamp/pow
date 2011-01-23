@@ -14,7 +14,7 @@ module.exports = class Daemon extends EventEmitter
     return if @starting or @started
     @starting = true
 
-    startServer = (server, port, callback) ->
+    startServer = (server, port, callback) -> process.nextTick ->
       try
         server.listen port, -> callback null
       catch err
@@ -29,6 +29,7 @@ module.exports = class Daemon extends EventEmitter
       @starting = false
       try @httpServer.close()
       try @dnsServer.close()
+      @emit "error", err
 
     {httpPort, dnsPort} = @configuration
     startServer @httpServer, httpPort, (err) =>
@@ -41,7 +42,7 @@ module.exports = class Daemon extends EventEmitter
     return if @stopping or !@started
     @stopping = true
 
-    stopServer = (server, callback) ->
+    stopServer = (server, callback) -> process.nextTick ->
       try
         close = ->
           server.removeListener "close", close

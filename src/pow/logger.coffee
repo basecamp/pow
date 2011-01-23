@@ -8,12 +8,6 @@ module.exports = class Logger
 
   constructor: (@path, @level = "debug") ->
     @pause()
-    mkdirp dirname(@path), (err) =>
-      return if err
-      @stream = fs.createWriteStream @path, flags: "a"
-      @stream.on "open", =>
-        @log = new Log @level, @stream
-        @resume()
 
   pause: ->
     @buffer ||= []
@@ -24,9 +18,24 @@ module.exports = class Logger
       @log[level](args...)
     @buffer = null
 
-for method in Logger.LEVELS then do (method) ->
-  Logger::[method] = ->
-    if @buffer
-      @buffer.push [method, arguments]
+  open: (callback) ->
+    if @stream
+      callback.call @
     else
-      @log[method].apply @log, arguments
+      mkdirp dirname(@path), (err) =>
+        return if err
+        @stream = fs.createWriteStream @path, flags: "a"
+        @stream.on "open", =>
+          @log = new Log @level, @stream
+          @resume()
+          callback.call @
+
+  perform: (level, args...) =>
+    if @buffer
+      @buffer.push [level, args]
+    else
+      @log[level].apply @log, args
+
+for level in Logger.LEVELS then do (level) ->
+  Logger::[level] = (args...) ->
+    @open -> @perform level, args

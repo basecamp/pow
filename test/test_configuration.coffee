@@ -64,3 +64,12 @@ module.exports = testCase
       matchHostToRoot "directory"
       matchHostToRoot "nonexistent.test"
     ], test.done
+
+  "findApplicationRootForHost with alternate domain": (test) ->
+    configuration = new Configuration root: fixturePath("configuration"), domain: "dev.local"
+    test.expect 2
+    configuration.findApplicationRootForHost "directory.dev.local", (err, root) ->
+      test.same fixturePath("configuration/directory"), root
+      configuration.findApplicationRootForHost "directory.test", (err, root) ->
+        test.ok !root
+        test.done()

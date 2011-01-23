@@ -4,11 +4,14 @@ async    = require "async"
 Logger   = require "./logger"
 {mkdirp} = require "./util"
 
-getFilenamesForHost = (host) ->
-  parts = host.split "."
-  length = parts.length - 2
-  for i in [0..length]
-    parts.slice(i, length + 1).join "."
+getFilenamesForHost = (host, domain) ->
+  if host.slice(-domain.length - 1) is ".#{domain}"
+    parts  = host.slice(0, -domain.length - 1).split "."
+    length = parts.length
+    for i in [0...length]
+      parts.slice(i, length).join "."
+  else
+    []
 
 module.exports = class Configuration
   constructor: (options = {}) ->
@@ -27,7 +30,7 @@ module.exports = class Configuration
   findApplicationRootForHost: (host, callback) ->
     @gatherApplicationRoots (err, roots) =>
       return callback err if err
-      for file in getFilenamesForHost host
+      for file in getFilenamesForHost host, @domain
         if root = roots[file]
           return callback null, root
       callback null

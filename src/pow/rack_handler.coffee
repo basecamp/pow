@@ -1,9 +1,9 @@
 fs   = require "fs"
 nack = require "nack"
 
-{LineBuffer} = require "nack/util"
+{LineBuffer, pause} = require "nack/util"
 {join, dirname, basename} = require "path"
-{exec } = require "child_process"
+{exec} = require "child_process"
 
 sourceScriptEnv = (script, callback) ->
   command = """
@@ -67,14 +67,16 @@ module.exports = class RackHandler
     else
       @readyCallbacks.push callback
 
-  handle: (pausedReq, res, next, resume) ->
+  handle: (req, res, next, callback) ->
+    resume = pause req
     @ready => @restartIfNecessary =>
-      pausedReq.proxyMetaVariables =
+      req.proxyMetaVariables =
         SERVER_PORT: @configuration.dstPort.toString()
       try
-        @app.handle pausedReq, res, next
+        @app.handle req, res, next
       finally
         resume()
+        callback?()
 
   quit: (callback) ->
     if @app

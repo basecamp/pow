@@ -35,4 +35,6 @@ module.exports = testCase
         testResolves "a.b.c.powtest", "NOERROR", "127.0.0.1"
         testResolves "powtest.",      "NOERROR", "127.0.0.1"
         testResolves "foo.",          "NXDOMAIN"
-      ], test.done
+      ], ->
+        dnsServer.close()
+        test.done()

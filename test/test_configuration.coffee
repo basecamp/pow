@@ -1,29 +1,13 @@
-{exec}     = require "child_process"
-fs         = require "fs"
-{join}     = require "path"
-async      = require "async"
-{testCase} = require "nodeunit"
-
+async         = require "async"
+fs            = require "fs"
+{testCase}    = require "nodeunit"
 Configuration = require "pow/configuration"
 
-fixturePath = (path) ->
-  join fs.realpathSync(__dirname), "fixtures", path
-
-rm_rf = (path, callback) ->
-  exec "rm -rf #{path}", (err, stdout, stderr) ->
-    if err then callback err
-    else callback()
-
-mkdirp = (path, callback) ->
-  exec "mkdir -p #{path}", (err, stdout, stderr) ->
-    if err then callback err
-    else callback()
+{prepareFixtures, fixturePath} = require "test_helper"
 
 module.exports = testCase
   setUp: (proceed) ->
-    rm_rf fixturePath("tmp"), ->
-      mkdirp fixturePath("tmp"), ->
-        proceed()
+    prepareFixtures proceed
 
   "gatherApplicationRoots returns directories and symlinks to directories": (test) ->
     test.expect 1

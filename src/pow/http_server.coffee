@@ -76,7 +76,7 @@ module.exports = class HttpServer extends connect.Server
   handleApplicationException: (err, req, res, next) =>
     return next() unless req.pow?.handler
 
-    res.writeHead 500, "Content-Type", "text/html; charset=utf8"
+    res.writeHead 500, "Content-Type": "text/html; charset=utf8", "X-Pow-Handler": "ApplicationException"
     res.end """
       <!doctype html>
       <html>
@@ -120,7 +120,7 @@ module.exports = class HttpServer extends connect.Server
     name = host.slice 0, host.length - @configuration.domain.length - 1
     path = join @configuration.root, name
 
-    res.writeHead 503, "Content-Type": "text/html; charset=utf8"
+    res.writeHead 503, "Content-Type": "text/html; charset=utf8", "X-Pow-Handler": "NonexistentDomain"
     res.end """
       <!doctype html>
       <html>

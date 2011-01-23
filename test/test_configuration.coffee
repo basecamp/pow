@@ -73,3 +73,24 @@ module.exports = testCase
       configuration.findApplicationRootForHost "directory.test", (err, root) ->
         test.ok !root
         test.done()
+
+  "getLogger returns the same logger instance": (test) ->
+    configuration = new Configuration root: fixturePath("tmp")
+    logger = configuration.getLogger "test"
+    test.expect 2
+    test.ok logger is   configuration.getLogger "test"
+    test.ok logger isnt configuration.getLogger "test2"
+    test.done()
+
+  "getLogger returns a logger with the specified log root": (test) ->
+    test.expect 2
+
+    configuration = new Configuration root: fixturePath("tmp")
+    logger = configuration.getLogger "test"
+    test.same fixturePath("tmp/.log/test.log"), logger.path
+
+    configuration = new Configuration root: fixturePath("tmp/config"), logRoot: fixturePath("tmp/logs")
+    logger = configuration.getLogger "test"
+    test.same fixturePath("tmp/logs/test.log"), logger.path
+
+    test.done()

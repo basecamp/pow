@@ -58,7 +58,7 @@ module.exports = class RackHandler
       else
         createServer()
         installLogHandlers()
-        callback null, @
+        callback? null, @
         processReadyCallbacks()
 
   ready: (callback) ->

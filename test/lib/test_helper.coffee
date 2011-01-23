@@ -11,11 +11,16 @@ exports.prepareFixtures = (callback) ->
       callback()
 
 exports.rm_rf = rm_rf = (path, callback) ->
-  exec "rm -rf #{path}", (err, stdout, stderr) ->
+  exec "rm -rf #{path}", (err) ->
     if err then callback err
     else callback()
 
 exports.mkdirp = mkdirp = (path, callback) ->
-  exec "mkdir -p #{path}", (err, stdout, stderr) ->
+  exec "mkdir -p #{path}", (err) ->
+    if err then callback err
+    else callback()
+
+exports.touch = touch = (path, callback) ->
+  exec "touch #{path}", (err) ->
     if err then callback err
     else callback()

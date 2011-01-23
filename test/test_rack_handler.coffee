@@ -6,9 +6,34 @@ express       = require "express"
 Configuration = require "pow/configuration"
 RackHandler   = require "pow/rack_handler"
 
-{prepareFixtures, fixturePath} = require "test_helper"
+{prepareFixtures, fixturePath, touch} = require "test_helper"
 
-PORT = 20561
+serve = (path, callback) ->
+  handler = handlerFor path
+  server  = express.createServer()
+  server.get "/", (req, res, next) ->
+    handler.handle req, res, next
+  server.listen 0, ->
+    request = createRequester server.address().port
+    callback request, (callback) ->
+      server.close()
+      handler.quit callback
+
+createRequester = (port) ->
+  (method, path, headers, callback) ->
+    callback = headers unless callback
+    client   = http.createClient port
+    request  = client.request method, path, headers
+    request.end()
+    request.on "response", (response) ->
+      body = ""
+      response.on "data", (chunk) -> body += chunk.toString "utf8"
+      response.on "end", ->
+        callback body, response
+
+handlerFor = (path) ->
+  configuration = new Configuration root: fixturePath("apps"), logRoot: fixturePath("tmp/logs")
+  new RackHandler configuration, fixturePath(path)
 
 module.exports = testCase
   setUp: (proceed) ->
@@ -16,20 +41,27 @@ module.exports = testCase
 
   "handling a request": (test) ->
     test.expect 1
+    serve "apps/hello", (request, done) ->
+      request "GET", "/", (body) ->
+        test.same "Hello", body
+        done -> test.done()
 
-    configuration = new Configuration root: fixturePath("apps"), logRoot: fixturePath("tmp/logs")
+  "handling multiple requests": (test) ->
+    test.expect 2
+    serve "apps/pid", (request, done) ->
+      request "GET", "/", (body) ->
+        test.ok pid = parseInt body
+        request "GET", "/", (body) ->
+          test.ok pid is parseInt body
+          done -> test.done()
 
-    handler = new RackHandler configuration, fixturePath("apps/hello")
-    server  = express.createServer()
-    server.get "/", (req, res, next) -> handler.handle req, res, next
-    server.listen PORT, ->
-      client  = http.createClient PORT
-      request = client.request "GET", "/", host: "hello.test"
-      request.end()
-      request.on "response", (response) ->
-        body = ""
-        response.on "data", (chunk) -> body += chunk.toString "utf8"
-        response.on "end", ->
-          test.same "Hello", body
-          server.close()
-          test.done()
+  "handling a request, restart, request": (test) ->
+    test.expect 3
+    serve "apps/pid", (request, done) ->
+      request "GET", "/", (body) ->
+        test.ok pid = parseInt body
+        touch fixturePath("apps/pid/tmp/restart.txt"), ->
+          request "GET", "/", (body) ->
+            test.ok newpid = parseInt body
+            test.ok pid isnt newpid
+            done -> test.done()

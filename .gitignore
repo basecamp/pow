@@ -1,2 +1,2 @@
-test/fixtures/tmp
-
+/test/fixtures/*/tmp/restart.txt
+/test/fixtures/tmp/

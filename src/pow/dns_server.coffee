@@ -1,7 +1,7 @@
 ndns = require "ndns"
 
 compilePattern = (domain) ->
-  /// \. #{domain} \.? $ ///
+  /// (^|\.) #{domain} \.? $ ///
 
 module.exports = class DnsServer extends ndns.Server
   constructor: (@configuration) ->

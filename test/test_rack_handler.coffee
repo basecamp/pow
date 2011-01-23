@@ -65,3 +65,10 @@ module.exports = testCase
             test.ok newpid = parseInt body
             test.ok pid isnt newpid
             done -> test.done()
+
+  "custom environment": (test) ->
+    test.expect 1
+    serve "apps/env", (request, done) ->
+      request "GET", "/", (body) ->
+        test.same "Hello Pow", body
+        done -> test.done()

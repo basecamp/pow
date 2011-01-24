@@ -37,7 +37,7 @@ module.exports = testCase
       request "GET", "/", (body) ->
         test.ok pid = parseInt body
         request "GET", "/", (body) ->
-          test.ok pid is parseInt body
+          test.same pid, parseInt body
           done -> test.done()
 
   "handling a request, restart, request": (test) ->

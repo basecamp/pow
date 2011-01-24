@@ -26,10 +26,17 @@ exports.touch = touch = (path, callback) ->
     if err then callback err
     else callback()
 
+exports.debug = debug = ->
+  if process.env.DEBUG
+    console.error.apply console, arguments
+
 exports.serve = serve = (server, callback) ->
   server.listen 0, ->
+    port = server.address().port
+    debug "server listening on port #{port}"
     request = createRequester server.address().port
     callback request, (callback) ->
+      debug "server on port #{port} is closing"
       server.close()
       callback()
 
@@ -39,8 +46,12 @@ exports.createRequester = createRequester = (port) ->
     client   = http.createClient port
     request  = client.request method, path, headers
     request.end()
+    debug "client requesting #{method} #{path} on port #{port}"
     request.on "response", (response) ->
       body = ""
-      response.on "data", (chunk) -> body += chunk.toString "utf8"
+      response.on "data", (chunk) ->
+        debug "client received #{chunk.length} bytes from server on port #{port}"
+        body += chunk.toString "utf8"
       response.on "end", ->
+        debug "client disconnected from server on port #{port}"
         callback body, response

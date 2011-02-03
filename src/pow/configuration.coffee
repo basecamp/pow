@@ -19,6 +19,7 @@ module.exports = class Configuration
     @httpPort = options.httpPort ? 20559
     @dnsPort  = options.dnsPort  ? 20560
     @timeout  = options.timeout  ? 15 * 60 * 1000
+    @workers  = options.workers  ? 2
     @domain   = options.domain   ? "test"
     @root     = options.root     ? path.join process.env.HOME, ".pow"
     @logRoot  = options.logRoot  ? path.join @root, ".log"

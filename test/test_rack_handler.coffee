@@ -9,7 +9,7 @@ RackHandler   = require "pow/rack_handler"
 {prepareFixtures, fixturePath, touch, serve} = require "test_helper"
 
 serveApp = (path, callback) ->
-  configuration = new Configuration root: fixturePath("apps"), logRoot: fixturePath("tmp/logs")
+  configuration = new Configuration root: fixturePath("apps"), logRoot: fixturePath("tmp/logs"), workers: 1
   handler       = new RackHandler configuration, fixturePath(path)
   server        = express.createServer()
 

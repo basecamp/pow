@@ -1,5 +1,7 @@
-fs   = require "fs"
-nack = require "nack"
+async = require "async"
+path  = require "path"
+fs    = require "fs"
+nack  = require "nack"
 
 {LineBuffer, pause} = require "nack/util"
 {join, dirname, basename} = require "path"
@@ -17,13 +19,15 @@ sourceScriptEnv = (script, callback) ->
     catch exception
       callback exception
 
+envFilenames = [".powrc", ".envrc"]
+
 getEnvForRoot = (root, callback) ->
-  path = join root, ".powrc"
-  fs.stat path, (err) ->
-    if err
-      callback null, {}
+  files = (join(root, filename) for filename in envFilenames)
+  async.detect envFilenames, path.exists, (filename) ->
+    if filename
+      sourceScriptEnv filename, callback
     else
-      sourceScriptEnv path, callback
+      callback null, {}
 
 bufferLines = (stream, callback) ->
   buffer = new LineBuffer stream

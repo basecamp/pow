@@ -1,4 +1,4 @@
-ndns = require "./ndns"
+ndns = require "ndns"
 
 compilePattern = (domain) ->
   /// (^|\.) #{domain} \.? $ ///

@@ -7,6 +7,7 @@ task 'build', 'Build CoffeeScript source files', ->
 
 task 'test', 'Run the Pow test suite', ->
   require.paths.unshift __dirname + "/src"
+  require.paths.unshift __dirname + "/lib"
   require.paths.unshift __dirname + "/test/lib"
 
   {reporters} = require 'nodeunit'

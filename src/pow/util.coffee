@@ -2,6 +2,8 @@ fs    = require "fs"
 path  = require "path"
 async = require "async"
 
+{Stream} = require 'stream'
+
 exports.mkdirp = (dirname, callback) ->
   fs.lstat (p = path.normalize dirname), (err, stats) ->
     if err

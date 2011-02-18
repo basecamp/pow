@@ -6,7 +6,6 @@
   { "type": "git"
   , "url": "http://github.com/sstephenson/pow.git"
   }
-, "directories": { "lib": "./lib/pow" }
 , "bin": { "pow": "./bin/pow", "pow_firewall": "./bin/pow_firewall" }
 , "dependencies": {
     "async": "0.1.7"

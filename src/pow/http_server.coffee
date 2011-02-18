@@ -1,7 +1,7 @@
 fs          = require "fs"
 sys         = require "sys"
 connect     = require "connect"
-{pause}     = require "nack/util"
+{pause}     = require "./util"
 RackHandler = require "./rack_handler"
 
 {dirname, join}  = require "path"

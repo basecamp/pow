@@ -3,7 +3,7 @@ path  = require "path"
 fs    = require "fs"
 nack  = require "nack"
 
-{LineBuffer, pause} = require "nack/util"
+{LineBuffer, pause} = require "./util"
 {join, dirname, basename} = require "path"
 {exec} = require "child_process"
 

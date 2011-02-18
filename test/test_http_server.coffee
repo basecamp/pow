@@ -1,10 +1,10 @@
-http          = require "http"
-Configuration = require "pow/configuration"
-HttpServer    = require "pow/http_server"
-async         = require "async"
-{testCase}    = require "nodeunit"
+http            = require "http"
+{Configuration} = require ".."
+{HttpServer}    = require ".."
+async           = require "async"
+{testCase}      = require "nodeunit"
 
-{prepareFixtures, fixturePath, serve} = require "test_helper"
+{prepareFixtures, fixturePath, serve} = require "./lib/test_helper"
 
 serveRoot = (root, options, callback) ->
   unless callback

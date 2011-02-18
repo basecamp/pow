@@ -1,10 +1,10 @@
-Configuration = require "pow/configuration"
-DnsServer     = require "pow/dns_server"
-async         = require "async"
-{exec}        = require "child_process"
-{testCase}    = require "nodeunit"
+{Configuration} = require ".."
+{DnsServer}     = require ".."
+async           = require "async"
+{exec}          = require "child_process"
+{testCase}      = require "nodeunit"
 
-{prepareFixtures, fixturePath} = require "test_helper"
+{prepareFixtures, fixturePath} = require "./lib/test_helper"
 
 module.exports = testCase
   setUp: (proceed) ->

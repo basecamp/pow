@@ -1,9 +1,9 @@
-async         = require "async"
-fs            = require "fs"
-{testCase}    = require "nodeunit"
-Configuration = require "pow/configuration"
+async           = require "async"
+fs              = require "fs"
+{testCase}      = require "nodeunit"
+{Configuration} = require ".."
 
-{prepareFixtures, fixturePath} = require "test_helper"
+{prepareFixtures, fixturePath} = require "./lib/test_helper"
 
 module.exports = testCase
   setUp: (proceed) ->

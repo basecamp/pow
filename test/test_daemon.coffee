@@ -1,7 +1,7 @@
 net = require "net"
 {testCase} = require "nodeunit"
 {Configuration, Daemon} = require "pow"
-{prepareFixtures, fixturePath} = require "test_helper"
+{prepareFixtures, fixturePath} = require "./lib/test_helper"
 
 module.exports = testCase
   setUp: (proceed) ->

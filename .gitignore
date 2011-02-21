@@ -1,2 +1,3 @@
 /test/fixtures/*/tmp/restart.txt
 /test/fixtures/tmp/
+node_modules

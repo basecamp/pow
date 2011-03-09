@@ -24,6 +24,7 @@ echo "*** Installing Pow $VERSION..."
 
 mkdir -p "$POW_ROOT"
 cd "$POW_ROOT"
+mkdir -p Hosts
 mkdir -p Versions
 cd Versions
 curl -s http://get.pow.cx.s3-website-us-east-1.amazonaws.com/versions/$VERSION.tar.gz | tar xzf -
@@ -31,8 +32,11 @@ cd ..
 rm -f Current
 ln -s Versions/$VERSION Current
 
-mkdir -p ~/Library/LaunchAgents
-cat > ~/Library/LaunchAgents/cx.pow.powd.plist <<EOF
+cd
+[[ -a .pow ]] || ln -s "$POW_ROOT/Hosts" .pow
+
+mkdir -p Library/LaunchAgents
+cat > Library/LaunchAgents/cx.pow.powd.plist <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">

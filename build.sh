@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 VERSION=$(node -e 'JSON.parse(require("fs").readFileSync("package.json","utf8")).version')
 ROOT=dist/$VERSION

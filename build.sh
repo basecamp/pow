@@ -10,3 +10,6 @@ cp -R lib node_modules $ROOT
 cp `which node` $ROOT/bin
 cp bin/pow* $ROOT/bin
 cp package.json $ROOT
+
+cd dist
+tar czvf $VERSION.tar.gz $VERSION

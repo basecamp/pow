@@ -17,7 +17,7 @@
 #
 
 set -e
-VERSION=0.1.0
+VERSION=0.1.1
 POW_ROOT="$HOME/Library/Application Support/Pow"
 
 echo "*** Installing Pow $VERSION..."

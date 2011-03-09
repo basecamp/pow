@@ -1,6 +1,6 @@
 { "name": "pow"
 , "description": "Zero-configuration development server for Rack applications"
-, "version": "0.1.0"
+, "version": "0.1.1"
 , "author": "Sam Stephenson"
 , "repository":
   { "type": "git"
@@ -12,7 +12,7 @@
     "async": "0.1.7"
   , "connect": ">= 1.0.3"
   , "log": ">= 1.1.1"
-  , "nack": ">= 0.8.4"
+  , "nack": ">= 0.8.5"
   }
 , "engines" : { "node" : ">=0.4.1" }
 }

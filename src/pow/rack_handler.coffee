@@ -9,7 +9,7 @@ nack  = require "nack"
 
 sourceScriptEnv = (script, callback) ->
   command = """
-    source #{script} > /dev/null;
+    source '#{script}' > /dev/null;
     #{process.execPath} -e 'JSON.stringify(process.env)'
   """
   exec command, cwd: dirname(script), (err, stdout) ->
@@ -39,6 +39,8 @@ module.exports = class RackHandler
     @logger = @configuration.getLogger join "apps", basename @root
     @readyCallbacks = []
 
+    callback ?= (err) -> throw err if err
+
     createServer = =>
       @app = nack.createServer join(@root, "config.ru"),
         env:  @env
@@ -60,11 +62,11 @@ module.exports = class RackHandler
 
     getEnvForRoot @root, (err, @env) =>
       if err
-        callback? err
+        callback err
       else
         createServer()
         installLogHandlers()
-        callback? null, @
+        callback null, @
         processReadyCallbacks()
 
   ready: (callback) ->

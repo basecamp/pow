@@ -1,7 +1,3 @@
-#!/usr/bin/env node
-
-var pow = require("pow");
-process.title = "pow";
-
-var daemon = new pow.Daemon(new pow.Configuration);
-daemon.start();
+#!/bin/sh
+BIN=$(dirname $0)
+exec $BIN/node $BIN/../lib/pow/command.js

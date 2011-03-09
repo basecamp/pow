@@ -1,9 +1,0 @@
-Design goals
-
-1. Don't touch the system. Pow runs as the current user on an unprivileged port. You need to stick something in front of it (Apache or nginx) or use IP forwarding to access it at port 80.
-
-2. Avoid configuration files. Instead, a subdirectory of symlinks to rackup files serves as a mapping between hostname and application.
-
-3. Delegate to Unicorn wherever possible. Support multiple versions of Unicorn via bundler and bundle exec.
-
-4. Fail gracefully and show helpful error messages when possible.

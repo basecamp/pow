@@ -10,7 +10,7 @@ nack  = require "nack"
 sourceScriptEnv = (script, callback) ->
   command = """
     source '#{script}' > /dev/null;
-    #{process.execPath} -e 'JSON.stringify(process.env)'
+    '#{process.execPath}' -e 'JSON.stringify(process.env)'
   """
   exec command, cwd: dirname(script), (err, stdout) ->
     return callback err if err

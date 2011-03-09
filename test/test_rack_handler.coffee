@@ -1,7 +1,7 @@
 async           = require "async"
+connect         = require "connect"
 fs              = require "fs"
 http            = require "http"
-express         = require "express"
 {testCase}      = require "nodeunit"
 {RackHandler}   = require ".."
 
@@ -10,10 +10,13 @@ express         = require "express"
 serveApp = (path, callback) ->
   configuration = createConfiguration hostRoot: fixturePath("apps"), workers: 1
   handler       = new RackHandler configuration, fixturePath(path)
-  server        = express.createServer()
+  server        = connect.createServer()
 
-  server.get "/", (req, res, next) ->
-    handler.handle req, res, next
+  server.use (req, res, next) ->
+    if req.url is "/"
+      handler.handle req, res, next
+    else
+      next()
 
   serve server, (request, done) ->
     callback request, (callback) ->

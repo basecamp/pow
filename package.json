@@ -10,9 +10,9 @@
 , "main": "./lib/pow"
 , "dependencies": {
     "async": "0.1.7"
-  , "connect": ">= 0.5.4"
+  , "connect": ">= 1.0.3"
   , "log": ">= 1.1.1"
-  , "nack": ">= 0.7.1"
+  , "nack": ">= 0.8.4"
   }
-, "engines" : { "node" : ">=0.2.0" }
+, "engines" : { "node" : ">=0.4.1" }
 }

@@ -22,7 +22,7 @@ escapeHTML = (string) ->
 o = (fn) -> (req, res, next)      -> fn req, res, next
 x = (fn) -> (err, req, res, next) -> fn err, req, res, next
 
-module.exports = class HttpServer extends connect.Server
+module.exports = class HttpServer extends connect.HTTPServer
   constructor: (@configuration) ->
     super [
       o @logRequest

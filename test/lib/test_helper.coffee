@@ -5,6 +5,8 @@ http   = require "http"
 
 {Configuration} = require "../.."
 
+process.env["RUBYOPT"] = "-rubygems"
+
 exports.createConfiguration = (options = {}) ->
   options.hostRoot ?= fixturePath("tmp")
   options.logRoot  ?= fixturePath("tmp/logs")

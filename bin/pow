@@ -1,3 +1,4 @@
 #!/bin/sh
-BIN=$(dirname $0)
+FILE=$(test -L "$0" && readlink "$0" || echo "$0")
+BIN=$(dirname "$FILE")
 exec $BIN/node $BIN/../lib/pow/command.js

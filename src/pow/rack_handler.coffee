@@ -23,7 +23,7 @@ envFilenames = [".powrc", ".envrc"]
 
 getEnvForRoot = (root, callback) ->
   files = (join(root, filename) for filename in envFilenames)
-  async.detect envFilenames, path.exists, (filename) ->
+  async.detect files, path.exists, (filename) ->
     if filename
       sourceScriptEnv filename, callback
     else

@@ -10,7 +10,7 @@ module.exports = testCase
   "start and stop": (test) ->
     test.expect 2
 
-    configuration = new Configuration root: fixturePath("tmp"), httpPort: 0, dnsPort: 0
+    configuration = new Configuration hostRoot: fixturePath("tmp"), httpPort: 0, dnsPort: 0
     daemon = new Daemon configuration
 
     daemon.start()
@@ -27,7 +27,7 @@ module.exports = testCase
     server = net.createServer()
     server.listen 0, ->
       port = server.address().port
-      configuration = new Configuration root: fixturePath("tmp"), httpPort: port
+      configuration = new Configuration hostRoot: fixturePath("tmp"), httpPort: port
       daemon = new Daemon configuration
 
       daemon.start()

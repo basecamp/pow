@@ -13,6 +13,9 @@ getFilenamesForHost = (host, domain) ->
   else
     []
 
+libraryPath = (args...) ->
+  path.join process.env.HOME, "Library", args...
+
 module.exports = class Configuration
   constructor: (options = {}) ->
     @dstPort  = options.dstPort  ? 80
@@ -21,8 +24,8 @@ module.exports = class Configuration
     @timeout  = options.timeout  ? 15 * 60 * 1000
     @workers  = options.workers  ? 2
     @domain   = options.domain   ? "test"
-    @root     = options.root     ? path.join process.env.HOME, ".pow"
-    @logRoot  = options.logRoot  ? path.join @root, ".log"
+    @hostRoot = options.hostRoot ? libraryPath "Application Support", "Pow", "Hosts"
+    @logRoot  = options.logRoot  ? libraryPath "Logs", "Pow"
     @loggers  = {}
 
   getLogger: (name) ->
@@ -38,12 +41,12 @@ module.exports = class Configuration
 
   gatherApplicationRoots: (callback) ->
     roots = {}
-    mkdirp @root, (err) =>
+    mkdirp @hostRoot, (err) =>
       return callback err if err
-      fs.readdir @root, (err, files) =>
+      fs.readdir @hostRoot, (err, files) =>
         return callback err if err
         async.forEach files, (file, next) =>
-          root = path.join @root, file
+          root = path.join @hostRoot, file
           fs.lstat root, (err, stats) ->
             if stats?.isSymbolicLink()
               fs.realpath root, (err, resolvedPath) ->

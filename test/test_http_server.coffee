@@ -1,19 +1,17 @@
 http            = require "http"
-{Configuration} = require ".."
 {HttpServer}    = require ".."
 async           = require "async"
 {testCase}      = require "nodeunit"
 
-{prepareFixtures, fixturePath, serve} = require "./lib/test_helper"
+{prepareFixtures, fixturePath, createConfiguration, serve} = require "./lib/test_helper"
 
 serveRoot = (root, options, callback) ->
   unless callback
     callback = options
     options  = {}
-  configuration = new Configuration
-    root:    fixturePath(root),
-    logRoot: fixturePath("tmp/logs")
-    dstPort: options.dstPort ? 80
+  configuration = createConfiguration
+    hostRoot: fixturePath(root),
+    dstPort:  options.dstPort ? 80
   serve new HttpServer(configuration), callback
 
 module.exports = testCase

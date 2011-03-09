@@ -1,10 +1,9 @@
-{Configuration} = require ".."
 {DnsServer}     = require ".."
 async           = require "async"
 {exec}          = require "child_process"
 {testCase}      = require "nodeunit"
 
-{prepareFixtures, fixturePath} = require "./lib/test_helper"
+{prepareFixtures, createConfiguration} = require "./lib/test_helper"
 
 module.exports = testCase
   setUp: (proceed) ->
@@ -13,7 +12,7 @@ module.exports = testCase
   "responds to all A queries for the configured domain": (test) ->
     test.expect 4
 
-    configuration = new Configuration root: fixturePath("tmp"), domain: "powtest"
+    configuration = createConfiguration domain: "powtest"
     dnsServer = new DnsServer configuration
     dnsServer.listen 0, ->
       {address, port} = dnsServer.address()

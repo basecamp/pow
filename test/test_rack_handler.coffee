@@ -3,13 +3,12 @@ fs              = require "fs"
 http            = require "http"
 express         = require "express"
 {testCase}      = require "nodeunit"
-{Configuration} = require ".."
 {RackHandler}   = require ".."
 
-{prepareFixtures, fixturePath, touch, serve} = require "./lib/test_helper"
+{prepareFixtures, fixturePath, createConfiguration, touch, serve} = require "./lib/test_helper"
 
 serveApp = (path, callback) ->
-  configuration = new Configuration root: fixturePath("apps"), logRoot: fixturePath("tmp/logs"), workers: 1
+  configuration = createConfiguration hostRoot: fixturePath("apps"), workers: 1
   handler       = new RackHandler configuration, fixturePath(path)
   server        = express.createServer()
 

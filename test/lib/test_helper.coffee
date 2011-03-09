@@ -3,6 +3,13 @@ http   = require "http"
 {exec} = require "child_process"
 {join} = require "path"
 
+{Configuration} = require "../.."
+
+exports.createConfiguration = (options = {}) ->
+  options.hostRoot ?= fixturePath("tmp")
+  options.logRoot  ?= fixturePath("tmp/logs")
+  new Configuration options
+
 exports.fixturePath = fixturePath = (path) ->
   join fs.realpathSync(join __dirname, ".."), "fixtures", path
 

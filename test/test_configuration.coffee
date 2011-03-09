@@ -1,9 +1,8 @@
 async           = require "async"
 fs              = require "fs"
 {testCase}      = require "nodeunit"
-{Configuration} = require ".."
 
-{prepareFixtures, fixturePath} = require "./lib/test_helper"
+{prepareFixtures, fixturePath, createConfiguration} = require "./lib/test_helper"
 
 module.exports = testCase
   setUp: (proceed) ->
@@ -11,7 +10,7 @@ module.exports = testCase
 
   "gatherApplicationRoots returns directories and symlinks to directories": (test) ->
     test.expect 1
-    configuration = new Configuration root: fixturePath("configuration")
+    configuration = createConfiguration hostRoot: fixturePath("configuration")
     configuration.gatherApplicationRoots (err, roots) ->
       test.same roots,
         "directory":            fixturePath("configuration/directory")
@@ -22,7 +21,7 @@ module.exports = testCase
 
   "gatherApplicationRoots with non-existent root": (test) ->
     test.expect 2
-    configuration = new Configuration root: fixturePath("tmp/pow")
+    configuration = createConfiguration hostRoot: fixturePath("tmp/pow")
     configuration.gatherApplicationRoots (err, roots) ->
       test.same {}, roots
       fs.lstat fixturePath("tmp/pow"), (err, stat) ->
@@ -30,7 +29,7 @@ module.exports = testCase
         test.done()
 
   "findApplicationRootForHost matches hostnames to application roots": (test) ->
-    configuration   = new Configuration root: fixturePath("configuration")
+    configuration   = createConfiguration hostRoot: fixturePath("configuration")
     matchHostToRoot = (host, fixtureRoot) -> (proceed) ->
       configuration.findApplicationRootForHost host, (err, root) ->
         if fixtureRoot then test.same fixturePath(fixtureRoot), root
@@ -50,7 +49,7 @@ module.exports = testCase
     ], test.done
 
   "findApplicationRootForHost with alternate domain": (test) ->
-    configuration = new Configuration root: fixturePath("configuration"), domain: "dev.local"
+    configuration = createConfiguration hostRoot: fixturePath("configuration"), domain: "dev.local"
     test.expect 2
     configuration.findApplicationRootForHost "directory.dev.local", (err, root) ->
       test.same fixturePath("configuration/directory"), root
@@ -59,7 +58,7 @@ module.exports = testCase
         test.done()
 
   "getLogger returns the same logger instance": (test) ->
-    configuration = new Configuration root: fixturePath("tmp")
+    configuration = createConfiguration()
     logger = configuration.getLogger "test"
     test.expect 2
     test.ok logger is   configuration.getLogger "test"
@@ -69,12 +68,12 @@ module.exports = testCase
   "getLogger returns a logger with the specified log root": (test) ->
     test.expect 2
 
-    configuration = new Configuration root: fixturePath("tmp")
-    logger = configuration.getLogger "test"
-    test.same fixturePath("tmp/.log/test.log"), logger.path
-
-    configuration = new Configuration root: fixturePath("tmp/config"), logRoot: fixturePath("tmp/logs")
+    configuration = createConfiguration()
     logger = configuration.getLogger "test"
     test.same fixturePath("tmp/logs/test.log"), logger.path
+
+    configuration = createConfiguration logRoot: fixturePath("tmp/log2")
+    logger = configuration.getLogger "test"
+    test.same fixturePath("tmp/log2/test.log"), logger.path
 
     test.done()

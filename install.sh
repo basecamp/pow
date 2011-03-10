@@ -92,6 +92,7 @@ sudo mkdir -p /etc/resolver
 sudo mv $TMP/test /etc/resolver
 
 sudo launchctl load /Library/LaunchDaemons/cx.pow.firewall.plist 2>/dev/null
+launchctl unload ~/Library/LaunchAgents/cx.pow.powd.plist 2>/dev/null || true
 launchctl load ~/Library/LaunchAgents/cx.pow.powd.plist 2>/dev/null
 
 echo "*** Installed"

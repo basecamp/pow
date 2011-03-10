@@ -27,6 +27,7 @@ cd "$POW_ROOT"
 mkdir -p Hosts
 mkdir -p Versions
 cd Versions
+rm -rf $VERSION
 curl -s http://get.pow.cx.s3-website-us-east-1.amazonaws.com/versions/$VERSION.tar.gz | tar xzf -
 cd ..
 rm -f Current

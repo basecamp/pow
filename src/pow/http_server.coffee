@@ -26,39 +26,22 @@ module.exports = class HttpServer extends connect.HTTPServer
   constructor: (@configuration) ->
     super [
       o @logRequest
+      o @findApplicationRoot
       o @handleStaticRequest
       o @handleRackRequest
       x @handleApplicationException
-      o @handleNonexistentDomain
     ]
     @staticHandlers = {}
     @rackHandlers   = {}
     @accessLog = @configuration.getLogger "access"
     @on "close", @closeApplications
 
-  getStaticHandlerForHost: (host, callback) ->
-    @configuration.findApplicationRootForHost host, (err, root) =>
-      return callback err if err
-      @getStaticHandlerForRoot root, callback
-
-  getRackHandlerForHost: (host, callback) ->
-    @configuration.findApplicationRootForHost host, (err, root) =>
-      return callback err if err
-      @getRackHandlerForRoot root, callback
-
   getStaticHandlerForRoot: (root, callback) ->
-    if not root
-      callback()
-    else if handler = @staticHandlers[root]
-      callback null, handler
-    else
-      handler = @staticHandlers[root] = connect.static join(root, "public")
-      callback null, handler
+    handler = @staticHandlers[root] ?= connect.static join(root, "public")
+    callback null, handler
 
   getRackHandlerForRoot: (root, callback) ->
-    if not root
-      callback()
-    else if handler = @rackHandlers[root]
+    if handler = @rackHandlers[root]
       callback null, handler
     else
       @rackHandlers[root] = new RackHandler @configuration, root, callback
@@ -71,40 +54,43 @@ module.exports = class HttpServer extends connect.HTTPServer
     @accessLog.info "[#{req.socket.remoteAddress}] #{req.method} #{req.headers.host} #{req.url}"
     next()
 
-  handleStaticRequest: (req, res, next) =>
+  findApplicationRoot: (req, res, next) =>
     host   = getHost req
     resume = pause req
 
-    @getStaticHandlerForHost host, (err, handler) =>
-      if handler
-        if err
-          next err
+    @configuration.findApplicationRootForHost host, (err, root) =>
+      if err
+        next err
+        resume()
+      else
+        req.pow = {host, root}
+        if not root
+          @handleNonexistentDomain req, res, next
           resume()
         else
-          handler req, res, ->
-            next()
-            resume()
+          req.pow.resume = resume
+          next()
+
+  handleStaticRequest: (req, res, next) =>
+    return next() unless req.pow
+    @getStaticHandlerForRoot req.pow.root, (err, handler) =>
+      if err
+        next err
+        req.pow.resume()
       else
-        @handleNonexistentDomain req, res, next
-        resume()
+        handler req, res, ->
+          next()
+          req.pow.resume()
 
   handleRackRequest: (req, res, next) =>
-    host    = getHost req
-    resume  = pause req
-    req.pow = {host}
-
-    @getRackHandlerForHost host, (err, handler) =>
+    return next() unless req.pow
+    @getRackHandlerForRoot req.pow.root, (err, handler) =>
       req.pow.handler = handler
-
-      if handler
-        if err
-          next err
-          resume()
-        else
-          handler.handle req, res, next, resume
+      if err
+        next err
+        req.pow.resume()
       else
-        @handleNonexistentDomain req, res, next
-        resume()
+        handler.handle req, res, next, req.pow.resume
 
   handleApplicationException: (err, req, res, next) =>
     return next() unless req.pow?.handler

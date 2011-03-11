@@ -18,7 +18,7 @@
 
 set -e
 POW_ROOT="$HOME/Library/Application Support/Pow"
-[[ -z "$VERSION" ]] && VERSION=0.1.2
+[[ -z "$VERSION" ]] && VERSION=0.1.3
 
 echo "*** Installing Pow $VERSION..."
 
@@ -27,7 +27,7 @@ cd "$POW_ROOT"
 mkdir -p Hosts
 mkdir -p Versions
 cd Versions
-rm -rf $VERSION
+rm -rf "$POW_ROOT/Versions/$VERSION"
 curl -s http://get.pow.cx.s3-website-us-east-1.amazonaws.com/versions/$VERSION.tar.gz | tar xzf -
 cd ..
 rm -f Current

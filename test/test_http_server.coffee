@@ -78,3 +78,10 @@ module.exports = testCase
         test.same 200, response.statusCode
         test.same "User-Agent: *\nDisallow: /\n", body
         done -> test.done()
+
+  "post request": (test) ->
+    serveRoot "apps", (request, done) ->
+      request "POST", "/post", host: "hello.test", data: "foo=bar", (body, response) ->
+        test.same 200, response.statusCode
+        test.same "foo=bar", body
+        done -> test.done()

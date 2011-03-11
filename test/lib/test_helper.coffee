@@ -52,7 +52,13 @@ exports.createRequester = createRequester = (port) ->
     callback = headers unless callback
     client   = http.createClient port
     request  = client.request method, path, headers
+
+    if data = headers.data
+      delete headers.data
+      request.write data
+
     request.end()
+
     debug "client requesting #{method} #{path} on port #{port}"
     request.on "response", (response) ->
       body = ""

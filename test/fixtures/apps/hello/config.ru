@@ -1,5 +1,7 @@
 run lambda { |env|
   case env['PATH_INFO']
+  when '/post'
+    [200, {'Content-Type' => 'text/plain'}, [env['rack.input'].read]]
   when '/redirect'
     require 'rack/request'
     request = Rack::Request.new(env)

@@ -62,7 +62,11 @@ module.exports = class HttpServer extends connect.HTTPServer
           next()
 
   handleStaticRequest: (req, res, next) =>
-    return next() unless req.pow
+    unless req.method in ["GET", "HEAD"]
+      return next()
+
+    unless req.pow
+      return next()
 
     root = req.pow.root
     handler = @staticHandlers[root] ?= connect.static join(root, "public")

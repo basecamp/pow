@@ -36,17 +36,6 @@ module.exports = class HttpServer extends connect.HTTPServer
     @accessLog = @configuration.getLogger "access"
     @on "close", @closeApplications
 
-  getStaticHandlerForRoot: (root, callback) ->
-    handler = @staticHandlers[root] ?= connect.static join(root, "public")
-    callback null, handler
-
-  getRackHandlerForRoot: (root, callback) ->
-    if handler = @rackHandlers[root]
-      callback null, handler
-    else
-      handler = @rackHandlers[root] = new RackHandler @configuration, root
-      callback null, handler
-
   closeApplications: =>
     for root, handler of @rackHandlers
       handler.quit()
@@ -74,24 +63,19 @@ module.exports = class HttpServer extends connect.HTTPServer
 
   handleStaticRequest: (req, res, next) =>
     return next() unless req.pow
-    @getStaticHandlerForRoot req.pow.root, (err, handler) =>
-      if err
-        next err
-        req.pow.resume()
-      else
-        handler req, res, ->
-          next()
-          req.pow.resume()
+
+    root = req.pow.root
+    handler = @staticHandlers[root] ?= connect.static join(root, "public")
+    handler req, res, ->
+      next()
+      req.pow.resume()
 
   handleRackRequest: (req, res, next) =>
     return next() unless req.pow
-    @getRackHandlerForRoot req.pow.root, (err, handler) =>
-      req.pow.handler = handler
-      if err
-        next err
-        req.pow.resume()
-      else
-        handler.handle req, res, next, req.pow.resume
+
+    root = req.pow.root
+    handler = @rackHandlers[root] ?= new RackHandler @configuration, root
+    handler.handle req, res, next, req.pow.resume
 
   handleApplicationException: (err, req, res, next) =>
     return next() unless req.pow

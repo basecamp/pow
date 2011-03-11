@@ -26,19 +26,34 @@ module.exports = class HttpServer extends connect.HTTPServer
   constructor: (@configuration) ->
     super [
       o @logRequest
+      o @handleStaticRequest
       o @handleRackRequest
       x @handleApplicationException
       o @handleNonexistentDomain
     ]
-    @rackHandlers   = {}
     @staticHandlers = {}
+    @rackHandlers   = {}
     @accessLog = @configuration.getLogger "access"
     @on "close", @closeApplications
+
+  getStaticHandlerForHost: (host, callback) ->
+    @configuration.findApplicationRootForHost host, (err, root) =>
+      return callback err if err
+      @getStaticHandlerForRoot root, callback
 
   getRackHandlerForHost: (host, callback) ->
     @configuration.findApplicationRootForHost host, (err, root) =>
       return callback err if err
       @getRackHandlerForRoot root, callback
+
+  getStaticHandlerForRoot: (root, callback) ->
+    if not root
+      callback()
+    else if handler = @staticHandlers[root]
+      callback null, handler
+    else
+      handler = @staticHandlers[root] = connect.static join(root, "public")
+      callback null, handler
 
   getRackHandlerForRoot: (root, callback) ->
     if not root
@@ -55,6 +70,23 @@ module.exports = class HttpServer extends connect.HTTPServer
   logRequest: (req, res, next) =>
     @accessLog.info "[#{req.socket.remoteAddress}] #{req.method} #{req.headers.host} #{req.url}"
     next()
+
+  handleStaticRequest: (req, res, next) =>
+    host   = getHost req
+    resume = pause req
+
+    @getStaticHandlerForHost host, (err, handler) =>
+      if handler
+        if err
+          next err
+          resume()
+        else
+          handler req, res, ->
+            next()
+            resume()
+      else
+        @handleNonexistentDomain req, res, next
+        resume()
 
   handleRackRequest: (req, res, next) =>
     host    = getHost req

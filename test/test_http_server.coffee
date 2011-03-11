@@ -71,3 +71,10 @@ module.exports = testCase
             test.same "http://hello.test:81/", response.headers.location
             done proceed
     ], test.done
+
+  "serves static assets in public/": (test) ->
+    serveRoot "apps", (request, done) ->
+      request "GET", "/robots.txt", host: "hello.test", (body, response) ->
+        test.same 200, response.statusCode
+        test.same "User-Agent: *\nDisallow: /\n", body
+        done -> test.done()

@@ -44,7 +44,8 @@ module.exports = class HttpServer extends connect.HTTPServer
     if handler = @rackHandlers[root]
       callback null, handler
     else
-      @rackHandlers[root] = new RackHandler @configuration, root, callback
+      handler = @rackHandlers[root] = new RackHandler @configuration, root
+      callback null, handler
 
   closeApplications: =>
     for root, handler of @rackHandlers
@@ -93,7 +94,7 @@ module.exports = class HttpServer extends connect.HTTPServer
         handler.handle req, res, next, req.pow.resume
 
   handleApplicationException: (err, req, res, next) =>
-    return next() unless req.pow?.handler
+    return next() unless req.pow
 
     res.writeHead 500, "Content-Type": "text/html; charset=utf8", "X-Pow-Handler": "ApplicationException"
     res.end """
@@ -127,7 +128,7 @@ module.exports = class HttpServer extends connect.HTTPServer
       </head>
       <body>
         <h1>Pow can&rsquo;t start your application.</h1>
-        <h2><code>#{escapeHTML req.pow.handler.root}</code> raised an exception during boot.</h2>
+        <h2><code>#{escapeHTML req.pow.root}</code> raised an exception during boot.</h2>
         <pre><strong>#{escapeHTML err}</strong>#{escapeHTML "\n" + err.stack}</pre>
       </body>
       </html>

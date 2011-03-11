@@ -21,6 +21,7 @@ serveApp = (path, callback) ->
   serve server, (request, done) ->
     callback request, (callback) ->
       done -> handler.quit callback
+    , handler
 
 module.exports = testCase
   setUp: (proceed) ->
@@ -58,4 +59,12 @@ module.exports = testCase
     serveApp "apps/env", (request, done) ->
       request "GET", "/", (body) ->
         test.same "Hello Pow", body
+        done -> test.done()
+
+  "handling an error in .powrc": (test) ->
+    test.expect 2
+    serveApp "apps/rc-error", (request, done, handler) ->
+      request "GET", "/", (body, response) ->
+        test.same 500, response.statusCode
+        test.ok !handler.state
         done -> test.done()

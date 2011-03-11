@@ -21,6 +21,9 @@ task 'watch', 'Recompile CoffeeScript source files when modified', ->
 
 task 'test', 'Run the Pow test suite', ->
   build ->
+    process.env["RUBYOPT"]  = "-rubygems"
+    process.env["NODE_ENV"] = "test"
+
     {reporters} = require 'nodeunit'
     process.chdir __dirname
     reporters.default.run ['test']

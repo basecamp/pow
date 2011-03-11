@@ -12,8 +12,13 @@ sourceScriptEnv = (script, callback) ->
     source '#{script}' > /dev/null;
     '#{process.execPath}' -e 'JSON.stringify(process.env)'
   """
-  exec command, cwd: dirname(script), (err, stdout) ->
-    return callback err if err
+  exec command, cwd: dirname(script), (err, stdout, stderr) ->
+    if err
+      err.message = "'#{script}' failed to load"
+      err.stdout = stdout
+      err.stderr = stderr
+      callback err
+
     try
       callback null, JSON.parse stdout
     catch exception
@@ -35,19 +40,21 @@ bufferLines = (stream, callback) ->
   buffer
 
 module.exports = class RackHandler
-  constructor: (@configuration, @root, callback) ->
+  constructor: (@configuration, @root) ->
     @logger = @configuration.getLogger join "apps", basename @root
     @readyCallbacks = []
 
-    callback ?= (err) -> throw err if err
+  initialize: ->
+    return if @state
+    @state = "initializing"
 
     createServer = =>
       @app = nack.createServer join(@root, "config.ru"),
         env:  @env
         size: @configuration.workers
 
-    processReadyCallbacks = =>
-      readyCallback() for readyCallback in @readyCallbacks
+    processReadyCallbacks = (err) =>
+      readyCallback err for readyCallback in @readyCallbacks
       @readyCallbacks = []
 
     installLogHandlers = =>
@@ -62,29 +69,36 @@ module.exports = class RackHandler
 
     getEnvForRoot @root, (err, @env) =>
       if err
-        callback err
+        @state = null
+        @logger.error err.message
+        @logger.error "stdout: #{err.stdout}"
+        @logger.error "stderr: #{err.stderr}"
+        processReadyCallbacks err
       else
         createServer()
         installLogHandlers()
-        callback null, @
+        @state = "ready"
         processReadyCallbacks()
 
   ready: (callback) ->
-    if @app
+    if @state is "ready"
       callback()
     else
       @readyCallbacks.push callback
+      @initialize()
 
   handle: (req, res, next, callback) ->
     resume = pause req
-    @ready => @restartIfNecessary =>
-      req.proxyMetaVariables =
-        SERVER_PORT: @configuration.dstPort.toString()
-      try
-        @app.handle req, res, next
-      finally
-        resume()
-        callback?()
+    @ready (err) =>
+      return next err if err
+      @restartIfNecessary =>
+        req.proxyMetaVariables =
+          SERVER_PORT: @configuration.dstPort.toString()
+        try
+          @app.handle req, res, next
+        finally
+          resume()
+          callback?()
 
   quit: (callback) ->
     if @app

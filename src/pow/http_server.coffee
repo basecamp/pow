@@ -26,41 +26,42 @@ module.exports = class HttpServer extends connect.HTTPServer
   constructor: (@configuration) ->
     super [
       o @logRequest
-      o @handleRequest
+      o @handleRackRequest
       x @handleApplicationException
       o @handleNonexistentDomain
     ]
-    @handlers = {}
+    @rackHandlers   = {}
+    @staticHandlers = {}
     @accessLog = @configuration.getLogger "access"
     @on "close", @closeApplications
 
-  getHandlerForHost: (host, callback) ->
+  getRackHandlerForHost: (host, callback) ->
     @configuration.findApplicationRootForHost host, (err, root) =>
       return callback err if err
-      @getHandlerForRoot root, callback
+      @getRackHandlerForRoot root, callback
 
-  getHandlerForRoot: (root, callback) ->
+  getRackHandlerForRoot: (root, callback) ->
     if not root
       callback()
-    else if handler = @handlers[root]
+    else if handler = @rackHandlers[root]
       callback null, handler
     else
-      @handlers[root] = new RackHandler @configuration, root, callback
+      @rackHandlers[root] = new RackHandler @configuration, root, callback
 
   closeApplications: =>
-    for root, handler of @handlers
+    for root, handler of @rackHandlers
       handler.quit()
 
   logRequest: (req, res, next) =>
     @accessLog.info "[#{req.socket.remoteAddress}] #{req.method} #{req.headers.host} #{req.url}"
     next()
 
-  handleRequest: (req, res, next) =>
+  handleRackRequest: (req, res, next) =>
     host    = getHost req
     resume  = pause req
     req.pow = {host}
 
-    @getHandlerForHost host, (err, handler) =>
+    @getRackHandlerForHost host, (err, handler) =>
       req.pow.handler = handler
 
       if handler

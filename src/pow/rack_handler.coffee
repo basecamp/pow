@@ -7,12 +7,12 @@ nack  = require "nack"
 {join, dirname, basename} = require "path"
 {exec} = require "child_process"
 
-sourceScriptEnv = (script, callback) ->
+sourceScriptEnv = (script, env, callback) ->
   command = """
     source '#{script}' > /dev/null;
     '#{process.execPath}' -e 'JSON.stringify(process.env)'
   """
-  exec command, cwd: dirname(script), (err, stdout, stderr) ->
+  exec command, cwd: dirname(script), env: env, (err, stdout, stderr) ->
     if err
       err.message = "'#{script}' failed to load"
       err.stdout = stdout
@@ -24,15 +24,16 @@ sourceScriptEnv = (script, callback) ->
     catch exception
       callback exception
 
-envFilenames = [".powrc", ".envrc"]
+envFilenames = [".powrc", ".powenv"]
 
 getEnvForRoot = (root, callback) ->
-  files = (join(root, filename) for filename in envFilenames)
-  async.detect files, path.exists, (filename) ->
-    if filename
-      sourceScriptEnv filename, callback
-    else
-      callback null, {}
+  async.reduce envFilenames, {}, (env, filename, callback) ->
+    path.exists script = join(root, filename), (exists) ->
+      if exists
+        sourceScriptEnv script, env, callback
+      else
+        callback null, env
+  , callback
 
 bufferLines = (stream, callback) ->
   buffer = new LineBuffer stream

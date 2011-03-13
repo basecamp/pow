@@ -57,10 +57,13 @@ module.exports = testCase
               done -> fs.unlink restart, -> test.done()
 
   "custom environment": (test) ->
-    test.expect 1
+    test.expect 3
     serveApp "apps/env", (request, done) ->
       request "GET", "/", (body) ->
-        test.same "Hello Pow", body
+        env = JSON.parse body
+        test.same "Hello Pow", env.POW_TEST
+        test.same "Overridden by .powenv", env.POW_TEST2
+        test.same "Hello!", env.POW_TEST3
         done -> test.done()
 
   "handling an error in .powrc": (test) ->

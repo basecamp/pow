@@ -32,7 +32,7 @@ module.exports = testCase
             proceed()
         (proceed) ->
           request "GET", "/", host: "env.test", (body) ->
-            test.same "Hello Pow", body
+            test.same "Hello Pow", JSON.parse(body).POW_TEST
             proceed()
         (proceed) ->
           request "GET", "/", host: "pid.test", (body) ->

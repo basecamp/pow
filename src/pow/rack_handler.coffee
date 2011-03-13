@@ -108,8 +108,9 @@ module.exports = class RackHandler
       callback?()
 
   restartIfNecessary: (callback) ->
-    fs.unlink join(@root, "tmp/restart.txt"), (err) =>
-      if err
-        callback()
-      else
+    fs.stat join(@root, "tmp/restart.txt"), (err, stats) =>
+      if not err and stats?.mtime isnt @mtime
         @quit callback
+      else
+        callback()
+      @mtime = stats?.mtime

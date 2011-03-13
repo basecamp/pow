@@ -45,14 +45,16 @@ module.exports = testCase
 
   "handling a request, restart, request": (test) ->
     test.expect 3
+    restart = fixturePath("apps/pid/tmp/restart.txt")
     serveApp "apps/pid", (request, done) ->
-      request "GET", "/", (body) ->
-        test.ok pid = parseInt body
-        touch fixturePath("apps/pid/tmp/restart.txt"), ->
-          request "GET", "/", (body) ->
-            test.ok newpid = parseInt body
-            test.ok pid isnt newpid
-            done -> test.done()
+      fs.unlink restart, ->
+        request "GET", "/", (body) ->
+          test.ok pid = parseInt body
+          touch restart, ->
+            request "GET", "/", (body) ->
+              test.ok newpid = parseInt body
+              test.ok pid isnt newpid
+              done -> fs.unlink restart, -> test.done()
 
   "custom environment": (test) ->
     test.expect 1

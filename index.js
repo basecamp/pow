@@ -1,1 +1,1 @@
-module.exports = require('./lib/pow');
+module.exports = require('./lib');

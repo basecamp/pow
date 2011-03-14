@@ -7,7 +7,7 @@
   , "url": "http://github.com/sstephenson/pow.git"
   }
 , "bin": { "pow": "./bin/pow", "pow_firewall": "./bin/pow_firewall" }
-, "main": "./lib/pow"
+, "main": "./lib/index.js"
 , "dependencies": {
     "async": "0.1.7"
   , "connect": ">= 1.0.3"

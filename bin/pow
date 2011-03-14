@@ -1,4 +1,4 @@
 #!/usr/bin/ruby
 require 'pathname'
 root = Pathname.new(__FILE__).realpath.dirname.parent
-exec root.join("bin/node"), root.join("lib/pow/command.js")
+exec root.join("bin/node"), root.join("lib/command.js")

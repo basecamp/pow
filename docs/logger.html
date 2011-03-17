@@ -1,0 +1,43 @@
+<!DOCTYPE html>  <html> <head>   <title>logger.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="configuration.html">                 configuration.coffee               </a>                                           <a class="source" href="daemon.html">                 daemon.coffee               </a>                                           <a class="source" href="dns_server.html">                 dns_server.coffee               </a>                                           <a class="source" href="http_server.html">                 http_server.coffee               </a>                                           <a class="source" href="index.html">                 index.coffee               </a>                                           <a class="source" href="logger.html">                 logger.coffee               </a>                                           <a class="source" href="rack_handler.html">                 rack_handler.coffee               </a>                                           <a class="source" href="util.html">                 util.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               logger.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="nx">fs</span>        <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;fs&quot;</span>
+<span class="p">{</span><span class="nx">dirname</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;path&quot;</span>
+<span class="nx">Log</span>       <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;log&quot;</span>
+<span class="p">{</span><span class="nx">mkdirp</span><span class="p">}</span>  <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;./util&quot;</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="k">class</span> <span class="nx">Logger</span>
+  <span class="vi">@LEVELS: </span><span class="p">[</span><span class="s2">&quot;debug&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">,</span> <span class="s2">&quot;notice&quot;</span><span class="p">,</span> <span class="s2">&quot;warning&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;critical&quot;</span><span class="p">,</span> <span class="s2">&quot;alert&quot;</span><span class="p">,</span> <span class="s2">&quot;emergency&quot;</span><span class="p">]</span>
+
+  <span class="nv">constructor: </span><span class="p">(</span><span class="nx">@path</span><span class="p">,</span> <span class="nx">@level</span> <span class="o">=</span> <span class="s2">&quot;debug&quot;</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="nx">@pause</span><span class="p">()</span>
+
+  <span class="nv">pause: </span><span class="o">-&gt;</span>
+    <span class="nx">@buffer</span> <span class="o">||=</span> <span class="p">[]</span>
+
+  <span class="nv">resume: </span><span class="o">-&gt;</span>
+    <span class="k">return</span> <span class="nx">unless</span> <span class="nx">@buffer</span>
+    <span class="k">for</span> <span class="nx">level</span><span class="p">,</span> <span class="nx">args</span> <span class="k">in</span> <span class="nx">@buffer</span>
+      <span class="nx">@log</span><span class="p">[</span><span class="nx">level</span><span class="p">](</span><span class="nx">args</span><span class="p">...)</span>
+    <span class="nx">@buffer</span> <span class="o">=</span> <span class="kc">null</span>
+
+  <span class="nv">open: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="k">if</span> <span class="nx">@stream</span>
+      <span class="nx">callback</span><span class="p">.</span><span class="nx">call</span> <span class="err">@</span>
+    <span class="k">else</span>
+      <span class="nx">mkdirp</span> <span class="nx">dirname</span><span class="p">(</span><span class="nx">@path</span><span class="p">),</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">return</span> <span class="k">if</span> <span class="nx">err</span>
+        <span class="nx">@stream</span> <span class="o">=</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">createWriteStream</span> <span class="nx">@path</span><span class="p">,</span> <span class="nv">flags: </span><span class="s2">&quot;a&quot;</span>
+        <span class="nx">@stream</span><span class="p">.</span><span class="kc">on</span> <span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="o">=&gt;</span>
+          <span class="nx">@log</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Log</span> <span class="nx">@level</span><span class="p">,</span> <span class="nx">@stream</span>
+          <span class="nx">@resume</span><span class="p">()</span>
+          <span class="nx">callback</span><span class="p">.</span><span class="nx">call</span> <span class="err">@</span>
+
+  <span class="nv">perform: </span><span class="p">(</span><span class="nx">level</span><span class="p">,</span> <span class="nx">args</span><span class="p">...)</span> <span class="o">=&gt;</span>
+    <span class="k">if</span> <span class="nx">@buffer</span>
+      <span class="nx">@buffer</span><span class="p">.</span><span class="nx">push</span> <span class="p">[</span><span class="nx">level</span><span class="p">,</span> <span class="nx">args</span><span class="p">]</span>
+    <span class="k">else</span>
+      <span class="nx">@log</span><span class="p">[</span><span class="nx">level</span><span class="p">].</span><span class="nx">apply</span> <span class="nx">@log</span><span class="p">,</span> <span class="nx">args</span>
+
+<span class="k">for</span> <span class="nx">level</span> <span class="k">in</span> <span class="nx">Logger</span><span class="p">.</span><span class="nx">LEVELS</span> <span class="k">then</span> <span class="nx">do</span> <span class="p">(</span><span class="nx">level</span><span class="p">)</span> <span class="o">-&gt;</span>
+  <span class="nx">Logger</span><span class="o">::</span><span class="p">[</span><span class="nx">level</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nx">args</span><span class="p">...)</span> <span class="o">-&gt;</span>
+    <span class="nx">@open</span> <span class="o">-&gt;</span> <span class="nx">@perform</span> <span class="nx">level</span><span class="p">,</span> <span class="nx">args</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

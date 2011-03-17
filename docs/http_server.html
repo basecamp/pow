@@ -1,0 +1,161 @@
+<!DOCTYPE html>  <html> <head>   <title>http_server.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="configuration.html">                 configuration.coffee               </a>                                           <a class="source" href="daemon.html">                 daemon.coffee               </a>                                           <a class="source" href="dns_server.html">                 dns_server.coffee               </a>                                           <a class="source" href="http_server.html">                 http_server.coffee               </a>                                           <a class="source" href="index.html">                 index.coffee               </a>                                           <a class="source" href="logger.html">                 logger.coffee               </a>                                           <a class="source" href="rack_handler.html">                 rack_handler.coffee               </a>                                           <a class="source" href="util.html">                 util.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               http_server.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>Where the magic happens.</p>
+
+<p>Pow's <code>HttpServer</code> runs as your user and listens on a high port
+(20559 by default) for HTTP requests. (An <code>ipfw</code> rule forwards
+incoming requests on port 80 to your Pow instance.) Requests work
+their way through a middleware stack and are served to your browser
+as static assets, Rack requests, or error pages.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">fs</span>          <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;fs&quot;</span>
+<span class="nx">sys</span>         <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;sys&quot;</span>
+<span class="nx">connect</span>     <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;connect&quot;</span>
+<span class="nx">RackHandler</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;./rack_handler&quot;</span>
+
+<span class="p">{</span><span class="nx">dirname</span><span class="p">,</span> <span class="nx">join</span><span class="p">}</span>  <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;path&quot;</span>
+<span class="p">{</span><span class="nx">pause</span><span class="p">,</span> <span class="nx">escapeHTML</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;./util&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p><code>HttpServer</code> is a subclass of
+<a href="http://senchalabs.github.com/connect/">Connect</a>'s <code>HTTPServer</code> with
+a custom set of middleware and a reference to a Pow <code>Configuration</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="k">class</span> <span class="nx">HttpServer</span> <span class="k">extends</span> <span class="nx">connect</span><span class="p">.</span><span class="nx">HTTPServer</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>Connect depends on Function.prototype.length to determine
+whether a given middleware is an error handler. These wrappers
+provide compatibility with bound instance methods.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nx">o</span> <span class="o">=</span> <span class="p">(</span><span class="nx">fn</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span>      <span class="o">-&gt;</span> <span class="nx">fn</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span>
+  <span class="nx">x</span> <span class="o">=</span> <span class="p">(</span><span class="nx">fn</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nx">fn</span> <span class="nx">err</span><span class="p">,</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Create an HTTP server for the given configuration. This sets up
+the middleware stack, gets a <code>Logger</code> instace for the global
+access log, and registers a handler to close any running
+applications when the server shuts down.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">constructor: </span><span class="p">(</span><span class="nx">@configuration</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="k">super</span> <span class="p">[</span>
+      <span class="nx">o</span> <span class="nx">@logRequest</span>
+      <span class="nx">o</span> <span class="nx">@findApplicationRoot</span>
+      <span class="nx">o</span> <span class="nx">@handleStaticRequest</span>
+      <span class="nx">o</span> <span class="nx">@handleRackRequest</span>
+      <span class="nx">x</span> <span class="nx">@handleApplicationException</span>
+    <span class="p">]</span>
+
+    <span class="nx">@staticHandlers</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="nx">@rackHandlers</span>   <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="nx">@accessLog</span> <span class="o">=</span> <span class="nx">@configuration</span><span class="p">.</span><span class="nx">getLogger</span> <span class="s2">&quot;access&quot;</span>
+
+    <span class="nx">@on</span> <span class="s2">&quot;close&quot;</span><span class="p">,</span> <span class="o">=&gt;</span>
+      <span class="k">for</span> <span class="nx">root</span><span class="p">,</span> <span class="nx">handler</span> <span class="k">of</span> <span class="nx">@rackHandlers</span>
+        <span class="nx">handler</span><span class="p">.</span><span class="nx">quit</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>The first middleware in the stack logs each incoming request's
+source address, method, hostname, and path to the access log
+(<code>~/Library/Logs/Pow/access.log</code> by default).</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">logRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="nx">@accessLog</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;[#{req.socket.remoteAddress}] #{req.method} #{req.headers.host} #{req.url}&quot;</span>
+    <span class="nx">next</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>After the request has been logged, attempt to match its hostname
+to a Rack application using the server's configuration. If an
+application is found, annotate the request object with the
+application's root path so we can use it further down the
+stack. If no application is found, render an error page indicating
+that the hostname is not yet configured.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">findApplicationRoot: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="nx">host</span>   <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">headers</span><span class="p">.</span><span class="nx">host</span><span class="p">.</span><span class="nx">replace</span> <span class="sr">/:.*/</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
+    <span class="nx">resume</span> <span class="o">=</span> <span class="nx">pause</span> <span class="nx">req</span>
+
+    <span class="nx">@configuration</span><span class="p">.</span><span class="nx">findApplicationRootForHost</span> <span class="nx">host</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">root</span><span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="k">if</span> <span class="nx">err</span>
+        <span class="nx">next</span> <span class="nx">err</span>
+        <span class="nx">resume</span><span class="p">()</span>
+      <span class="k">else</span>
+        <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span> <span class="o">=</span> <span class="p">{</span><span class="nx">host</span><span class="p">,</span> <span class="nx">root</span><span class="p">}</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">root</span>
+          <span class="nx">@handleNonexistentDomain</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span>
+          <span class="nx">resume</span><span class="p">()</span>
+        <span class="k">else</span>
+          <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">resume</span> <span class="o">=</span> <span class="nx">resume</span>
+          <span class="nx">next</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>If this is a <code>GET</code> or <code>HEAD</code> request matching a file in the
+application's <code>public/</code> directory, serve the file directly.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleStaticRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="nx">unless</span> <span class="nx">req</span><span class="p">.</span><span class="nx">method</span> <span class="k">in</span> <span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;HEAD&quot;</span><span class="p">]</span>
+      <span class="k">return</span> <span class="nx">next</span><span class="p">()</span>
+
+    <span class="nx">unless</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span>
+      <span class="k">return</span> <span class="nx">next</span><span class="p">()</span>
+
+    <span class="nx">root</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span>
+    <span class="nx">handler</span> <span class="o">=</span> <span class="nx">@staticHandlers</span><span class="p">[</span><span class="nx">root</span><span class="p">]</span> <span class="o">?=</span> <span class="nx">connect</span><span class="p">.</span><span class="nx">static</span> <span class="nx">join</span><span class="p">(</span><span class="nx">root</span><span class="p">,</span> <span class="s2">&quot;public&quot;</span><span class="p">)</span>
+    <span class="nx">handler</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="o">-&gt;</span>
+      <span class="nx">next</span><span class="p">()</span>
+      <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">resume</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Otherwise, pass the request to the <code>RackHandler</code> instance for the
+matched application.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleRackRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span>
+
+    <span class="nx">root</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span>
+    <span class="nx">handler</span> <span class="o">=</span> <span class="nx">@rackHandlers</span><span class="p">[</span><span class="nx">root</span><span class="p">]</span> <span class="o">?=</span> <span class="k">new</span> <span class="nx">RackHandler</span> <span class="nx">@configuration</span><span class="p">,</span> <span class="nx">root</span>
+    <span class="nx">handler</span><span class="p">.</span><span class="nx">handle</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">,</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">resume</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>If there's an exception thrown while handling a request, show a
+nicely formatted error page along with the full backtrace.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleApplicationException: </span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span>
+
+    <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span> <span class="mi">500</span><span class="p">,</span> <span class="s2">&quot;Content-Type&quot;</span><span class="o">:</span> <span class="s2">&quot;text/html; charset=utf8&quot;</span><span class="p">,</span> <span class="s2">&quot;X-Pow-Handler&quot;</span><span class="o">:</span> <span class="s2">&quot;ApplicationException&quot;</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">end</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">      &lt;!doctype html&gt;</span>
+<span class="s2">      &lt;html&gt;</span>
+<span class="s2">      &lt;head&gt;</span>
+<span class="s2">        &lt;title&gt;Pow: Error Starting Application&lt;/title&gt;</span>
+<span class="s2">        &lt;style&gt;</span>
+<span class="s2">          body {</span>
+<span class="s2">            margin: 0;</span>
+<span class="s2">            padding: 0;</span>
+<span class="s2">          }</span>
+<span class="s2">          h1, h2, pre {</span>
+<span class="s2">            margin: 0;</span>
+<span class="s2">            padding: 15px 30px;</span>
+<span class="s2">          }</span>
+<span class="s2">          h1, h2 {</span>
+<span class="s2">            font-family: Helvetica, sans-serif;</span>
+<span class="s2">          }</span>
+<span class="s2">          h1 {</span>
+<span class="s2">            font-size: 36px;</span>
+<span class="s2">            background: #eeedea;</span>
+<span class="s2">            color: #c00;</span>
+<span class="s2">            border-bottom: 1px solid #999090;</span>
+<span class="s2">          }</span>
+<span class="s2">          h2 {</span>
+<span class="s2">            font-size: 18px;</span>
+<span class="s2">            font-weight: normal;</span>
+<span class="s2">          }</span>
+<span class="s2">        &lt;/style&gt;</span>
+<span class="s2">      &lt;/head&gt;</span>
+<span class="s2">      &lt;body&gt;</span>
+<span class="s2">        &lt;h1&gt;Pow can&amp;rsquo;t start your application.&lt;/h1&gt;</span>
+<span class="s2">        &lt;h2&gt;&lt;code&gt;#{escapeHTML req.pow.root}&lt;/code&gt; raised an exception during boot.&lt;/h2&gt;</span>
+<span class="s2">        &lt;pre&gt;&lt;strong&gt;#{escapeHTML err}&lt;/strong&gt;#{escapeHTML &quot;</span><span class="err">\</span><span class="nx">n</span><span class="s2">&quot; + err.stack}&lt;/pre&gt;</span>
+<span class="s2">      &lt;/body&gt;</span>
+<span class="s2">      &lt;/html&gt;</span>
+<span class="s2">    &quot;&quot;&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>Show a friendly message when accessing a hostname that hasn't been
+set up with Pow yet.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleNonexistentDomain: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span>
+    <span class="nx">host</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">host</span>
+    <span class="nx">name</span> <span class="o">=</span> <span class="nx">host</span><span class="p">.</span><span class="nx">slice</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">host</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="nx">@configuration</span><span class="p">.</span><span class="nx">domain</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="nx">path</span> <span class="o">=</span> <span class="nx">join</span> <span class="nx">@configuration</span><span class="p">.</span><span class="nx">root</span><span class="p">,</span> <span class="nx">name</span>
+
+    <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span> <span class="mi">503</span><span class="p">,</span> <span class="s2">&quot;Content-Type&quot;</span><span class="o">:</span> <span class="s2">&quot;text/html; charset=utf8&quot;</span><span class="p">,</span> <span class="s2">&quot;X-Pow-Handler&quot;</span><span class="o">:</span> <span class="s2">&quot;NonexistentDomain&quot;</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">end</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">      &lt;!doctype html&gt;</span>
+<span class="s2">      &lt;html&gt;</span>
+<span class="s2">      &lt;head&gt;</span>
+<span class="s2">        &lt;title&gt;Pow: No Such Application&lt;/title&gt;</span>
+<span class="s2">        &lt;style&gt;</span>
+<span class="s2">          body {</span>
+<span class="s2">            margin: 0;</span>
+<span class="s2">            padding: 0;</span>
+<span class="s2">          }</span>
+<span class="s2">          h1, h2 {</span>
+<span class="s2">            margin: 0;</span>
+<span class="s2">            padding: 15px 30px;</span>
+<span class="s2">            font-family: Helvetica, sans-serif;</span>
+<span class="s2">          }</span>
+<span class="s2">          h1 {</span>
+<span class="s2">            font-size: 36px;</span>
+<span class="s2">            background: #eeedea;</span>
+<span class="s2">            color: #000;</span>
+<span class="s2">            border-bottom: 1px solid #999090;</span>
+<span class="s2">          }</span>
+<span class="s2">          h2 {</span>
+<span class="s2">            font-size: 18px;</span>
+<span class="s2">            font-weight: normal;</span>
+<span class="s2">          }</span>
+<span class="s2">        &lt;/style&gt;</span>
+<span class="s2">      &lt;/head&gt;</span>
+<span class="s2">      &lt;body&gt;</span>
+<span class="s2">        &lt;h1&gt;This domain isn&amp;rsquo;t set up yet.&lt;/h1&gt;</span>
+<span class="s2">        &lt;h2&gt;Symlink your application to &lt;code&gt;#{escapeHTML path}&lt;/code&gt; first.&lt;/h2&gt;</span>
+<span class="s2">      &lt;/body&gt;</span>
+<span class="s2">      &lt;/html&gt;</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

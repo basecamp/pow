@@ -1,0 +1,119 @@
+<!DOCTYPE html>  <html> <head>   <title>rack_handler.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="configuration.html">                 configuration.coffee               </a>                                           <a class="source" href="daemon.html">                 daemon.coffee               </a>                                           <a class="source" href="dns_server.html">                 dns_server.coffee               </a>                                           <a class="source" href="http_server.html">                 http_server.coffee               </a>                                           <a class="source" href="index.html">                 index.coffee               </a>                                           <a class="source" href="logger.html">                 logger.coffee               </a>                                           <a class="source" href="rack_handler.html">                 rack_handler.coffee               </a>                                           <a class="source" href="util.html">                 util.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               rack_handler.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="nx">async</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;async&quot;</span>
+<span class="nx">path</span>  <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;path&quot;</span>
+<span class="nx">fs</span>    <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;fs&quot;</span>
+<span class="nx">nack</span>  <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;nack&quot;</span>
+
+<span class="p">{</span><span class="nx">LineBuffer</span><span class="p">,</span> <span class="nx">pause</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;./util&quot;</span>
+<span class="p">{</span><span class="nx">join</span><span class="p">,</span> <span class="nx">dirname</span><span class="p">,</span> <span class="nx">basename</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;path&quot;</span>
+<span class="p">{</span><span class="nx">exec</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;child_process&quot;</span>
+
+<span class="nx">sourceScriptEnv</span> <span class="o">=</span> <span class="p">(</span><span class="nx">script</span><span class="p">,</span> <span class="nx">env</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
+  <span class="nx">command</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    source &#39;#{script}&#39; &gt; /dev/null;</span>
+<span class="s2">    &#39;#{process.execPath}&#39; -e &#39;JSON.stringify(process.env)&#39;</span>
+<span class="s2">  &quot;&quot;&quot;</span>
+  <span class="nx">exec</span> <span class="nx">command</span><span class="p">,</span> <span class="nv">cwd: </span><span class="nx">dirname</span><span class="p">(</span><span class="nx">script</span><span class="p">),</span> <span class="nv">env: </span><span class="nx">env</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">stdout</span><span class="p">,</span> <span class="nx">stderr</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="k">if</span> <span class="nx">err</span>
+      <span class="nx">err</span><span class="p">.</span><span class="nx">message</span> <span class="o">=</span> <span class="s2">&quot;&#39;#{script}&#39; failed to load&quot;</span>
+      <span class="nx">err</span><span class="p">.</span><span class="nx">stdout</span> <span class="o">=</span> <span class="nx">stdout</span>
+      <span class="nx">err</span><span class="p">.</span><span class="nx">stderr</span> <span class="o">=</span> <span class="nx">stderr</span>
+      <span class="nx">callback</span> <span class="nx">err</span>
+
+    <span class="k">try</span>
+      <span class="nx">callback</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span> <span class="nx">stdout</span>
+    <span class="k">catch</span> <span class="nx">exception</span>
+      <span class="nx">callback</span> <span class="nx">exception</span>
+
+<span class="nx">envFilenames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;.powrc&quot;</span><span class="p">,</span> <span class="s2">&quot;.powenv&quot;</span><span class="p">]</span>
+
+<span class="nx">getEnvForRoot</span> <span class="o">=</span> <span class="p">(</span><span class="nx">root</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
+  <span class="nx">async</span><span class="p">.</span><span class="nx">reduce</span> <span class="nx">envFilenames</span><span class="p">,</span> <span class="p">{},</span> <span class="p">(</span><span class="nx">env</span><span class="p">,</span> <span class="nx">filename</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="nx">path</span><span class="p">.</span><span class="nx">exists</span> <span class="nx">script</span> <span class="o">=</span> <span class="nx">join</span><span class="p">(</span><span class="nx">root</span><span class="p">,</span> <span class="nx">filename</span><span class="p">),</span> <span class="p">(</span><span class="nx">exists</span><span class="p">)</span> <span class="o">-&gt;</span>
+      <span class="k">if</span> <span class="nx">exists</span>
+        <span class="nx">sourceScriptEnv</span> <span class="nx">script</span><span class="p">,</span> <span class="nx">env</span><span class="p">,</span> <span class="nx">callback</span>
+      <span class="k">else</span>
+        <span class="nx">callback</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">env</span>
+  <span class="p">,</span> <span class="nx">callback</span>
+
+<span class="nx">bufferLines</span> <span class="o">=</span> <span class="p">(</span><span class="nx">stream</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
+  <span class="nx">buffer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">LineBuffer</span> <span class="nx">stream</span>
+  <span class="nx">buffer</span><span class="p">.</span><span class="kc">on</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="nx">callback</span>
+  <span class="nx">buffer</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="k">class</span> <span class="nx">RackHandler</span>
+  <span class="nv">constructor: </span><span class="p">(</span><span class="nx">@configuration</span><span class="p">,</span> <span class="nx">@root</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="nx">@logger</span> <span class="o">=</span> <span class="nx">@configuration</span><span class="p">.</span><span class="nx">getLogger</span> <span class="nx">join</span> <span class="s2">&quot;apps&quot;</span><span class="p">,</span> <span class="nx">basename</span> <span class="nx">@root</span>
+    <span class="nx">@readyCallbacks</span> <span class="o">=</span> <span class="p">[]</span>
+
+  <span class="nv">initialize: </span><span class="o">-&gt;</span>
+    <span class="k">return</span> <span class="k">if</span> <span class="nx">@state</span>
+    <span class="nx">@state</span> <span class="o">=</span> <span class="s2">&quot;initializing&quot;</span>
+
+    <span class="nx">createServer</span> <span class="o">=</span> <span class="o">=&gt;</span>
+      <span class="nx">@app</span> <span class="o">=</span> <span class="nx">nack</span><span class="p">.</span><span class="nx">createServer</span> <span class="nx">join</span><span class="p">(</span><span class="nx">@root</span><span class="p">,</span> <span class="s2">&quot;config.ru&quot;</span><span class="p">),</span>
+        <span class="nv">env: </span> <span class="nx">@env</span>
+        <span class="nv">size: </span><span class="nx">@configuration</span><span class="p">.</span><span class="nx">workers</span>
+
+    <span class="nx">processReadyCallbacks</span> <span class="o">=</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="nx">readyCallback</span> <span class="nx">err</span> <span class="k">for</span> <span class="nx">readyCallback</span> <span class="k">in</span> <span class="nx">@readyCallbacks</span>
+      <span class="nx">@readyCallbacks</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="nx">installLogHandlers</span> <span class="o">=</span> <span class="o">=&gt;</span>
+      <span class="nx">bufferLines</span> <span class="nx">@app</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nx">stdout</span><span class="p">,</span> <span class="p">(</span><span class="nx">line</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">@logger</span><span class="p">.</span><span class="nx">info</span> <span class="nx">line</span>
+      <span class="nx">bufferLines</span> <span class="nx">@app</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nx">stderr</span><span class="p">,</span> <span class="p">(</span><span class="nx">line</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">@logger</span><span class="p">.</span><span class="nx">warning</span> <span class="nx">line</span>
+
+      <span class="nx">@app</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="kc">on</span> <span class="s2">&quot;worker:spawn&quot;</span><span class="p">,</span> <span class="p">(</span><span class="nx">process</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@logger</span><span class="p">.</span><span class="nx">debug</span> <span class="s2">&quot;nack worker #{process.child.pid} spawned&quot;</span>
+
+      <span class="nx">@app</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="kc">on</span> <span class="s2">&quot;worker:exit&quot;</span><span class="p">,</span> <span class="p">(</span><span class="nx">process</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@logger</span><span class="p">.</span><span class="nx">debug</span> <span class="s2">&quot;nack worker exited&quot;</span>
+
+    <span class="nx">getEnvForRoot</span> <span class="nx">@root</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">@env</span><span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="k">if</span> <span class="nx">err</span>
+        <span class="nx">@state</span> <span class="o">=</span> <span class="kc">null</span>
+        <span class="nx">@logger</span><span class="p">.</span><span class="nx">error</span> <span class="nx">err</span><span class="p">.</span><span class="nx">message</span>
+        <span class="nx">@logger</span><span class="p">.</span><span class="nx">error</span> <span class="s2">&quot;stdout: #{err.stdout}&quot;</span>
+        <span class="nx">@logger</span><span class="p">.</span><span class="nx">error</span> <span class="s2">&quot;stderr: #{err.stderr}&quot;</span>
+        <span class="nx">processReadyCallbacks</span> <span class="nx">err</span>
+      <span class="k">else</span>
+        <span class="nx">createServer</span><span class="p">()</span>
+        <span class="nx">installLogHandlers</span><span class="p">()</span>
+        <span class="nx">@state</span> <span class="o">=</span> <span class="s2">&quot;ready&quot;</span>
+        <span class="nx">processReadyCallbacks</span><span class="p">()</span>
+
+  <span class="nv">ready: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="k">if</span> <span class="nx">@state</span> <span class="o">is</span> <span class="s2">&quot;ready&quot;</span>
+      <span class="nx">callback</span><span class="p">()</span>
+    <span class="k">else</span>
+      <span class="nx">@readyCallbacks</span><span class="p">.</span><span class="nx">push</span> <span class="nx">callback</span>
+      <span class="nx">@initialize</span><span class="p">()</span>
+
+  <span class="nv">handle: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="nx">resume</span> <span class="o">=</span> <span class="nx">pause</span> <span class="nx">req</span>
+    <span class="nx">@ready</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="k">return</span> <span class="nx">next</span> <span class="nx">err</span> <span class="k">if</span> <span class="nx">err</span>
+      <span class="nx">@restartIfNecessary</span> <span class="o">=&gt;</span>
+        <span class="nx">req</span><span class="p">.</span><span class="nx">proxyMetaVariables</span> <span class="o">=</span>
+          <span class="nv">SERVER_PORT: </span><span class="nx">@configuration</span><span class="p">.</span><span class="nx">dstPort</span><span class="p">.</span><span class="nx">toString</span><span class="p">()</span>
+        <span class="k">try</span>
+          <span class="nx">@app</span><span class="p">.</span><span class="nx">handle</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span>
+        <span class="k">finally</span>
+          <span class="nx">resume</span><span class="p">()</span>
+          <span class="nx">callback</span><span class="o">?</span><span class="p">()</span>
+
+  <span class="nv">quit: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="k">if</span> <span class="nx">@app</span>
+      <span class="nx">@app</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nx">once</span> <span class="s2">&quot;exit&quot;</span><span class="p">,</span> <span class="nx">callback</span> <span class="k">if</span> <span class="nx">callback</span>
+      <span class="nx">@app</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nx">quit</span><span class="p">()</span>
+    <span class="k">else</span>
+      <span class="nx">callback</span><span class="o">?</span><span class="p">()</span>
+
+  <span class="nv">restartIfNecessary: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="nx">fs</span><span class="p">.</span><span class="nx">stat</span> <span class="nx">join</span><span class="p">(</span><span class="nx">@root</span><span class="p">,</span> <span class="s2">&quot;tmp/restart.txt&quot;</span><span class="p">),</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">stats</span><span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="k">if</span> <span class="o">not</span> <span class="nx">err</span> <span class="o">and</span> <span class="nx">stats</span><span class="o">?</span><span class="p">.</span><span class="nx">mtime</span> <span class="o">isnt</span> <span class="nx">@mtime</span>
+        <span class="nx">@quit</span> <span class="nx">callback</span>
+      <span class="k">else</span>
+        <span class="nx">callback</span><span class="p">()</span>
+      <span class="nx">@mtime</span> <span class="o">=</span> <span class="nx">stats</span><span class="o">?</span><span class="p">.</span><span class="nx">mtime</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

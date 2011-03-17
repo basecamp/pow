@@ -4,6 +4,13 @@ async = require "async"
 
 {Stream} = require 'stream'
 
+exports.escapeHTML = (string) ->
+  string.toString()
+    .replace(/&/g,  "&amp;")
+    .replace(/</g,  "&lt;")
+    .replace(/>/g,  "&gt;")
+    .replace(/\"/g, "&quot;")
+
 exports.mkdirp = (dirname, callback) ->
   fs.lstat (p = path.normalize dirname), (err, stats) ->
     if err

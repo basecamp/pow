@@ -1,5 +1,5 @@
 # A `Daemon` is the root object in a Pow process. It's responsible for
-# starting and stopping an `HttpServer` and `DnsServer` in tandem.
+# starting and stopping an `HttpServer` and a `DnsServer` in tandem.
 
 {EventEmitter} = require "events"
 HttpServer     = require "./http_server"
@@ -23,7 +23,7 @@ module.exports = class Daemon extends EventEmitter
   # * First, start the HTTP server. If the HTTP server can't boot,
   #   emit an `error` event and abort.
   # * Next, start the DNS server. If the DNS server can't boot, stop
-  #   the HTTP server, emit an `error event` and abort.
+  #   the HTTP server, emit an `error` event and abort.
   # * If both servers start up successfully, emit a `start` event and
   #   mark the daemon as started.
   start: ->

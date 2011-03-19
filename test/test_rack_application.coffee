@@ -1,27 +1,27 @@
-async           = require "async"
-connect         = require "connect"
-fs              = require "fs"
-http            = require "http"
-{testCase}      = require "nodeunit"
-{RackHandler}   = require ".."
+async             = require "async"
+connect           = require "connect"
+fs                = require "fs"
+http              = require "http"
+{testCase}        = require "nodeunit"
+{RackApplication} = require ".."
 
 {prepareFixtures, fixturePath, createConfiguration, touch, serve} = require "./lib/test_helper"
 
 serveApp = (path, callback) ->
   configuration = createConfiguration hostRoot: fixturePath("apps"), workers: 1
-  handler       = new RackHandler configuration, fixturePath(path)
+  application   = new RackApplication configuration, fixturePath(path)
   server        = connect.createServer()
 
   server.use (req, res, next) ->
     if req.url is "/"
-      handler.handle req, res, next
+      application.handle req, res, next
     else
       next()
 
   serve server, (request, done) ->
     callback request, (callback) ->
-      done -> handler.quit callback
-    , handler
+      done -> application.quit callback
+    , application
 
 module.exports = testCase
   setUp: (proceed) ->
@@ -68,8 +68,8 @@ module.exports = testCase
 
   "handling an error in .powrc": (test) ->
     test.expect 2
-    serveApp "apps/rc-error", (request, done, handler) ->
+    serveApp "apps/rc-error", (request, done, application) ->
       request "GET", "/", (body, response) ->
         test.same 500, response.statusCode
-        test.ok !handler.state
+        test.ok !application.state
         done -> test.done()

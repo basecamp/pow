@@ -6,12 +6,12 @@
 # their way through a middleware stack and are served to your browser
 # as static assets, Rack requests, or error pages.
 
-fs          = require "fs"
-sys         = require "sys"
-connect     = require "connect"
-RackHandler = require "./rack_handler"
+fs                  = require "fs"
+sys                 = require "sys"
+connect             = require "connect"
+RackApplication     = require "./rack_application"
 
-{dirname, join}  = require "path"
+{dirname, join}     = require "path"
 {pause, escapeHTML} = require "./util"
 
 # `HttpServer` is a subclass of
@@ -39,13 +39,13 @@ module.exports = class HttpServer extends connect.HTTPServer
     ]
 
     @staticHandlers = {}
-    @rackHandlers   = {}
+    @rackApplications = {}
 
     @accessLog = @configuration.getLogger "access"
 
     @on "close", =>
-      for root, handler of @rackHandlers
-        handler.quit()
+      for root, application of @rackApplications
+        application.quit()
 
   # The first middleware in the stack logs each incoming request's
   # source address, method, hostname, and path to the access log
@@ -92,14 +92,14 @@ module.exports = class HttpServer extends connect.HTTPServer
       next()
       req.pow.resume()
 
-  # Otherwise, pass the request to the `RackHandler` instance for the
-  # matched application.
+  # Otherwise, pass the request to the `RackApplication` instance for
+  # the matched application.
   handleRackRequest: (req, res, next) =>
     return next() unless req.pow
 
     root = req.pow.root
-    handler = @rackHandlers[root] ?= new RackHandler @configuration, root
-    handler.handle req, res, next, req.pow.resume
+    application = @rackApplications[root] ?= new RackApplication @configuration, root
+    application.handle req, res, next, req.pow.resume
 
   # If there's an exception thrown while handling a request, show a
   # nicely formatted error page along with the full backtrace.

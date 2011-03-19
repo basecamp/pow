@@ -35,7 +35,7 @@ getEnvForRoot = (root, callback) ->
         callback null, env
   , callback
 
-module.exports = class RackHandler
+module.exports = class RackApplication
   constructor: (@configuration, @root) ->
     @logger = @configuration.getLogger join "apps", basename @root
     @readyCallbacks = []
@@ -45,7 +45,7 @@ module.exports = class RackHandler
     @state = "initializing"
 
     createServer = =>
-      @app = nack.createServer join(@root, "config.ru"),
+      @server = nack.createServer join(@root, "config.ru"),
         env:  @env
         size: @configuration.workers
 
@@ -54,13 +54,13 @@ module.exports = class RackHandler
       @readyCallbacks = []
 
     installLogHandlers = =>
-      bufferLines @app.pool.stdout, (line) => @logger.info line
-      bufferLines @app.pool.stderr, (line) => @logger.warning line
+      bufferLines @server.pool.stdout, (line) => @logger.info line
+      bufferLines @server.pool.stderr, (line) => @logger.warning line
 
-      @app.pool.on "worker:spawn", (process) =>
+      @server.pool.on "worker:spawn", (process) =>
         @logger.debug "nack worker #{process.child.pid} spawned"
 
-      @app.pool.on "worker:exit", (process) =>
+      @server.pool.on "worker:exit", (process) =>
         @logger.debug "nack worker exited"
 
     getEnvForRoot @root, (err, @env) =>
@@ -91,15 +91,15 @@ module.exports = class RackHandler
         req.proxyMetaVariables =
           SERVER_PORT: @configuration.dstPort.toString()
         try
-          @app.handle req, res, next
+          @server.handle req, res, next
         finally
           resume()
           callback?()
 
   quit: (callback) ->
-    if @app
-      @app.pool.once "exit", callback if callback
-      @app.pool.quit()
+    if @server
+      @server.pool.once "exit", callback if callback
+      @server.pool.quit()
     else
       callback?()
 

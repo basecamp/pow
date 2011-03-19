@@ -3,7 +3,7 @@ path  = require "path"
 fs    = require "fs"
 nack  = require "nack"
 
-{LineBuffer, pause} = require "./util"
+{bufferLines, pause} = require "./util"
 {join, dirname, basename} = require "path"
 {exec} = require "child_process"
 
@@ -34,11 +34,6 @@ getEnvForRoot = (root, callback) ->
       else
         callback null, env
   , callback
-
-bufferLines = (stream, callback) ->
-  buffer = new LineBuffer stream
-  buffer.on "data", callback
-  buffer
 
 module.exports = class RackHandler
   constructor: (@configuration, @root) ->

@@ -40,6 +40,12 @@ exports.LineBuffer = class LineBuffer extends Stream
     @emit 'data', @_buffer if @_buffer.length
     @emit 'end'
 
+# Read lines from `stream` and invoke `callback` on each line.
+exports.bufferLines = (stream, callback) ->
+  buffer = new LineBuffer stream
+  buffer.on "data", callback
+  buffer
+
 # ---
 
 # Escape meaningful HTML characters in a string.

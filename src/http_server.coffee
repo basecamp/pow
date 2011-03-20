@@ -117,7 +117,7 @@ module.exports = class HttpServer extends connect.HTTPServer
       next()
 
   # If the request object is annotated with an application, pass the
-  # request off to its `handle` method.
+  # request off to the application's `handle` method.
   handleApplicationRequest: (req, res, next) =>
     if application = req.pow?.application
       application.handle req, res, next, req.pow.resume

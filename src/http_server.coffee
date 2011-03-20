@@ -6,13 +6,13 @@
 # their way through a middleware stack and are served to your browser
 # as static assets, Rack requests, or error pages.
 
-fs                  = require "fs"
-sys                 = require "sys"
-connect             = require "connect"
-RackApplication     = require "./rack_application"
+fs              = require "fs"
+sys             = require "sys"
+connect         = require "connect"
+RackApplication = require "./rack_application"
 
-{dirname, join}     = require "path"
 {pause, escapeHTML} = require "./util"
+{dirname, join, exists} = require "path"
 
 # `HttpServer` is a subclass of
 # [Connect](http://senchalabs.github.com/connect/)'s `HTTPServer` with
@@ -34,7 +34,8 @@ module.exports = class HttpServer extends connect.HTTPServer
       o @logRequest
       o @findApplicationRoot
       o @handleStaticRequest
-      o @handleRackRequest
+      o @findRackApplication
+      o @handleApplicationRequest
       x @handleApplicationException
     ]
 
@@ -92,14 +93,36 @@ module.exports = class HttpServer extends connect.HTTPServer
       next()
       req.pow.resume()
 
-  # Otherwise, pass the request to the `RackApplication` instance for
-  # the matched application.
-  handleRackRequest: (req, res, next) =>
+  # Check to see if the application root contains a `config.ru`
+  # file. If it does, find the existing `RackApplication` instance for
+  # the root, or create and cache a new one. Then annotate the request
+  # object with the application so it can be handled by
+  # `handleApplicationRequest`.
+  findRackApplication: (req, res, next) =>
     return next() unless req.pow
 
     root = req.pow.root
-    application = @rackApplications[root] ?= new RackApplication @configuration, root
-    application.handle req, res, next, req.pow.resume
+    exists join(root, "config.ru"), (rackConfigExists) =>
+      if rackConfigExists
+        req.pow.application = @rackApplications[root] ?=
+          new RackApplication @configuration, root
+
+      # If `config.ru` isn't present but there's an existing
+      # `RackApplication` for the root, terminate the application and
+      # remove it from the cache.
+      else if application = @rackApplications[root]
+        delete @rackApplications[root]
+        application.quit()
+
+      next()
+
+  # If the request object is annotated with an application, pass the
+  # request off to its `handle` method.
+  handleApplicationRequest: (req, res, next) =>
+    if application = req.pow?.application
+      application.handle req, res, next, req.pow.resume
+    else
+      next()
 
   # If there's an exception thrown while handling a request, show a
   # nicely formatted error page along with the full backtrace.

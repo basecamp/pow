@@ -73,13 +73,31 @@ module.exports = testCase
     ], test.done
 
   "serves static assets in public/": (test) ->
+    test.expect 2
     serveRoot "apps", (request, done) ->
       request "GET", "/robots.txt", host: "hello.test", (body, response) ->
         test.same 200, response.statusCode
         test.same "User-Agent: *\nDisallow: /\n", body
         done -> test.done()
 
+  "serves static assets from non-Rack applications": (test) ->
+    test.expect 3
+    async.series [
+      (proceed) ->
+        serveRoot "apps", (request, done) ->
+          request "GET", "/", host: "static.test", (body, response) ->
+            test.same 200, response.statusCode
+            test.same "<!doctype html>\nhello world!\n", body
+            done proceed
+      (proceed) ->
+        serveRoot "apps", (request, done) ->
+          request "GET", "/nonexistent", host: "static.test", (body, response) ->
+            test.same 404, response.statusCode
+            done proceed
+    ], test.done
+
   "post request": (test) ->
+    test.expect 2
     serveRoot "apps", (request, done) ->
       request "POST", "/post", host: "hello.test", data: "foo=bar", (body, response) ->
         test.same 200, response.statusCode

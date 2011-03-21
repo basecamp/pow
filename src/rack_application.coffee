@@ -1,3 +1,24 @@
+# The `RackApplication` class is responsible for managing a
+# [Nack](http://josh.github.com/nack/) server for a given Rack
+# application. Incoming HTTP requests are dispatched to
+# `RackApplication` instances by an `HttpServer`, where they are
+# subsequently handled by a pool of Nack worker processes. By default,
+# Pow tells Nack to use a maximum of two worker processes per
+# application, but this can be overridden with the configuration's
+# `workers` option.
+#
+# Before creating the Nack server, Pow executes the `.powrc` and
+# `.powenv` scripts if they're present in the application root,
+# captures their environment variables, and passes them along to the
+# Nack worker processes. This lets you modify your `PATH` to use a
+# different Ruby version, for example.
+#
+# Nack workers remain running until they're killed, restarted (by
+# touching the `tmp/restart.txt` file in the application root), or
+# until the application has not served requests for the length of time
+# specified in the configuration's `timeout` option (15 minutes by
+# default).
+
 async = require "async"
 path  = require "path"
 fs    = require "fs"

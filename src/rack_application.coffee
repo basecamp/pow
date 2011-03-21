@@ -56,6 +56,7 @@ module.exports = class RackApplication
       @server = nack.createServer join(@root, "config.ru"),
         env:  @env
         size: @configuration.workers
+        idle: @configuration.timeout
 
     processReadyCallbacks = (err) =>
       readyCallback err for readyCallback in @readyCallbacks

@@ -1,10 +1,10 @@
 # The `util` module houses a number of utility functions used
 # throughout Pow.
 
-fs    = require "fs"
-path  = require "path"
-async = require "async"
-
+fs       = require "fs"
+path     = require "path"
+async    = require "async"
+{exec}   = require "child_process"
 {Stream} = require 'stream'
 
 # The `LineBuffer` class is a `Stream` that emits a `data` event for
@@ -98,3 +98,26 @@ exports.pause = (stream) ->
 
     for args in queue
       stream.emit args...
+
+# Spawn a shell with the given `env` and source the named
+# `script`. Then collect its resulting environment variables and pass
+# them to `callback` as the second argument. If the script returns a
+# non-zero exit code, call `callback` with the error as its first
+# argument, and annotate the error with the captured `stdout` and
+# `stderr`.
+exports.sourceScriptEnv = (script, env, callback) ->
+  command = """
+    source '#{script}' > /dev/null;
+    '#{process.execPath}' -e 'JSON.stringify(process.env)'
+  """
+  exec command, cwd: path.dirname(script), env: env, (err, stdout, stderr) ->
+    if err
+      err.message = "'#{script}' failed to load"
+      err.stdout = stdout
+      err.stderr = stderr
+      callback err
+
+    try
+      callback null, JSON.parse stdout
+    catch exception
+      callback exception

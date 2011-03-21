@@ -24,42 +24,29 @@ path  = require "path"
 fs    = require "fs"
 nack  = require "nack"
 
-{bufferLines, pause} = require "./util"
-{join, dirname, basename} = require "path"
-{exec} = require "child_process"
-
-sourceScriptEnv = (script, env, callback) ->
-  command = """
-    source '#{script}' > /dev/null;
-    '#{process.execPath}' -e 'JSON.stringify(process.env)'
-  """
-  exec command, cwd: dirname(script), env: env, (err, stdout, stderr) ->
-    if err
-      err.message = "'#{script}' failed to load"
-      err.stdout = stdout
-      err.stderr = stderr
-      callback err
-
-    try
-      callback null, JSON.parse stdout
-    catch exception
-      callback exception
-
-envFilenames = [".powrc", ".powenv"]
-
-getEnvForRoot = (root, callback) ->
-  async.reduce envFilenames, {}, (env, filename, callback) ->
-    path.exists script = join(root, filename), (exists) ->
-      if exists
-        sourceScriptEnv script, env, callback
-      else
-        callback null, env
-  , callback
+{bufferLines, pause, sourceScriptEnv} = require "./util"
+{join, basename} = require "path"
 
 module.exports = class RackApplication
   constructor: (@configuration, @root) ->
     @logger = @configuration.getLogger join "apps", basename @root
     @readyCallbacks = []
+
+  # Collect environment variables from `.powrc` and `.powenv`, in that
+  # order, if present. The idea is that `.powrc` files can be checked
+  # into a source code repository for global configuration, leaving
+  # `.powenv` free for any necessary local overrides.
+
+  envFilenames = [".powrc", ".powenv"]
+
+  getEnvForRoot = (root, callback) ->
+    async.reduce envFilenames, {}, (env, filename, callback) ->
+      path.exists script = join(root, filename), (exists) ->
+        if exists
+          sourceScriptEnv script, env, callback
+        else
+          callback null, env
+    , callback
 
   initialize: ->
     return if @state

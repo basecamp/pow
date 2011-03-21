@@ -20,12 +20,11 @@
 # default).
 
 async = require "async"
-path  = require "path"
 fs    = require "fs"
 nack  = require "nack"
 
 {bufferLines, pause, sourceScriptEnv} = require "./util"
-{join, basename} = require "path"
+{join, exists, basename} = require "path"
 
 module.exports = class RackApplication
   constructor: (@configuration, @root) ->
@@ -41,7 +40,7 @@ module.exports = class RackApplication
 
   getEnvForRoot = (root, callback) ->
     async.reduce envFilenames, {}, (env, filename, callback) ->
-      path.exists script = join(root, filename), (exists) ->
+      exists script = join(root, filename), (exists) ->
         if exists
           sourceScriptEnv script, env, callback
         else

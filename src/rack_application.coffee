@@ -27,63 +27,16 @@ nack  = require "nack"
 {join, exists, basename} = require "path"
 
 module.exports = class RackApplication
+  # Create a `RackApplication` for the given configuration and
+  # root path. The application begins life in the uninitialized
+  # state.
   constructor: (@configuration, @root) ->
     @logger = @configuration.getLogger join "apps", basename @root
     @readyCallbacks = []
 
-  # Collect environment variables from `.powrc` and `.powenv`, in that
-  # order, if present. The idea is that `.powrc` files can be checked
-  # into a source code repository for global configuration, leaving
-  # `.powenv` free for any necessary local overrides.
-
-  envFilenames = [".powrc", ".powenv"]
-
-  getEnvForRoot = (root, callback) ->
-    async.reduce envFilenames, {}, (env, filename, callback) ->
-      exists script = join(root, filename), (exists) ->
-        if exists
-          sourceScriptEnv script, env, callback
-        else
-          callback null, env
-    , callback
-
-  initialize: ->
-    return if @state
-    @state = "initializing"
-
-    createServer = =>
-      @server = nack.createServer join(@root, "config.ru"),
-        env:  @env
-        size: @configuration.workers
-        idle: @configuration.timeout
-
-    processReadyCallbacks = (err) =>
-      readyCallback err for readyCallback in @readyCallbacks
-      @readyCallbacks = []
-
-    installLogHandlers = =>
-      bufferLines @server.pool.stdout, (line) => @logger.info line
-      bufferLines @server.pool.stderr, (line) => @logger.warning line
-
-      @server.pool.on "worker:spawn", (process) =>
-        @logger.debug "nack worker #{process.child.pid} spawned"
-
-      @server.pool.on "worker:exit", (process) =>
-        @logger.debug "nack worker exited"
-
-    getEnvForRoot @root, (err, @env) =>
-      if err
-        @state = null
-        @logger.error err.message
-        @logger.error "stdout: #{err.stdout}"
-        @logger.error "stderr: #{err.stderr}"
-        processReadyCallbacks err
-      else
-        createServer()
-        installLogHandlers()
-        @state = "ready"
-        processReadyCallbacks()
-
+  # Invoke `callback` if the application's state is ready. Otherwise,
+  # queue the callback to be invoked when the application becomes
+  # ready, then start the initialization process.
   ready: (callback) ->
     if @state is "ready"
       callback()
@@ -91,6 +44,65 @@ module.exports = class RackApplication
       @readyCallbacks.push callback
       @initialize()
 
+  # Collect environment variables from `.powrc` and `.powenv`, in that
+  # order, if present. The idea is that `.powrc` files can be checked
+  # into a source code repository for global configuration, leaving
+  # `.powenv` free for any necessary local overrides.
+  loadEnvironment: (callback) ->
+    async.reduce [".powrc", ".powenv"], {}, (env, filename, callback) =>
+      exists script = join(@root, filename), (exists) ->
+        if exists
+          sourceScriptEnv script, env, callback
+        else
+          callback null, env
+    , callback
+
+  # Begin the initialization process if the application is in the
+  # uninitialized state.
+  initialize: ->
+    return if @state
+    @state = "initializing"
+
+    # Load the application's environment. If an error is raised or
+    # either of the environment scripts exits with a non-zero status,
+    # reset the application's state and log the error.
+    @loadEnvironment (err, env) =>
+      if err
+        @state = null
+        @logger.error err.message
+        @logger.error "stdout: #{err.stdout}"
+        @logger.error "stderr: #{err.stderr}"
+
+      # Set the application's state to ready. Then create the Nack
+      # server instance using the `workers` and `timeout` options from
+      # the application's configuration.
+      else
+        @state = "ready"
+
+        @server = nack.createServer join(@root, "config.ru"),
+          env:  env
+          size: @configuration.workers
+          idle: @configuration.timeout
+
+        #  Log the workers' stderr and stdout, and log each worker's
+        #  PID as it spawns and exits.
+        bufferLines @server.pool.stdout, (line) => @logger.info line
+        bufferLines @server.pool.stderr, (line) => @logger.warning line
+
+        @server.pool.on "worker:spawn", (process) =>
+          @logger.debug "nack worker #{process.child.pid} spawned"
+
+        @server.pool.on "worker:exit", (process) =>
+          @logger.debug "nack worker exited"
+
+      # Invoke and remove all queued callbacks, passing along the
+      # error, if any.
+      readyCallback err for readyCallback in @readyCallbacks
+      @readyCallbacks = []
+
+  # Handle an incoming HTTP request. Wait until the application is in
+  # the ready state, restart the workers if necessary, then pass the
+  # request along to the Nack server.
   handle: (req, res, next, callback) ->
     resume = pause req
     @ready (err) =>
@@ -104,13 +116,18 @@ module.exports = class RackApplication
           resume()
           callback?()
 
+  # Terminate any running Nack workers and invoke the given callback
+  # when they exit.
   quit: (callback) ->
-    if @server
+    if @state is "ready"
       @server.pool.once "exit", callback if callback
       @server.pool.quit()
     else
       callback?()
 
+  # Terminate any running Nack workers if `tmp/restart.txt` has been
+  # modified since the last call to this function, and invoke the
+  # given callback when they exit.
   restartIfNecessary: (callback) ->
     fs.stat join(@root, "tmp/restart.txt"), (err, stats) =>
       if not err and stats?.mtime isnt @mtime

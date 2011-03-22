@@ -13,12 +13,12 @@
 #     Requires Mac OS X 10.6
 #     To install, run this command in a Terminal window:
 #
-#     curl get.pow.cx | sh -
+#     curl get.pow.cx | sh
 #
 
 set -e
 POW_ROOT="$HOME/Library/Application Support/Pow"
-[[ -z "$VERSION" ]] && VERSION=0.1.4
+[[ -z "$VERSION" ]] && VERSION=0.1.5
 
 echo "*** Installing Pow $VERSION..."
 

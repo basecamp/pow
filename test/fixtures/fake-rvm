@@ -1,0 +1,4 @@
+rvm() {
+  export RVM_VERSION=$1
+}
+

@@ -10,8 +10,13 @@
 # Before creating the Nack server, Pow executes the `.powrc` and
 # `.powenv` scripts if they're present in the application root,
 # captures their environment variables, and passes them along to the
-# Nack worker processes. This lets you modify your `PATH` to use a
-# different Ruby version, for example.
+# Nack worker processes. This lets you modify your `RUBYOPT` to use
+# different Ruby options, for example.
+#
+# If [rvm](http://rvm.beginrescueend.com/) is installed and an
+# `.rvmrc` file is present in the application's root, Pow will load
+# both before creating the Nack server. This makes it easy to run an
+# app with a specific version of Ruby.
 #
 # Nack workers remain running until they're killed, restarted (by
 # touching the `tmp/restart.txt` file in the application root), or
@@ -48,14 +53,39 @@ module.exports = class RackApplication
   # order, if present. The idea is that `.powrc` files can be checked
   # into a source code repository for global configuration, leaving
   # `.powenv` free for any necessary local overrides.
-  loadEnvironment: (callback) ->
-    async.reduce [".powrc", ".powenv"], {}, (env, filename, callback) =>
-      exists script = join(@root, filename), (exists) ->
-        if exists
+  loadScriptEnvironment: (env, callback) ->
+    async.reduce [".powrc", ".powenv"], env, (env, filename, callback) =>
+      exists script = join(@root, filename), (scriptExists) ->
+        if scriptExists
           sourceScriptEnv script, env, callback
         else
           callback null, env
     , callback
+
+  # If `.rvmrc` and `$HOME/.rvm/scripts/rvm` are present, load rvm,
+  # source `.rvmrc`, and invoke `callback` with the resulting
+  # environment variables. If `.rvmrc` is present but rvm is not
+  # installed, invoke `callback` with an informative error message.
+  loadRvmEnvironment: (env, callback) ->
+    exists script = join(@root, ".rvmrc"), (rvmrcExists) =>
+      if rvmrcExists
+        exists rvm = @configuration.rvmPath, (rvmExists) ->
+          if rvmExists
+            before = "source '#{rvm}' > /dev/null"
+            sourceScriptEnv script, env, {before}, callback
+          else
+            callback Error ".rvmrc present but rvm (#{rvm}) not found"
+      else
+        callback null, env
+
+  # Load the application's full environment from `.powrc`, `.powenv`,
+  # and `.rvmrc`.
+  loadEnvironment: (callback) ->
+    @loadScriptEnvironment null, (err, env) =>
+      if err then callback err
+      else @loadRvmEnvironment env, (err, env) =>
+        if err then callback err
+        else callback null, env
 
   # Begin the initialization process if the application is in the
   # uninitialized state.

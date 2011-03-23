@@ -8,9 +8,13 @@ http              = require "http"
 {prepareFixtures, fixturePath, createConfiguration, touch, serve} = require "./lib/test_helper"
 
 serveApp = (path, callback) ->
-  configuration = createConfiguration hostRoot: fixturePath("apps"), workers: 1
-  application   = new RackApplication configuration, fixturePath(path)
-  server        = connect.createServer()
+  configuration = createConfiguration
+    hostRoot: fixturePath("apps")
+    rvmPath:  fixturePath("fake-rvm")
+    workers:  1
+
+  application = new RackApplication configuration, fixturePath(path)
+  server = connect.createServer()
 
   server.use (req, res, next) ->
     if req.url is "/"
@@ -72,4 +76,12 @@ module.exports = testCase
       request "GET", "/", (body, response) ->
         test.same 500, response.statusCode
         test.ok !application.state
+        done -> test.done()
+
+  "loading rvm and .rvmrc": (test) ->
+    test.expect 2
+    serveApp "apps/rvm", (request, done, application) ->
+      request "GET", "/", (body, response) ->
+        test.same 200, response.statusCode
+        test.same "1.9.2", body
         done -> test.done()

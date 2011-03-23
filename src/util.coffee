@@ -105,11 +105,19 @@ exports.pause = (stream) ->
 # non-zero exit code, call `callback` with the error as its first
 # argument, and annotate the error with the captured `stdout` and
 # `stderr`.
-exports.sourceScriptEnv = (script, env, callback) ->
+exports.sourceScriptEnv = (script, env, options, callback) ->
+  if options.call
+    callback = options
+    options = {}
+  else
+    options ?= {}
+
   command = """
+    #{options.before};
     source '#{script}' > /dev/null;
     '#{process.execPath}' -e 'JSON.stringify(process.env)'
   """
+
   exec command, cwd: path.dirname(script), env: env, (err, stdout, stderr) ->
     if err
       err.message = "'#{script}' failed to load"

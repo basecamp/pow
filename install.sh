@@ -8,7 +8,7 @@
 #     88
 #     88
 #
-#     Zero-configuration development server for Rack applications
+#     Zero-configuration Rack server for Mac OS X
 #
 #     Requires Mac OS X 10.6
 #     To install, run this command in a Terminal window:
@@ -18,7 +18,7 @@
 
 set -e
 POW_ROOT="$HOME/Library/Application Support/Pow"
-[[ -z "$VERSION" ]] && VERSION=0.1.5
+[[ -z "$VERSION" ]] && VERSION=0.1.6
 
 echo "*** Installing Pow $VERSION..."
 

@@ -1,3 +1,5 @@
+require.paths.unshift "#{__dirname}/node_modules"
+
 fs      = require 'fs'
 {print} = require 'sys'
 {spawn} = require 'child_process'

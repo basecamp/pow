@@ -5,7 +5,7 @@
 # there's no configuration needed to add and remove host names for
 # local web development.
 
-ndns = require "./ndns"
+ndns = require "ndns"
 
 module.exports = class DnsServer extends ndns.Server
   # Create a `DnsServer` with the given `Configuration` instance. The

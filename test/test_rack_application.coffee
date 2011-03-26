@@ -60,6 +60,17 @@ module.exports = testCase
               test.ok pid isnt newpid
               done -> fs.unlink restart, -> test.done()
 
+  "handling the initial request when restart.txt is present": (test) ->
+    test.expect 3
+    touch restart = fixturePath("apps/pid/tmp/restart.txt"), ->
+      serveApp "apps/pid", (request, done) ->
+        request "GET", "/", (body) ->
+          test.ok pid = parseInt body
+          request "GET", "/", (body) ->
+            test.ok newpid = parseInt body
+            test.same pid, newpid
+            done -> fs.unlink restart, -> test.done()
+
   "custom environment": (test) ->
     test.expect 3
     serveApp "apps/env", (request, done) ->

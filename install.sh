@@ -18,7 +18,7 @@
 
 set -e
 POW_ROOT="$HOME/Library/Application Support/Pow"
-[[ -z "$VERSION" ]] && VERSION=0.1.6
+[[ -z "$VERSION" ]] && VERSION=0.1.7
 
 echo "*** Installing Pow $VERSION..."
 

@@ -19,19 +19,24 @@ exports.prepareFixtures = (callback) ->
       callback()
 
 exports.rm_rf = rm_rf = (path, callback) ->
-  exec "rm -rf #{path}", (err) ->
-    if err then callback err
-    else callback()
+  exec "rm -rf #{path}", callback
 
 exports.mkdirp = mkdirp = (path, callback) ->
-  exec "mkdir -p #{path}", (err) ->
-    if err then callback err
-    else callback()
+  exec "mkdir -p #{path}", callback
 
 exports.touch = touch = (path, callback) ->
-  exec "touch #{path}", (err) ->
-    if err then callback err
-    else callback()
+  exec "touch #{path}", callback
+
+exports.swap = swap = (path1, path2, callback) ->
+  unswap = (callback) ->
+    swap path2, path1, callback
+
+  exec """
+    mv #{path1} #{path1}.swap;
+    mv #{path2} #{path1};
+    mv #{path1}.swap #{path2}
+  """, (err) ->
+    callback err, unswap
 
 exports.debug = debug = ->
   if process.env.DEBUG

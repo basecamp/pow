@@ -5,7 +5,7 @@ http              = require "http"
 {testCase}        = require "nodeunit"
 {RackApplication} = require ".."
 
-{prepareFixtures, fixturePath, createConfiguration, touch, serve} = require "./lib/test_helper"
+{prepareFixtures, fixturePath, createConfiguration, touch, swap, serve} = require "./lib/test_helper"
 
 serveApp = (path, callback) ->
   configuration = createConfiguration
@@ -81,6 +81,18 @@ module.exports = testCase
         test.same "Hello!", env.POW_TEST3
         done -> test.done()
 
+  "custom environments are reloaded after a restart": (test) ->
+    serveApp "apps/env", (request, done) ->
+      request "GET", "/", (body) ->
+        test.same "Hello!", JSON.parse(body).POW_TEST3
+        powenv1 = fixturePath("apps/env/.powenv")
+        powenv2 = fixturePath("apps/env/.powenv2")
+        swap powenv1, powenv2, (err, unswap) ->
+          touch restart = fixturePath("apps/env/tmp/restart.txt"), ->
+            request "GET", "/", (body) ->
+              test.same "Goodbye!", JSON.parse(body).POW_TEST3
+              done -> unswap -> fs.unlink restart, -> test.done()
+
   "handling an error in .powrc": (test) ->
     test.expect 2
     serveApp "apps/rc-error", (request, done, application) ->
@@ -96,3 +108,4 @@ module.exports = testCase
         test.same 200, response.statusCode
         test.same "1.9.2", body
         done -> test.done()
+

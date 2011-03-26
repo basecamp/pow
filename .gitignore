@@ -1,4 +1,5 @@
 /test/fixtures/*/tmp/restart.txt
 /test/fixtures/tmp/
 /dist
-
+/node_modules/
+!/node_modules/ndns/

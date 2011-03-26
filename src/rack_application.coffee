@@ -109,20 +109,20 @@ module.exports = class RackApplication
       else
         @state = "ready"
 
-        @server = nack.createServer join(@root, "config.ru"),
+        @server = nack.createPool join(@root, "config.ru"),
           env:  env
           size: @configuration.workers
           idle: @configuration.timeout
 
         #  Log the workers' stderr and stdout, and log each worker's
         #  PID as it spawns and exits.
-        bufferLines @server.pool.stdout, (line) => @logger.info line
-        bufferLines @server.pool.stderr, (line) => @logger.warning line
+        bufferLines @server.stdout, (line) => @logger.info line
+        bufferLines @server.stderr, (line) => @logger.warning line
 
-        @server.pool.on "worker:spawn", (process) =>
+        @server.on "worker:spawn", (process) =>
           @logger.debug "nack worker #{process.child.pid} spawned"
 
-        @server.pool.on "worker:exit", (process) =>
+        @server.on "worker:exit", (process) =>
           @logger.debug "nack worker exited"
 
       # Invoke and remove all queued callbacks, passing along the
@@ -141,7 +141,7 @@ module.exports = class RackApplication
         req.proxyMetaVariables =
           SERVER_PORT: @configuration.dstPort.toString()
         try
-          @server.handle req, res, next
+          @server.proxy req, res, next
         finally
           resume()
           callback?()
@@ -150,8 +150,8 @@ module.exports = class RackApplication
   # when they exit.
   quit: (callback) ->
     if @state is "ready"
-      @server.pool.once "exit", callback if callback
-      @server.pool.quit()
+      @server.once "exit", callback if callback
+      @server.quit()
     else
       callback?()
 

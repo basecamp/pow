@@ -12,7 +12,7 @@
     "async": "0.1.7"
   , "connect": ">= 1.0.3"
   , "log": ">= 1.1.1"
-  , "nack": ">= 0.9.2"
+  , "nack": ">= 0.9.4"
   }
 , "bundleDependencies" : [ "ndns" ]
 , "devDependencies": {

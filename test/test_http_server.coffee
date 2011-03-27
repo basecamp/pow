@@ -3,7 +3,7 @@ http            = require "http"
 async           = require "async"
 {testCase}      = require "nodeunit"
 
-{prepareFixtures, fixturePath, createConfiguration, serve} = require "./lib/test_helper"
+{prepareFixtures, fixturePath, createConfiguration, swap, serve} = require "./lib/test_helper"
 
 serveRoot = (root, options, callback) ->
   unless callback
@@ -56,6 +56,19 @@ module.exports = testCase
         test.same 500, response.statusCode
         test.same "ApplicationException", response.headers["x-pow-handler"]
         done -> test.done()
+
+  "recovering from a boot error": (test) ->
+    test.expect 3
+    config = fixturePath "apps/error/config.ru"
+    ok = fixturePath "apps/error/ok.ru"
+    serveRoot "apps", (request, done) ->
+      request "GET", "/", host: "error.test", (body, response) ->
+        test.same 500, response.statusCode
+        swap config, ok, (err, unswap) ->
+          request "GET", "/", host: "error.test", (body, response) ->
+            test.same 200, response.statusCode
+            test.same "OK", body
+            done -> unswap -> test.done()
 
   "respects public-facing port in redirects": (test) ->
     test.expect 2

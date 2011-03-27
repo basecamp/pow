@@ -148,7 +148,8 @@ module.exports = class RackApplication
 
   # Handle an incoming HTTP request. Wait until the application is in
   # the ready state, restart the workers if necessary, then pass the
-  # request along to the Nack pool.
+  # request along to the Nack pool. If the Nack worker raises an
+  # exception handling the request, reset the application.
   handle: (req, res, next, callback) ->
     resume = pause req
     @ready (err) =>
@@ -157,7 +158,9 @@ module.exports = class RackApplication
         req.proxyMetaVariables =
           SERVER_PORT: @configuration.dstPort.toString()
         try
-          @pool.proxy req, res, next
+          @pool.proxy req, res, (err) =>
+            @reset() if err
+            next err
         finally
           resume()
           callback?()

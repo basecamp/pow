@@ -8,8 +8,9 @@ DIST="$(pwd)/dist"
 
 cake build
 
-mkdir -p "$ROOT/$VERSION"
+mkdir -p "$ROOT/$VERSION/node_modules"
 cp -R package.json bin lib "$ROOT/$VERSION"
+cp -R node_modules/ndns "$ROOT/$VERSION/node_modules"
 cd "$ROOT/$VERSION"
 npm bundle 2> /dev/null
 cp `which node` bin

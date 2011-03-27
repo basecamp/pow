@@ -3,7 +3,7 @@
 When used in conjunction with Mac OS X's <a href="http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man5/resolver.5.html">/etc/resolver
 system</a>,
 there's no configuration needed to add and remove host names for
-local web development.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">ndns = </span><span class="nx">require</span> <span class="s2">&quot;./ndns&quot;</span>
+local web development.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">ndns = </span><span class="nx">require</span> <span class="s2">&quot;ndns&quot;</span>
 
 <span class="nv">module.exports = </span><span class="k">class</span> <span class="nx">DnsServer</span> <span class="k">extends</span> <span class="nx">ndns</span><span class="p">.</span><span class="nx">Server</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>Create a <code>DnsServer</code> with the given <code>Configuration</code> instance. The
 server installs a single event handler for responding to DNS

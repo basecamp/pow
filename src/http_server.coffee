@@ -32,6 +32,7 @@ module.exports = class HttpServer extends connect.HTTPServer
   constructor: (@configuration) ->
     super [
       o @logRequest
+      o @annotateRequest
       o @findApplicationRoot
       o @handleStaticRequest
       o @findRackApplication
@@ -55,28 +56,35 @@ module.exports = class HttpServer extends connect.HTTPServer
     @accessLog.info "[#{req.socket.remoteAddress}] #{req.method} #{req.headers.host} #{req.url}"
     next()
 
-  # After the request has been logged, attempt to match its hostname
-  # to a Rack application using the server's configuration. If an
-  # application is found, annotate the request object with the
-  # application's root path so we can use it further down the
-  # stack. If no application is found, render an error page indicating
-  # that the hostname is not yet configured.
+  # Annotate the request object with a `pow` property whose value is
+  # an object that will hold the request's normalized hostname, root
+  # path, and application, if any. (Only the `pow.host` property is
+  # set here.)
+  annotateRequest: (req, res, next) ->
+    host = req.headers.host.replace /:.*/, ""
+    req.pow = {host}
+    next()
+
+  # After the request has been annotated, attempt to match its
+  # hostname to a Rack application using the server's
+  # configuration. If an application is found, annotate the request
+  # object with the application's root path so we can use it further
+  # down the stack. If no application is found, render an error page
+  # indicating that the hostname is not yet configured.
   findApplicationRoot: (req, res, next) =>
-    host   = req.headers.host.replace /:.*/, ""
     resume = pause req
 
-    @configuration.findApplicationRootForHost host, (err, root) =>
+    @configuration.findApplicationRootForHost req.pow.host, (err, root) =>
       if err
         next err
         resume()
       else
-        req.pow = {host, root}
-        if not root
-          @handleNonexistentDomain req, res, next
-          resume()
-        else
+        if req.pow.root = root
           req.pow.resume = resume
           next()
+        else
+          @handleNonexistentDomain req, res, next
+          resume()
 
   # If this is a `GET` or `HEAD` request matching a file in the
   # application's `public/` directory, serve the file directly.
@@ -84,10 +92,9 @@ module.exports = class HttpServer extends connect.HTTPServer
     unless req.method in ["GET", "HEAD"]
       return next()
 
-    unless req.pow
+    unless root = req.pow.root
       return next()
 
-    root = req.pow.root
     handler = @staticHandlers[root] ?= connect.static join(root, "public")
     handler req, res, ->
       next()
@@ -99,9 +106,8 @@ module.exports = class HttpServer extends connect.HTTPServer
   # object with the application so it can be handled by
   # `handleApplicationRequest`.
   findRackApplication: (req, res, next) =>
-    return next() unless req.pow
+    return next() unless root = req.pow.root
 
-    root = req.pow.root
     exists join(root, "config.ru"), (rackConfigExists) =>
       if rackConfigExists
         req.pow.application = @rackApplications[root] ?=
@@ -119,7 +125,7 @@ module.exports = class HttpServer extends connect.HTTPServer
   # If the request object is annotated with an application, pass the
   # request off to the application's `handle` method.
   handleApplicationRequest: (req, res, next) =>
-    if application = req.pow?.application
+    if application = req.pow.application
       application.handle req, res, next, req.pow.resume
     else
       next()
@@ -127,7 +133,7 @@ module.exports = class HttpServer extends connect.HTTPServer
   # If there's an exception thrown while handling a request, show a
   # nicely formatted error page along with the full backtrace.
   handleApplicationException: (err, req, res, next) =>
-    return next() unless req.pow
+    return next() unless req.pow.root
 
     res.writeHead 500, "Content-Type": "text/html; charset=utf8", "X-Pow-Handler": "ApplicationException"
     res.end """
@@ -170,7 +176,6 @@ module.exports = class HttpServer extends connect.HTTPServer
   # Show a friendly message when accessing a hostname that hasn't been
   # set up with Pow yet.
   handleNonexistentDomain: (req, res, next) =>
-    return next() unless req.pow
     host = req.pow.host
     name = host.slice 0, host.length - @configuration.domain.length - 1
     path = join @configuration.root, name

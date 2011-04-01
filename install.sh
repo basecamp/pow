@@ -31,25 +31,22 @@ fi
 echo "*** Installing Pow $VERSION..."
 
 # Create the Pow directory structure if it doesn't already exist.
-mkdir -p "$POW_ROOT"
-cd "$POW_ROOT"
-mkdir -p Hosts
-mkdir -p Versions
+mkdir -p "$POW_ROOT/Hosts" "$POW_ROOT/Versions"
 
 # If the requested version of Pow is already installed, remove it first.
-cd Versions
+cd "$POW_ROOT/Versions"
 rm -rf "$POW_ROOT/Versions/$VERSION"
 
 # Download the requested version of Pow and unpack it.
 curl -s http://get.pow.cx/versions/$VERSION.tar.gz | tar xzf -
-cd ..
 
 # Update the Current symlink to point to the new version.
+cd "$POW_ROOT"
 rm -f Current
 ln -s Versions/$VERSION Current
 
 # Create the ~/.pow symlink if it doesn't exist.
-cd
+cd "$HOME"
 [[ -a .pow ]] || ln -s "$POW_ROOT/Hosts" .pow
 
 # Make a temporary directory for the launchd and resolver files.
@@ -130,7 +127,7 @@ else
 fi
 
 # Install the powd launchctl script.
-mkdir -p Library/LaunchAgents
+mkdir -p "$HOME/Library/LaunchAgents"
 mv "$POWD_SCRIPT_SRC" "$POWD_SCRIPT_DST"
 
 # Start (or restart) powd.

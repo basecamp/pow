@@ -21,8 +21,9 @@
 #     $ cd ~/.pow
 #     $ ln -s ~/Projects/myapp
 #
-# That's it! The name of the symlink determines the hostname you use
-# to access the application it points to.
+# That's it! The name of the symlink (`myapp`) determines the hostname
+# you use (`myapp.test`) to access the application it points to
+# (`~/Projects/myapp`).
 
 # ### Annotated source code
 module.exports =

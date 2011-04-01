@@ -24,10 +24,34 @@ directory. Let's say you're working on an app that lives in
     $ cd ~/.pow
     $ ln -s ~/Projects/myapp
 
-That's it! The name of the symlink determines the hostname you use to
-access the application it points to.
+That's it! The name of the symlink (`myapp`) determines the hostname
+you use (`myapp.test`) to access the application it points to
+(`~/Projects/myapp`).
 
 ## Installation
+
+Pow requires Mac OS X version 10.6 or newer. To install or upgrade
+Pow, just open a terminal and run this command:
+
+    $ curl get.pow.cx | sh
+
+You can [review the install script](http://get.pow.cx/) yourself
+before running it, if you'd like. Always a good idea.
+
+The installer unpacks the latest Pow version into
+`~/Library/Application Support/Pow/Versions` and points the
+`~/Library/Application Support/Pow/Current` symlink there. It also
+installs
+[launchd](http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man8/launchd.8.html)
+scripts for your user (the Pow server itself) and for the system (to
+set up the `ipfw` rule), if necessary. Then it boots the server.
+
+**Note**: The firewall rule installed by Pow redirects all incoming
+  traffic on port 80 to port 20559, where Pow runs. This means if you
+  have another web server running on port 80, like the Apache that
+  comes with Mac OS X, it will be inaccessible without either
+  disabling the firewall rule or updating that server's configuration
+  to listen on another port.
 
 ## Managing Applications
 

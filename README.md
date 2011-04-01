@@ -55,7 +55,28 @@ set up the `ipfw` rule), if necessary. Then it boots the server.
 
 ## Managing Applications
 
-## Troubleshooting
+Pow deals exclusively with Rack applications. For the purposes of this
+document, a Rack application is a directory with a `config.ru` rackup
+file (and optionally a `public` subdirectory containing static
+assets). For more information on rackup files, see the [Rack::Builder
+documentation](http://rack.rubyforge.org/doc/Rack/Builder.html).
+
+Pow automatically spawns a worker process for an application the first
+time it's accessed, and will keep up to two workers running for each
+application. Workers are automatically terminated after 15 minutes of
+inactivity.
+
+### Using virtual hosts and the .test domain
+
+### Customizing environment variables
+
+### Working with different versions of Ruby
+
+### Serving static files
+
+### Restarting applications
+
+### Viewing log files
 
 ## Contributing
 

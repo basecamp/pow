@@ -107,7 +107,9 @@ cat > "$FIREWALL_SCRIPT_SRC" <<EOF
   <string>cx.pow.firewall</string>
   <key>ProgramArguments</key>
   <array>
-    <string>$POW_ROOT/Current/bin/pow_firewall</string>
+    <string>sh</string>
+    <string>-c</string>
+    <string>ipfw add fwd 127.0.0.1,20559 tcp from any to any dst-port 80 in &amp;&amp; sysctl -w net.inet.ip.forwarding=1</string>
   </array>
   <key>RunAtLoad</key>
   <true/>

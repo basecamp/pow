@@ -3,17 +3,16 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>cx.pow.powd</string>
+	<string>cx.pow.firewall</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>sh</string>
-		<string>-i</string>
 		<string>-c</string>
-		<string>$SHELL --login -c pow</string>
+		<string>ipfw add fwd 127.0.0.1,<%= @httpPort %> tcp from any to any dst-port <%= @dstPort %> in &amp;&amp; sysctl -w net.inet.ip.forwarding=1</string>
 	</array>
-	<key>KeepAlive</key>
-	<true/>
 	<key>RunAtLoad</key>
 	<true/>
+	<key>UserName</key>
+	<string>root</string>
 </dict>
 </plist>

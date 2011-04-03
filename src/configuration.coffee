@@ -49,6 +49,10 @@ module.exports = class Configuration
   # Pass in any options you'd like to override when creating a
   # `Configuration` instance. Valid options and their defaults:
   constructor: (options = {}) ->
+    # `bin`: the path to `pow` binary. This should automatically be
+    # configured correctly.
+    @bin      = options.bin      ? process.env['POW_BIN']       ? path.join(__dirname, "../bin/pow")
+
     # `dstPort`: the public port Pow expects to be forwarded or
     # otherwise proxied for incoming HTTP requests. Defaults to `80`.
     @dstPort  = options.dstPort  ? process.env['POW_DST_PORT']  ? 80
@@ -95,6 +99,15 @@ module.exports = class Configuration
 
     # ---
     @loggers  = {}
+
+  firewallLaunchAgentSource: ->
+    require("./cx.pow.firewall.plist") @
+
+  daemonLaunchAgentSource: ->
+    require("./cx.pow.powd.plist") @
+
+  resolverSource: ->
+    "nameserver 127.0.0.1\nport #{@dnsPort}\n"
 
   # Retrieve a `Logger` instance with the given `name`.
   getLogger: (name) ->

@@ -13,7 +13,7 @@ module.exports = class DnsServer extends ndns.Server
   # queries.
   constructor: (@configuration) ->
     super "udp4"
-    @pattern = compilePattern @configuration.domain
+    @pattern = compilePattern @configuration.domains
     @on "request", @handleRequest
 
   # The `listen` method is just a wrapper around `bind` that makes
@@ -42,7 +42,7 @@ module.exports = class DnsServer extends ndns.Server
 
     res.send()
 
-# Helper function for compiling a top-level domain into a regular
+# Helper function for compiling a top-level domains into a regular
 # expression for matching purposes.
-compilePattern = (domain) ->
-  /// (^|\.) #{domain} \.? $ ///
+compilePattern = (domains) ->
+  /// (^|\.) (#{domains.join("|")}) \.? $ ///

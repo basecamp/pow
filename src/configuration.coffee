@@ -34,9 +34,9 @@ module.exports = class Configuration
     # any given application. Defaults to `2`.
     @workers  = options.workers  ? 2
 
-    # `domain`: the top-level domain for which Pow will respond to DNS
-    # `A` queries with `127.0.0.1`. Defaults to `test`.
-    @domain   = options.domain   ? "test"
+    # `domains`: the top-level domains for which Pow will respond to DNS
+    # `A` queries with `127.0.0.1`. Defaults to [`test`].
+    @domains  = options.domains  ? ["test", "dev"]
 
     # `hostRoot`: path to the directory containing symlinks to
     # applications that will be served by Pow. Defaults to
@@ -59,16 +59,18 @@ module.exports = class Configuration
     @loggers[name] ||= new Logger path.join @logRoot, name + ".log"
 
   # Search `hostRoot` for symlinks or directories matching the domain
-  # specified by `host`. If a match is found, it's passed to
-  # `callback` as a second argument. If no match is found, `callback`
-  # is called without any arguments. If an error is raised, `callback`
-  # is called with the error as its first argument.
+  # specified by `host`. If a match is found, the matching domain name
+  # and host are passed as second and third arguments to `callback`.
+  # If no match is found, `callback` is called without any arguments.
+  # If an error is raised, `callback` is called with the error as its
+  # first argument.
   findApplicationRootForHost: (host, callback) ->
     @gatherApplicationRoots (err, roots) =>
       return callback err if err
-      for file in getFilenamesForHost host, @domain
-        if root = roots[file]
-          return callback null, root
+      for domain in @domains
+        for file in getFilenamesForHost host, domain
+          if root = roots[file]
+            return callback null, domain, root
       callback null
 
   # Asynchronously build a mapping of entries in `hostRoot` to

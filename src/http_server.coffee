@@ -74,12 +74,13 @@ module.exports = class HttpServer extends connect.HTTPServer
   findApplicationRoot: (req, res, next) =>
     resume = pause req
 
-    @configuration.findApplicationRootForHost req.pow.host, (err, root) =>
+    @configuration.findApplicationRootForHost req.pow.host, (err, domain, root) =>
       if err
         next err
         resume()
       else
         if req.pow.root = root
+          req.pow.domain = domain
           req.pow.resume = resume
           next()
         else
@@ -177,7 +178,7 @@ module.exports = class HttpServer extends connect.HTTPServer
   # set up with Pow yet.
   handleNonexistentDomain: (req, res, next) =>
     host = req.pow.host
-    name = host.slice 0, host.length - @configuration.domain.length - 1
+    name = host.slice 0, host.length - @configuration.domains[0].length - 1
     path = join @configuration.root, name
 
     res.writeHead 503, "Content-Type": "text/html; charset=utf8", "X-Pow-Handler": "NonexistentDomain"

@@ -10,9 +10,9 @@ module.exports = testCase
     prepareFixtures proceed
 
   "responds to all A queries for the configured domain": (test) ->
-    test.expect 4
+    test.expect 6
 
-    configuration = createConfiguration domain: "powtest"
+    configuration = createConfiguration domains: ["powtest", "powdev"]
     dnsServer = new DnsServer configuration
     dnsServer.listen 0, ->
       {address, port} = dnsServer.address()
@@ -31,8 +31,10 @@ module.exports = testCase
 
       async.parallel [
         testResolves "hello.powtest", "NOERROR", "127.0.0.1"
+        testResolves "hello.powdev", "NOERROR", "127.0.0.1"
         testResolves "a.b.c.powtest", "NOERROR", "127.0.0.1"
         testResolves "powtest.",      "NOERROR", "127.0.0.1"
+        testResolves "powdev.",      "NOERROR", "127.0.0.1"
         testResolves "foo.",          "NXDOMAIN"
       ], ->
         dnsServer.close()

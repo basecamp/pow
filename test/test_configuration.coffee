@@ -31,12 +31,15 @@ module.exports = testCase
   "findApplicationRootForHost matches hostnames to application roots": (test) ->
     configuration   = createConfiguration hostRoot: fixturePath("configuration")
     matchHostToRoot = (host, fixtureRoot) -> (proceed) ->
-      configuration.findApplicationRootForHost host, (err, root) ->
-        if fixtureRoot then test.same fixturePath(fixtureRoot), root
-        else test.ok !root
+      configuration.findApplicationRootForHost host, (err, domain, root) ->
+        if fixtureRoot
+          test.same "test", domain
+          test.same fixturePath(fixtureRoot), root
+        else
+          test.ok !root
         proceed()
 
-    test.expect 8
+    test.expect 14
     async.parallel [
       matchHostToRoot "directory.test",            "configuration/directory"
       matchHostToRoot "sub.directory.test",        "configuration/directory"
@@ -49,11 +52,12 @@ module.exports = testCase
     ], test.done
 
   "findApplicationRootForHost with alternate domain": (test) ->
-    configuration = createConfiguration hostRoot: fixturePath("configuration"), domain: "dev.local"
-    test.expect 2
-    configuration.findApplicationRootForHost "directory.dev.local", (err, root) ->
+    configuration = createConfiguration hostRoot: fixturePath("configuration"), domains: ["dev.local"]
+    test.expect 3
+    configuration.findApplicationRootForHost "directory.dev.local", (err, domain, root) ->
+      test.same "dev.local", domain
       test.same fixturePath("configuration/directory"), root
-      configuration.findApplicationRootForHost "directory.test", (err, root) ->
+      configuration.findApplicationRootForHost "directory.test", (err, domain, root) ->
         test.ok !root
         test.done()
 

@@ -2,4 +2,4 @@
 require 'pathname'
 ENV['POW_BIN'] = bin = Pathname.new(__FILE__).realpath
 root = bin.dirname.parent
-exec root.join("bin/node"), root.join("lib/command.js")
+exec root.join("bin/node"), root.join("lib/command.js"), *ARGV

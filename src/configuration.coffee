@@ -7,6 +7,7 @@ fs                = require "fs"
 path              = require "path"
 async             = require "async"
 Logger            = require "./logger"
+{exec}            = require "child_process"
 {mkdirp}          = require "./util"
 {sourceScriptEnv} = require "./util"
 
@@ -108,6 +109,27 @@ module.exports = class Configuration
 
   resolverSource: ->
     "nameserver 127.0.0.1\nport #{@dnsPort}\n"
+
+  install: (callback) ->
+    if process.env['USER'] isnt 'root'
+      callback new Error "Installation requires root"
+    else
+      writeFirewallLaunchAgent = (callback) =>
+        filename = "/Library/LaunchDaemons/cx.pow.firewall.plist"
+        fs.writeFile filename, @firewallLaunchAgentSource(), callback
+
+      writeDaemonLaunchAgent = (callback) =>
+        filename = "#{process.env['HOME']}/Library/LaunchAgents/cx.pow.powd.plist"
+        fs.writeFile filename, @daemonLaunchAgentSource(), (err) ->
+          if err then callback err
+          else exec "chown #{process.env['SUDO_USER']}:staff #{filename}", callback
+
+      writeResolvers = (callback) =>
+        async.map @domains, (domain, callback) =>
+          fs.writeFile "/etc/resolver/#{domain}", @resolverSource(), callback
+        , callback
+
+      async.parallel [writeFirewallLaunchAgent, writeDaemonLaunchAgent, writeResolvers]
 
   # Retrieve a `Logger` instance with the given `name`.
   getLogger: (name) ->

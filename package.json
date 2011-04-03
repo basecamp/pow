@@ -17,8 +17,7 @@
   }
 , "bundleDependencies" : [ "ndns" ]
 , "devDependencies": {
-    "async": ">= 0.1.8"
-,   "coffee-script": ">= 1.0.0"
+    "coffee-script": ">= 1.0.0"
 ,   "eco": ">= 1.0.0"
 ,   "nodeunit": ">= 0.5.0"
   }

@@ -52,13 +52,24 @@ module.exports = testCase
     ], test.done
 
   "findApplicationRootForHost with alternate domain": (test) ->
-    configuration = createConfiguration hostRoot: fixturePath("configuration"), domains: ["dev.local"]
+    configuration = createConfiguration hostRoot: fixturePath("configuration"), domain: "dev.local"
     test.expect 3
     configuration.findApplicationRootForHost "directory.dev.local", (err, domain, root) ->
       test.same "dev.local", domain
       test.same fixturePath("configuration/directory"), root
       configuration.findApplicationRootForHost "directory.test", (err, domain, root) ->
         test.ok !root
+        test.done()
+
+  "findApplicationRootForHost with multiple domains": (test) ->
+    configuration = createConfiguration hostRoot: fixturePath("configuration"), domains: ["test", "dev"]
+    test.expect 4
+    configuration.findApplicationRootForHost "directory.dev", (err, domain, root) ->
+      test.same "dev", domain
+      test.same fixturePath("configuration/directory"), root
+      configuration.findApplicationRootForHost "directory.test", (err, domain, root) ->
+        test.same "test", domain
+        test.same fixturePath("configuration/directory"), root
         test.done()
 
   "getLogger returns the same logger instance": (test) ->

@@ -3,53 +3,95 @@
 # creating `Logger` instances and mapping hostnames to application
 # root paths.
 
-fs       = require "fs"
-path     = require "path"
-async    = require "async"
-Logger   = require "./logger"
-{mkdirp} = require "./util"
+fs                = require "fs"
+path              = require "path"
+async             = require "async"
+Logger            = require "./logger"
+{mkdirp}          = require "./util"
+{sourceScriptEnv} = require "./util"
 
 module.exports = class Configuration
+  # The global configuration file, `~/.powconfig`, is evaluated on boot.
+  # You can configure options such as the top-level domain, number of workers,
+  # timeout, and listing ports.
+  #
+  #     export POW_DOMAINS=test,dev
+  #     export POW_WORKERS=3
+  #
+  # See Configuration#constructor for a complete list of environment options.
+  @globalConfigurationPath: path.join process.env['HOME'], ".powconfig"
+
+  # Evaluates global configuration script and calls the `callback`
+  # with the environment variables if the config file exists. Any script
+  # errors are passed along in the first argument. No error occurs if
+  # the file does not exist.
+  @getGlobalConfigurationEnv: (callback) ->
+    path.exists p = @globalConfigurationPath, (exists) ->
+      if exists
+        sourceScriptEnv p, {}, callback
+      else
+        callback null, {}
+
+  # Creates a Configuration object after evaluating the global
+  # configuration file. Any environment variables in `~/.powconfig`
+  # affect the process environment and will be copied to any
+  # spawned subprocesses.
+  @getGlobalConfiguration: (callback) ->
+    @getGlobalConfigurationEnv (err, env) ->
+      if err
+        callback err
+      else
+        for key, value of env
+          process.env[key] = value
+
+        callback null, new Configuration
+
   # Pass in any options you'd like to override when creating a
   # `Configuration` instance. Valid options and their defaults:
   constructor: (options = {}) ->
     # `dstPort`: the public port Pow expects to be forwarded or
     # otherwise proxied for incoming HTTP requests. Defaults to `80`.
-    @dstPort  = options.dstPort  ? 80
+    @dstPort  = options.dstPort  ? process.env['POW_DST_PORT']  ? 80
 
     # `httpPort`: the TCP port Pow opens for accepting incoming HTTP
     # requests. Defaults to `20559`.
-    @httpPort = options.httpPort ? 20559
+    @httpPort = options.httpPort ? process.env['POW_HTTP_PORT'] ? 20559
 
     # `dnsPort`: the UDP port Pow listens on for incoming DNS
     # queries. Defaults to `20560`.
-    @dnsPort  = options.dnsPort  ? 20560
+    @dnsPort  = options.dnsPort  ? process.env['POW_DNS_PORT']  ? 20560
 
     # `timeout`: how long (in milliseconds) to leave inactive Rack
     # applications running before they're killed. Defaults to 15
     # minutes.
-    @timeout  = options.timeout  ? 15 * 60 * 1000
+    @timeout  = options.timeout  ? process.env['POW_TIMEOUT']   ? 15 * 60 * 1000
 
     # `workers`: the maximum number of worker processes to spawn for
     # any given application. Defaults to `2`.
-    @workers  = options.workers  ? 2
+    @workers  = options.workers  ? process.env['POW_WORKERS']   ? 2
 
-    # `domains`: the top-level domains for which Pow will respond to DNS
-    # `A` queries with `127.0.0.1`. Defaults to [`test`].
-    @domains  = options.domains  ? ["test", "dev"]
+    # `domain`: the top-level domains for which Pow will respond to DNS
+    # `A` queries with `127.0.0.1`. Defaults to `test`.
+    domain    = options.domain   ? process.env['POW_DOMAIN']     ? "test"
+
+    # `domains`: alias for `domain`
+    @domains  = options.domains  ? process.env['POW_DOMAINS']    ? domain
+
+    # Allow for comma seperated domain list: "test,dev"
+    @domains  = if @domains.split then @domains.split(",") else @domains
 
     # `hostRoot`: path to the directory containing symlinks to
     # applications that will be served by Pow. Defaults to
     # `~/Library/Application Support/Pow/Hosts`.
-    @hostRoot = options.hostRoot ? libraryPath "Application Support", "Pow", "Hosts"
+    @hostRoot = options.hostRoot ? process.env['POW_HOST_ROOT'] ? libraryPath "Application Support", "Pow", "Hosts"
 
     # `logRoot`: path to the directory that Pow will use to store its
     # log files. Defaults to `~/Library/Logs/Pow`.
-    @logRoot  = options.logRoot  ? libraryPath "Logs", "Pow"
+    @logRoot  = options.logRoot  ? process.env['POW_LOG_ROOT']  ? libraryPath "Logs", "Pow"
 
     # `rvmPath`: path to the rvm initialization script. Defaults to
     # `~/.rvm/scripts/rvm`.
-    @rvmPath  = options.rvmPath  ? path.join process.env.HOME, ".rvm/scripts/rvm"
+    @rvmPath  = options.rvmPath  ? process.env['POW_RVM_PATH']  ? path.join process.env.HOME, ".rvm/scripts/rvm"
 
     # ---
     @loggers  = {}

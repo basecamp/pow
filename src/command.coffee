@@ -3,7 +3,7 @@ process.title = "pow"
 
 flag = process.argv[2]
 
-Configuration.getGlobalConfiguration (err, configuration) ->
+Configuration.getUserConfiguration (err, configuration) ->
   throw err if err
 
   if flag is "--install" or flag is "-i"

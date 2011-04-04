@@ -12,33 +12,34 @@ Logger            = require "./logger"
 {sourceScriptEnv} = require "./util"
 
 module.exports = class Configuration
-  # The global configuration file, `~/.powconfig`, is evaluated on boot.
-  # You can configure options such as the top-level domain, number of workers,
-  # timeout, and listing ports.
+  # The user configuration file, `~/.powconfig`, is evaluated on
+  # boot.  You can configure options such as the top-level domain,
+  # number of workers, the worker idle timeout, and listening ports.
   #
   #     export POW_DOMAINS=test,dev
   #     export POW_WORKERS=3
   #
-  # See Configuration#constructor for a complete list of environment options.
-  @globalConfigurationPath: path.join process.env['HOME'], ".powconfig"
+  # See the `Configuration` constructor for a complete list of
+  # environment options.
+  @userConfigurationPath: path.join process.env['HOME'], ".powconfig"
 
-  # Evaluates global configuration script and calls the `callback`
-  # with the environment variables if the config file exists. Any script
-  # errors are passed along in the first argument. No error occurs if
-  # the file does not exist.
-  @getGlobalConfigurationEnv: (callback) ->
-    path.exists p = @globalConfigurationPath, (exists) ->
+  # Evaluates the user configuration script and calls the `callback`
+  # with the environment variables if the config file exists. Any
+  # script errors are passed along in the first argument. (No error
+  # occurs if the file does not exist.)
+  @loadUserConfigurationEnvironment: (callback) ->
+    path.exists p = @userConfigurationPath, (exists) ->
       if exists
         sourceScriptEnv p, {}, callback
       else
         callback null, {}
 
-  # Creates a Configuration object after evaluating the global
+  # Creates a Configuration object after evaluating the user
   # configuration file. Any environment variables in `~/.powconfig`
-  # affect the process environment and will be copied to any
-  # spawned subprocesses.
-  @getGlobalConfiguration: (callback) ->
-    @getGlobalConfigurationEnv (err, env) ->
+  # affect the process environment and will be copied to spawned
+  # subprocesses.
+  @getUserConfiguration: (callback) ->
+    @loadUserConfigurationEnvironment (err, env) ->
       if err
         callback err
       else

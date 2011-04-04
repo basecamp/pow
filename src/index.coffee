@@ -42,6 +42,10 @@ module.exports =
   # [HttpServer](http_server.html) handles incoming HTTP requests.
   HttpServer:      require "./http_server"
 
+  # [Installer](installer.html) compiles and installs local and system
+  # configuration files.
+  Installer:       require "./installer"
+
   # [Logger](logger.html) keeps track of everything that happens
   # during a Pow daemon's lifecycle.
   Logger:          require "./logger"

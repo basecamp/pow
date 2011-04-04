@@ -28,6 +28,7 @@ buildTemplates = (callback) ->
   async.parallel [
     compile("cx.pow.firewall.plist")
     compile("cx.pow.powd.plist")
+    compile("resolver")
   ], callback
 
 task 'docs', 'Generate annotated source code with Docco', ->

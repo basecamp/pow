@@ -1,0 +1,95 @@
+<!DOCTYPE html>  <html> <head>   <title>installer.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="command.html">                 command.coffee               </a>                                           <a class="source" href="configuration.html">                 configuration.coffee               </a>                                           <a class="source" href="daemon.html">                 daemon.coffee               </a>                                           <a class="source" href="dns_server.html">                 dns_server.coffee               </a>                                           <a class="source" href="http_server.html">                 http_server.coffee               </a>                                           <a class="source" href="index.html">                 index.coffee               </a>                                           <a class="source" href="installer.html">                 installer.coffee               </a>                                           <a class="source" href="logger.html">                 logger.coffee               </a>                                           <a class="source" href="rack_application.html">                 rack_application.coffee               </a>                                           <a class="source" href="util.html">                 util.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               installer.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="nv">async    = </span><span class="nx">require</span> <span class="s2">&quot;async&quot;</span>
+<span class="nv">fs       = </span><span class="nx">require</span> <span class="s2">&quot;fs&quot;</span>
+<span class="nv">path     = </span><span class="nx">require</span> <span class="s2">&quot;path&quot;</span>
+<span class="p">{</span><span class="nx">mkdirp</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;./util&quot;</span>
+<span class="p">{</span><span class="nx">spawn</span><span class="p">}</span>  <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;child_process&quot;</span>
+<span class="nv">sys      = </span><span class="nx">require</span> <span class="s2">&quot;sys&quot;</span>
+
+<span class="nv">resolverSource = </span><span class="nx">require</span> <span class="s2">&quot;./resolver&quot;</span>
+<span class="nv">firewallSource = </span><span class="nx">require</span> <span class="s2">&quot;./cx.pow.firewall.plist&quot;</span>
+<span class="nv">daemonSource   = </span><span class="nx">require</span> <span class="s2">&quot;./cx.pow.powd.plist&quot;</span>
+
+<span class="nv">chown = </span><span class="nf">(path, owner, callback) -&gt;</span>
+  <span class="nv">error = </span><span class="s2">&quot;&quot;</span>
+  <span class="nv">chown = </span><span class="nx">spawn</span> <span class="s2">&quot;chown&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nx">owner</span><span class="p">,</span> <span class="nx">path</span><span class="p">]</span>
+  <span class="nx">chown</span><span class="p">.</span><span class="nx">stderr</span><span class="p">.</span><span class="kc">on</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="nf">(data) -&gt;</span> <span class="nx">error</span> <span class="o">+=</span> <span class="nx">data</span><span class="p">.</span><span class="nx">toString</span> <span class="s2">&quot;utf8&quot;</span>
+  <span class="nx">chown</span><span class="p">.</span><span class="kc">on</span> <span class="s2">&quot;exit&quot;</span><span class="p">,</span> <span class="nf">(code) -&gt;</span> <span class="nx">callback</span> <span class="nx">error</span><span class="p">,</span> <span class="nx">code</span> <span class="o">is</span> <span class="mi">0</span>
+
+<span class="k">class</span> <span class="nx">InstallerFile</span>
+  <span class="nv">constructor: </span><span class="nf">(@path, source, @root = false) -&gt;</span>
+    <span class="vi">@source = </span><span class="nx">source</span><span class="p">.</span><span class="nx">trim</span><span class="p">()</span>
+
+  <span class="nv">isStale: </span><span class="nf">(callback) -&gt;</span>
+    <span class="nx">path</span><span class="p">.</span><span class="nx">exists</span> <span class="nx">@path</span><span class="p">,</span> <span class="p">(</span><span class="nx">exists</span><span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="k">if</span> <span class="nx">exists</span>
+        <span class="nx">fs</span><span class="p">.</span><span class="nx">readFile</span> <span class="nx">@path</span><span class="p">,</span> <span class="s2">&quot;utf8&quot;</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">contents</span><span class="p">)</span> <span class="o">=&gt;</span>
+          <span class="k">if</span> <span class="nx">err</span>
+            <span class="nx">callback</span> <span class="kc">true</span>
+          <span class="k">else</span>
+            <span class="nx">callback</span> <span class="nx">@source</span> <span class="o">isnt</span> <span class="nx">contents</span><span class="p">.</span><span class="nx">trim</span><span class="p">()</span>
+      <span class="k">else</span>
+        <span class="nx">callback</span> <span class="kc">true</span>
+
+  <span class="nv">vivifyPath: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="nx">mkdirp</span> <span class="nx">path</span><span class="p">.</span><span class="nx">dirname</span><span class="p">(</span><span class="nx">@path</span><span class="p">),</span> <span class="nx">callback</span>
+
+  <span class="nv">writeFile: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="nx">fs</span><span class="p">.</span><span class="nx">writeFile</span> <span class="nx">@path</span><span class="p">,</span> <span class="nx">@source</span><span class="p">,</span> <span class="s2">&quot;utf8&quot;</span><span class="p">,</span> <span class="nx">callback</span>
+
+  <span class="nv">setOwnership: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="k">if</span> <span class="nx">@root</span>
+      <span class="nx">chown</span> <span class="nx">@path</span><span class="p">,</span> <span class="s2">&quot;root:wheel&quot;</span><span class="p">,</span> <span class="nx">callback</span>
+    <span class="k">else</span>
+      <span class="nx">callback</span> <span class="kc">false</span>
+
+  <span class="nv">install: </span><span class="nf">(callback) -&gt;</span>
+    <span class="nx">async</span><span class="p">.</span><span class="nx">series</span> <span class="p">[</span>
+      <span class="nx">@vivifyPath</span><span class="p">,</span>
+      <span class="nx">@writeFile</span><span class="p">,</span>
+      <span class="nx">@setOwnership</span>
+    <span class="p">],</span> <span class="nx">callback</span>
+
+<span class="nv">module.exports = </span><span class="k">class</span> <span class="nx">Installer</span>
+  <span class="vi">@getSystemInstaller: </span><span class="nf">(@configuration) -&gt;</span>
+    <span class="nv">files = </span><span class="p">[</span>
+      <span class="k">new</span> <span class="nx">InstallerFile</span> <span class="s2">&quot;/Library/LaunchDaemons/cx.pow.firewall.plist&quot;</span><span class="p">,</span>
+        <span class="nx">firewallSource</span><span class="p">(</span><span class="nx">@configuration</span><span class="p">),</span>
+        <span class="kc">true</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="nx">domain</span> <span class="k">in</span> <span class="nx">@configuration</span><span class="p">.</span><span class="nx">domains</span>
+      <span class="nx">files</span><span class="p">.</span><span class="nx">push</span> <span class="k">new</span> <span class="nx">InstallerFile</span> <span class="s2">&quot;/etc/resolver/#{domain}&quot;</span><span class="p">,</span>
+        <span class="nx">resolverSource</span><span class="p">(</span><span class="nx">@configuration</span><span class="p">),</span>
+        <span class="kc">true</span>
+
+    <span class="k">new</span> <span class="nx">Installer</span> <span class="nx">@configuration</span><span class="p">,</span> <span class="nx">files</span>
+
+  <span class="vi">@getLocalInstaller: </span><span class="nf">(@configuration) -&gt;</span>
+    <span class="k">new</span> <span class="nx">Installer</span> <span class="nx">@configuration</span><span class="p">,</span> <span class="p">[</span>
+      <span class="k">new</span> <span class="nx">InstallerFile</span> <span class="s2">&quot;#{process.env.HOME}/Library/LaunchAgents/cx.pow.powd.plist&quot;</span><span class="p">,</span>
+        <span class="nx">daemonSource</span><span class="p">(</span><span class="nx">@configuration</span><span class="p">)</span>
+    <span class="p">]</span>
+
+  <span class="nv">constructor: </span><span class="nf">(@configuration, @files = []) -&gt;</span>
+
+  <span class="nv">getStaleFiles: </span><span class="nf">(callback) -&gt;</span>
+    <span class="nx">async</span><span class="p">.</span><span class="nx">select</span> <span class="nx">@files</span><span class="p">,</span> <span class="nf">(file, proceed) -&gt;</span>
+      <span class="nx">file</span><span class="p">.</span><span class="nx">isStale</span> <span class="nx">proceed</span>
+    <span class="p">,</span> <span class="nx">callback</span>
+
+  <span class="nv">needsRootPrivileges: </span><span class="nf">(callback) -&gt;</span>
+    <span class="nx">@getStaleFiles</span> <span class="nf">(files) -&gt;</span>
+      <span class="nx">async</span><span class="p">.</span><span class="nx">detect</span> <span class="nx">files</span><span class="p">,</span> <span class="nf">(file, proceed) -&gt;</span>
+        <span class="nx">proceed</span> <span class="nx">file</span><span class="p">.</span><span class="nx">root</span>
+      <span class="p">,</span> <span class="nf">(result) -&gt;</span>
+        <span class="nx">callback</span> <span class="nx">result</span><span class="o">?</span>
+
+  <span class="nv">install: </span><span class="nf">(callback) -&gt;</span>
+    <span class="nx">@getStaleFiles</span> <span class="nf">(files) -&gt;</span>
+      <span class="nx">async</span><span class="p">.</span><span class="nx">forEach</span> <span class="nx">files</span><span class="p">,</span> <span class="nf">(file, proceed) -&gt;</span>
+        <span class="nx">file</span><span class="p">.</span><span class="nx">install</span> <span class="nf">(err) -&gt;</span>
+          <span class="nx">sys</span><span class="p">.</span><span class="nx">puts</span> <span class="nx">file</span><span class="p">.</span><span class="nx">path</span> <span class="nx">unless</span> <span class="nx">err</span>
+          <span class="nx">proceed</span> <span class="nx">err</span>
+      <span class="p">,</span> <span class="nx">callback</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

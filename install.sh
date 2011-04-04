@@ -24,7 +24,7 @@ POW_BIN="$POW_ROOT/Current/bin"
 if [ "$(uname -s)" != "Darwin" ]; then
   echo "Sorry, Pow requires Mac OS X to run." >&2
   exit 1
-elif [ "$(expr "$(uname -r | cut -f 2 -d .)" \>= 7)" = 0 ]; then
+elif [ "$(expr "$(sw_vers -productVersion | cut -f 2 -d .)" \>= 6)" = 0 ]; then
   echo "Pow requires Mac OS X 10.6 or later." >&2
   exit 1
 fi

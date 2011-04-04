@@ -18,6 +18,7 @@
 set -e
 POW_ROOT="$HOME/Library/Application Support/Pow"
 [[ -z "$VERSION" ]] && VERSION=0.1.9
+POW_BIN="$POW_ROOT/Current/bin"
 
 # Fail fast if we're not on OS X >= 10.6.0.
 if [ "$(uname -s)" != "Darwin" ]; then
@@ -49,113 +50,23 @@ ln -s Versions/$VERSION Current
 cd "$HOME"
 [[ -a .pow ]] || ln -s "$POW_ROOT/Hosts" .pow
 
-# Make a temporary directory for the launchd and resolver files.
-TMP="/tmp/pow-install.$$"
-mkdir -p "$TMP"
+# Install local configuration files.
+echo "*** Installing local configuration files..."
+"$POW_BIN/pow" --install-local
 
-# Write out the powd launchctl script.
-POWD_SCRIPT_SRC="$TMP/cx.pow.powd.plist"
-POWD_SCRIPT_DST="$HOME/Library/LaunchAgents/cx.pow.powd.plist"
-cat > "$POWD_SCRIPT_SRC" <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>Label</key>
-  <string>cx.pow.powd</string>
-  <key>ProgramArguments</key>
-  <array>
-    <string>sh</string>
-    <string>-i</string>
-    <string>-c</string>
-    <string>\$SHELL --login -c "'$POW_ROOT/Current/bin/pow'"</string>
-  </array>
-  <key>KeepAlive</key>
-  <true/>
-  <key>RunAtLoad</key>
-  <true/>
-</dict>
-</plist>
-EOF
+# Check to see whether we need root privileges.
+"$POW_BIN/pow" --install-system --dry-run >/dev/null && NEEDS_ROOT=0 || NEEDS_ROOT=1
 
-# Write out the resolver file.
-RESOLVER_FILE_SRC="$TMP/test"
-RESOLVER_FILE_DST="/etc/resolver/test"
-cat > "$RESOLVER_FILE_SRC" <<EOF
-nameserver 127.0.0.1
-port 20560
-EOF
-
-# Determine whether the resolver file needs to be installed.
-if [[ ! -a "$RESOLVER_FILE_DST" ]]; then
-  INSTALL_RESOLVER_FILE=1
-elif [[ -n $(diff -q "$RESOLVER_FILE_SRC" "$RESOLVER_FILE_DST" && true) ]]; then
-  INSTALL_RESOLVER_FILE=1
-else
-  INSTALL_RESOLVER_FILE=0
+# Install system configuration files, if necessary.
+if [ $NEEDS_ROOT -eq 1 ]; then
+  echo "*** Installing system configuration files as root..."
+  sudo "$POW_BIN/pow" --install-system
+  sudo launchctl load /Library/LaunchDaemons/cx.pow.firewall.plist 2>/dev/null
 fi
-
-# Write out the firewall launchctl script.
-FIREWALL_SCRIPT_SRC="$TMP/cx.pow.firewall.plist"
-FIREWALL_SCRIPT_DST="/Library/LaunchDaemons/cx.pow.firewall.plist"
-cat > "$FIREWALL_SCRIPT_SRC" <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>Label</key>
-  <string>cx.pow.firewall</string>
-  <key>ProgramArguments</key>
-  <array>
-    <string>sh</string>
-    <string>-c</string>
-    <string>ipfw add fwd 127.0.0.1,20559 tcp from any to any dst-port 80 in &amp;&amp; sysctl -w net.inet.ip.forwarding=1</string>
-  </array>
-  <key>RunAtLoad</key>
-  <true/>
-  <key>UserName</key>
-  <string>root</string>
-</dict>
-</plist>
-EOF
-
-# Determine whether the firewall launchctl script needs to be installed.
-if [[ ! -a "$FIREWALL_SCRIPT_DST" ]]; then
-  INSTALL_FIREWALL_SCRIPT=1
-elif [[ -n $(diff -q "$FIREWALL_SCRIPT_SRC" "$FIREWALL_SCRIPT_DST" && true) ]]; then
-  INSTALL_FIREWALL_SCRIPT=1
-else
-  INSTALL_FIREWALL_SCRIPT=0
-fi
-
-# Install the powd launchctl script.
-mkdir -p "$HOME/Library/LaunchAgents"
-mv "$POWD_SCRIPT_SRC" "$POWD_SCRIPT_DST"
 
 # Start (or restart) powd.
 echo "*** Starting the Pow server..."
-launchctl unload "$POWD_SCRIPT_DST" 2>/dev/null || true
-launchctl load "$POWD_SCRIPT_DST" 2>/dev/null
-
-# Print a message if we need to elevate privileges.
-if [ $INSTALL_RESOLVER_FILE = 1 ] || [ $INSTALL_FIREWALL_SCRIPT = 1 ]; then
-  echo "*** Installing system startup scripts as root..."
-fi
-
-# Install the resolver file, if necessary.
-if [ $INSTALL_RESOLVER_FILE = 1 ]; then
-  sudo mkdir -p /etc/resolver
-  sudo mv "$RESOLVER_FILE_SRC" "$RESOLVER_FILE_DST"
-fi
-
-# Install the firewall script, if necessary.
-if [ $INSTALL_FIREWALL_SCRIPT = 1 ]; then
-  sudo mv "$FIREWALL_SCRIPT_SRC" "$FIREWALL_SCRIPT_DST"
-  sudo chown root:wheel "$FIREWALL_SCRIPT_DST"
-  sudo launchctl load "$FIREWALL_SCRIPT_DST" 2>/dev/null
-fi
-
-# Remove the temporary directory.
-rm -rf "$TMP"
+launchctl unload "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null || true
+launchctl load "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null
 
 echo "*** Installed"

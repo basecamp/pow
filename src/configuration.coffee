@@ -15,7 +15,7 @@ module.exports = class Configuration
   # boot.  You can configure options such as the top-level domain,
   # number of workers, the worker idle timeout, and listening ports.
   #
-  #     export POW_DOMAINS=test,dev
+  #     export POW_DOMAINS=dev,test
   #     export POW_WORKERS=3
   #
   # See the `Configuration` constructor for a complete list of
@@ -76,13 +76,13 @@ module.exports = class Configuration
     @workers  = options.workers  ? process.env['POW_WORKERS']   ? 2
 
     # `domain`: the top-level domains for which Pow will respond to DNS
-    # `A` queries with `127.0.0.1`. Defaults to `test`.
-    domain    = options.domain   ? process.env['POW_DOMAIN']     ? "test"
+    # `A` queries with `127.0.0.1`. Defaults to `dev`.
+    domain    = options.domain   ? process.env['POW_DOMAIN']    ? "dev"
 
     # `domains`: alias for `domain`
-    @domains  = options.domains  ? process.env['POW_DOMAINS']    ? domain
+    @domains  = options.domains  ? process.env['POW_DOMAINS']   ? domain
 
-    # Allow for comma seperated domain list: "test,dev"
+    # Allow for comma seperated domain list: "dev,test"
     @domains  = if @domains.split then @domains.split(",") else @domains
 
     # `hostRoot`: path to the directory containing symlinks to
@@ -166,8 +166,8 @@ libraryPath = (args...) ->
 # Strip a trailing `domain` from the given `host`, then generate a
 # sorted array of possible entry names for finding which application
 # should serve the host. For example, a `host` of
-# `asset0.37s.basecamp.test` will produce `["asset0.37s.basecamp",
-# "37s.basecamp", "basecamp"]`, and `basecamp.test` will produce
+# `asset0.37s.basecamp.dev` will produce `["asset0.37s.basecamp",
+# "37s.basecamp", "basecamp"]`, and `basecamp.dev` will produce
 # `["basecamp"]`.
 getFilenamesForHost = (host, domain) ->
   if host.slice(-domain.length - 1) is ".#{domain}"

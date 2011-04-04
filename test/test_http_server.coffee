@@ -23,19 +23,19 @@ module.exports = testCase
     serveRoot "apps", (request, done) ->
       async.parallel [
         (proceed) ->
-          request "GET", "/", host: "hello.test", (body) ->
+          request "GET", "/", host: "hello.dev", (body) ->
             test.same "Hello", body
             proceed()
         (proceed) ->
-          request "GET", "/", host: "www.hello.test", (body) ->
+          request "GET", "/", host: "www.hello.dev", (body) ->
             test.same "Hello", body
             proceed()
         (proceed) ->
-          request "GET", "/", host: "env.test", (body) ->
+          request "GET", "/", host: "env.dev", (body) ->
             test.same "Hello Pow", JSON.parse(body).POW_TEST
             proceed()
         (proceed) ->
-          request "GET", "/", host: "pid.test", (body) ->
+          request "GET", "/", host: "pid.dev", (body) ->
             test.ok body.match /^\d+$/
             proceed()
       ], ->
@@ -44,7 +44,7 @@ module.exports = testCase
   "responds with a custom 503 when a domain isn't configured": (test) ->
     test.expect 2
     serveRoot "apps", (request, done) ->
-      request "GET", "/redirect", host: "nonexistent.test", (body, response) ->
+      request "GET", "/redirect", host: "nonexistent.dev", (body, response) ->
         test.same 503, response.statusCode
         test.same "NonexistentDomain", response.headers["x-pow-handler"]
         done -> test.done()
@@ -52,7 +52,7 @@ module.exports = testCase
   "responds with a custom 500 when an app can't boot": (test) ->
     test.expect 2
     serveRoot "apps", (request, done) ->
-      request "GET", "/", host: "error.test", (body, response) ->
+      request "GET", "/", host: "error.dev", (body, response) ->
         test.same 500, response.statusCode
         test.same "ApplicationException", response.headers["x-pow-handler"]
         done -> test.done()
@@ -62,10 +62,10 @@ module.exports = testCase
     config = fixturePath "apps/error/config.ru"
     ok = fixturePath "apps/error/ok.ru"
     serveRoot "apps", (request, done) ->
-      request "GET", "/", host: "error.test", (body, response) ->
+      request "GET", "/", host: "error.dev", (body, response) ->
         test.same 500, response.statusCode
         swap config, ok, (err, unswap) ->
-          request "GET", "/", host: "error.test", (body, response) ->
+          request "GET", "/", host: "error.dev", (body, response) ->
             test.same 200, response.statusCode
             test.same "OK", body
             done -> unswap -> test.done()
@@ -75,20 +75,20 @@ module.exports = testCase
     async.series [
       (proceed) ->
         serveRoot "apps", dstPort: 80, (request, done) ->
-          request "GET", "/redirect", host: "hello.test", (body, response) ->
-            test.same "http://hello.test/", response.headers.location
+          request "GET", "/redirect", host: "hello.dev", (body, response) ->
+            test.same "http://hello.dev/", response.headers.location
             done proceed
       (proceed) ->
         serveRoot "apps", dstPort: 81, (request, done) ->
-          request "GET", "/redirect", host: "hello.test", (body, response) ->
-            test.same "http://hello.test:81/", response.headers.location
+          request "GET", "/redirect", host: "hello.dev", (body, response) ->
+            test.same "http://hello.dev:81/", response.headers.location
             done proceed
     ], test.done
 
   "serves static assets in public/": (test) ->
     test.expect 2
     serveRoot "apps", (request, done) ->
-      request "GET", "/robots.txt", host: "hello.test", (body, response) ->
+      request "GET", "/robots.txt", host: "hello.dev", (body, response) ->
         test.same 200, response.statusCode
         test.same "User-Agent: *\nDisallow: /\n", body
         done -> test.done()
@@ -98,13 +98,13 @@ module.exports = testCase
     async.series [
       (proceed) ->
         serveRoot "apps", (request, done) ->
-          request "GET", "/", host: "static.test", (body, response) ->
+          request "GET", "/", host: "static.dev", (body, response) ->
             test.same 200, response.statusCode
             test.same "<!doctype html>\nhello world!\n", body
             done proceed
       (proceed) ->
         serveRoot "apps", (request, done) ->
-          request "GET", "/nonexistent", host: "static.test", (body, response) ->
+          request "GET", "/nonexistent", host: "static.dev", (body, response) ->
             test.same 404, response.statusCode
             done proceed
     ], test.done
@@ -112,7 +112,7 @@ module.exports = testCase
   "post request": (test) ->
     test.expect 2
     serveRoot "apps", (request, done) ->
-      request "POST", "/post", host: "hello.test", data: "foo=bar", (body, response) ->
+      request "POST", "/post", host: "hello.dev", data: "foo=bar", (body, response) ->
         test.same 200, response.statusCode
         test.same "foo=bar", body
         done -> test.done()

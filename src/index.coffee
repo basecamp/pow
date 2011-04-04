@@ -11,18 +11,18 @@
 # port, and includes both an HTTP and a DNS server. The installation
 # process sets up a firewall rule to forward incoming requests on port
 # 80 to Pow. It also sets up a system hook so that all DNS queries for
-# a special top-level domain (`.test`) resolve to your local machine.
+# a special top-level domain (`.dev`) resolve to your local machine.
 #
 # To serve a Rack app, just symlink it into your `~/.pow`
 # directory. Let's say you're working on an app that lives in
 # `~/Projects/myapp`. You'd like to access it at
-# `http://myapp.test/`. Setting it up is as easy as:
+# `http://myapp.dev/`. Setting it up is as easy as:
 #
 #     $ cd ~/.pow
 #     $ ln -s ~/Projects/myapp
 #
 # That's it! The name of the symlink (`myapp`) determines the hostname
-# you use (`myapp.test`) to access the application it points to
+# you use (`myapp.dev`) to access the application it points to
 # (`~/Projects/myapp`).
 
 # ### Annotated source code

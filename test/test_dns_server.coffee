@@ -31,10 +31,10 @@ module.exports = testCase
 
       async.parallel [
         testResolves "hello.powtest", "NOERROR", "127.0.0.1"
-        testResolves "hello.powdev", "NOERROR", "127.0.0.1"
+        testResolves "hello.powdev",  "NOERROR", "127.0.0.1"
         testResolves "a.b.c.powtest", "NOERROR", "127.0.0.1"
         testResolves "powtest.",      "NOERROR", "127.0.0.1"
-        testResolves "powdev.",      "NOERROR", "127.0.0.1"
+        testResolves "powdev.",       "NOERROR", "127.0.0.1"
         testResolves "foo.",          "NXDOMAIN"
       ], ->
         dnsServer.close()

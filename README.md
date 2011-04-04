@@ -14,18 +14,18 @@ tedious configuration. Pow runs as your user on an unprivileged port,
 and includes both an HTTP and a DNS server. The installation process
 sets up a firewall rule to forward incoming requests on port 80 to
 Pow. It also sets up a system hook so that all DNS queries for a
-special top-level domain (`.test`) resolve to your local machine.
+special top-level domain (`.dev`) resolve to your local machine.
 
 To serve a Rack app, just symlink it into your `~/.pow`
 directory. Let's say you're working on an app that lives in
 `~/Projects/myapp`. You'd like to access it at
-`http://myapp.test/`. Setting it up is as easy as:
+`http://myapp.dev/`. Setting it up is as easy as:
 
     $ cd ~/.pow
     $ ln -s ~/Projects/myapp
 
 That's it! The name of the symlink (`myapp`) determines the hostname
-you use (`myapp.test`) to access the application it points to
+you use (`myapp.dev`) to access the application it points to
 (`~/Projects/myapp`).
 
 ## Installation
@@ -66,7 +66,10 @@ time it's accessed, and will keep up to two workers running for each
 application. Workers are automatically terminated after 15 minutes of
 inactivity.
 
-### Using virtual hosts and the .test domain
+### Using virtual hosts and the .dev domain
+
+A virtual host specifies a mapping between a hostname and an
+application. (An application may have more than one virtual host.)
 
 ### Customizing environment variables
 

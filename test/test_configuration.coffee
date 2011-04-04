@@ -33,7 +33,7 @@ module.exports = testCase
     matchHostToRoot = (host, fixtureRoot) -> (proceed) ->
       configuration.findApplicationRootForHost host, (err, domain, root) ->
         if fixtureRoot
-          test.same "test", domain
+          test.same "dev", domain
           test.same fixturePath(fixtureRoot), root
         else
           test.ok !root
@@ -41,14 +41,14 @@ module.exports = testCase
 
     test.expect 14
     async.parallel [
-      matchHostToRoot "directory.test",            "configuration/directory"
-      matchHostToRoot "sub.directory.test",        "configuration/directory"
-      matchHostToRoot "www.directory.test",        "configuration/www.directory"
-      matchHostToRoot "asset0.www.directory.test", "configuration/www.directory"
-      matchHostToRoot "symlink-to-directory.test", "apps/hello"
-      matchHostToRoot "symlink-to-symlink.test",   "apps/hello"
+      matchHostToRoot "directory.dev",            "configuration/directory"
+      matchHostToRoot "sub.directory.dev",        "configuration/directory"
+      matchHostToRoot "www.directory.dev",        "configuration/www.directory"
+      matchHostToRoot "asset0.www.directory.dev", "configuration/www.directory"
+      matchHostToRoot "symlink-to-directory.dev", "apps/hello"
+      matchHostToRoot "symlink-to-symlink.dev",   "apps/hello"
       matchHostToRoot "directory"
-      matchHostToRoot "nonexistent.test"
+      matchHostToRoot "nonexistent.dev"
     ], test.done
 
   "findApplicationRootForHost with alternate domain": (test) ->
@@ -57,7 +57,7 @@ module.exports = testCase
     configuration.findApplicationRootForHost "directory.dev.local", (err, domain, root) ->
       test.same "dev.local", domain
       test.same fixturePath("configuration/directory"), root
-      configuration.findApplicationRootForHost "directory.test", (err, domain, root) ->
+      configuration.findApplicationRootForHost "directory.dev", (err, domain, root) ->
         test.ok !root
         test.done()
 
@@ -67,8 +67,8 @@ module.exports = testCase
     configuration.findApplicationRootForHost "directory.dev", (err, domain, root) ->
       test.same "dev", domain
       test.same fixturePath("configuration/directory"), root
-      configuration.findApplicationRootForHost "directory.test", (err, domain, root) ->
-        test.same "test", domain
+      configuration.findApplicationRootForHost "directory.dev", (err, domain, root) ->
+        test.same "dev", domain
         test.same fixturePath("configuration/directory"), root
         test.done()
 

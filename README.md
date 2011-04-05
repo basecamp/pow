@@ -118,6 +118,20 @@ loaded first.
 
 ### Working with different versions of Ruby
 
+Pow offers full support for running multiple applications under
+different versions of Ruby with
+[rvm](http://rvm.beginrescueend.com/). Just add a [project
+`.rvmrc`](http://rvm.beginrescueend.com/workflow/rvmrc/#project)
+file to your application's root directory and you're good to go.
+
+For example, to instruct Pow to run an application with Ruby 1.9.2,
+use this `.rvmrc` file:
+
+    rvm 1.9.2
+
+If an application has an `.rvmrc` file but rvm isn't installed, Pow
+will show an error message without booting the app.
+
 ### Serving static files
 
 ### Restarting applications

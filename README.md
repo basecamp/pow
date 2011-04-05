@@ -97,6 +97,25 @@ processes.
 
 ### Customizing environment variables
 
+Pow lets you customize the environment in which worker processes
+run. Before an application boots, Pow attempts to execute two scripts
+&mdash; first `.powrc`, then `.powenv` &mdash; in the application's
+root. Any environment variables exported from these scripts are passed
+along to Rack.
+
+For example, if you wanted to adjust the Ruby load path for a
+particular application, you could modify `RUBYLIB` in `.powrc`:
+
+    export RUBYLIB="app:lib:$RUBYLIB"
+
+#### Choosing the right environment script
+
+Pow supports two separate environment scripts with the intention that
+one may be checked into your source control repository, leaving the
+other free for any local overrides. If this sounds like something you
+need, you'll want to keep `.powrc` under version control, since it's
+loaded first.
+
 ### Working with different versions of Ruby
 
 ### Serving static files

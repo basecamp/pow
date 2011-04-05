@@ -56,8 +56,8 @@ set up the `ipfw` rule), if necessary. Then it boots the server.
 ## Managing Applications
 
 Pow deals exclusively with Rack applications. For the purposes of this
-document, a Rack application is a directory with a `config.ru` rackup
-file (and optionally a `public` subdirectory containing static
+document, a _Rack application_ is a directory with a `config.ru`
+rackup file (and optionally a `public` subdirectory containing static
 assets). For more information on rackup files, see the [Rack::Builder
 documentation](http://rack.rubyforge.org/doc/Rack/Builder.html).
 
@@ -68,8 +68,32 @@ inactivity.
 
 ### Using virtual hosts and the .dev domain
 
-A virtual host specifies a mapping between a hostname and an
-application. (An application may have more than one virtual host.)
+A _virtual host_ specifies a mapping between a hostname and an
+application. To install a virtual host, symlink a Rack application
+into your `~/.pow` directory. The name of the symlink tells Pow which
+hostname you want to use to access the application. For example, a
+symlink named `myapp` will be accessible at `http://myapp.dev/`.
+
+**Note**: The Pow installer creates `~/.pow` as a convenient symlink
+  to `~/Library/Application Support/Pow/Hosts`, the actual location
+  from which virtual host symlinks are read.
+
+#### Subdomains
+
+Once a virtual host is installed, it's also automatically accessible
+from all subdomains of the named host. For example, the `myapp`
+virtual host described above could also be accessed at
+`http://www.myapp.dev/` and `http://assets.www.myapp.dev/`. You can
+override this behavior to, say, point `www.myapp.dev` to a different
+application &mdash; just create another virtual host symlink named
+`www.myapp` for the application you want.
+
+#### Multiple virtual hosts
+
+You might want to serve the same application from multiple hostnames.
+In Pow, an application may have more than one virtual host. Multiple
+symlinks that point to the same application will share the same worker
+processes.
 
 ### Customizing environment variables
 

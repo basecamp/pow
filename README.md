@@ -176,11 +176,32 @@ matching the name of the application.
 
 ## Contributing
 
+Pow is written in [Node.js](http://nodejs.org/) with
+[CoffeeScript](http://jashkenas.github.com/coffee-script/). You can
+read the [annotated source code](http://pow.cx/docs/) to learn about
+how it works internally. Please report bugs on the [GitHub issue
+tracker](https://github.com/37signals/pow/issues).
+
+If you're interested in contributing to Pow, first start by cloning a
+copy of the Git repository:
+
+    $ git clone https://github.com/37signals/pow.git
+
+Install the required JavaScript dependencies with
+[npm](http://npmjs.org/) (you'll need version 1.0 or higher):
+
+    $ cd pow
+    $ npm install --dev
+
+Run the test suite:
+
+    $ cake test
+
 ## License
 
 (The MIT License)
 
-Copyright (c) 2011 Sam Stephenson, 37signals
+Copyright &copy; 2011 Sam Stephenson, 37signals
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

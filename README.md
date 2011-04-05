@@ -140,6 +140,28 @@ without a `config.ru` file as long as it has a `public` directory.
 
 ### Restarting applications
 
+You can tell Pow to restart an application the next time it's
+accessed. Simply save a file named `restart.txt` in the `tmp`
+directory of your application (you'll need to create the directory
+first if it doesn't exist). The easiest way to do this is with the
+`touch` command:
+
+    touch tmp/restart.txt
+
+Restarting an application will also reload any environment scripts
+(`.powrc`, `.powenv`, or `.rvmrc`) before booting the app, so don't
+forget to touch `restart.txt` if you make changes to these scripts.
+
+It's also fine to kill worker processes manually &mdash; they'll
+restart the next time you access the virtual host. A handy way to do
+this is with OS X's Activity Monitor. Select "All Processes,
+Hierarchically" from the dropdown at the top of the Activity Monitor
+window. Then find the `pow` process, expand the disclosure triangle,
+find the Ruby worker process you want to kill, and choose "Quit
+Process." (You can click "Inspect" on a worker process and choose
+"Open Files and Ports" to determine which application the process is
+serving.)
+
 ### Viewing log files
 
 ## Contributing

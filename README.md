@@ -174,6 +174,29 @@ matching the name of the application.
 **Note**: Rails logger output does not appear in Pow's logs. You'll
   want to `tail -f log/development.log` to see those.
 
+## Configuring Pow
+
+Pow is designed so that most people will never need to configure
+it. Sometimes you can't avoid adjusting a setting or two, though. When
+Pow boots, it executes the `.powconfig` script in your home directory
+if it's present. You can use this script to set environment variables
+that will override Pow's default settings.
+
+For example, this `~/.powconfig` file tells Pow to kill idle
+applications after 5 minutes (300,000 ms) and spawn 3 workers per app:
+
+    export POW_TIMEOUT=300000
+    export POW_WORKERS=3
+
+See the [Configuration class
+documentation](http://pow.cx/docs/configuration.html#section-5) for a
+full list of settings that you can change.
+
+**Note**: After modifying a setting in `~/.powconfig`, you'll need to
+  restart Pow for the change to take effect. You can do this by
+  finding the `pow` process in OS X's Activity Monitor and clicking
+  "Quit Process".
+
 ## Contributing
 
 Pow is written in [Node.js](http://nodejs.org/) with

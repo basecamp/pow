@@ -134,6 +134,10 @@ will show an error message without booting the app.
 
 ### Serving static files
 
+Pow automatically serves static files in the `public` directory of
+your application. It's possible to serve a completely static site
+without a `config.ru` file as long as it has a `public` directory.
+
 ### Restarting applications
 
 ### Viewing log files

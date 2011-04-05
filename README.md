@@ -177,10 +177,10 @@ matching the name of the application.
 ## Configuring Pow
 
 Pow is designed so that most people will never need to configure
-it. Sometimes you can't avoid adjusting a setting or two, though. When
-Pow boots, it executes the `.powconfig` script in your home directory
-if it's present. You can use this script to set environment variables
-that will override Pow's default settings.
+it. Sometimes you can't avoid having to adjust a setting or two,
+though. When Pow boots, it executes the `.powconfig` script in your
+home directory if it's present. You can use this script to set
+environment variables that will override Pow's default settings.
 
 For example, this `~/.powconfig` file tells Pow to kill idle
 applications after 5 minutes (300,000 ms) and spawn 3 workers per app:

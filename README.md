@@ -164,6 +164,16 @@ serving.)
 
 ### Viewing log files
 
+Pow stores log files in the `~/Library/Logs/Pow` directory so they can
+be viewed easily with OS X's Console application. Each incoming
+request URL is logged, along with its hostname HTTP method, in the
+`access.log` file. Additionally, the stdout and stderr streams for
+each worker process are captured and logged to the `apps` directory,
+in a file matching the name of the application.
+
+**Note**: Rails logger output does not appear in Pow's logs. You'll
+  want to `tail -f log/development.log` to see those.
+
 ## Contributing
 
 ## License

@@ -2,12 +2,12 @@ Pow: Zero-configuration Rack server for Mac OS X
 ================================================
 
 **Pow is a zero-configuration Rack server for Mac OS X.** It makes
-developing Rails and Rack applications _stupid easy_. You can install
-it in ten seconds and have your first app up and running in under a
-minute. No mucking around with `/etc/hosts`, no compiling Apache
-modules, no editing configuration files or installing preference
-panes. And running multiple apps with multiple versions of Ruby is
-trivial.
+developing Rails and Rack applications as frictionless as
+possible. You can install it in ten seconds and have your first app up
+and running in under a minute. No mucking around with `/etc/hosts`, no
+compiling Apache modules, no editing configuration files or installing
+preference panes. And running multiple apps with multiple versions of
+Ruby is trivial.
 
 How does it work? A few simple conventions eliminate the need for
 tedious configuration. Pow runs as your user on an unprivileged port,

@@ -1,3 +1,7 @@
+/*--------------------------------------------------
+GENERAL
+--------------------------------------------------*/
+
 body { 
   font-family: 'Helvetica Neue', Helvetica, sans-serif;
   line-height: 1.5em;
@@ -36,9 +40,21 @@ h3 { font-size: 32px;}
   margin: 0 auto;
 }
 
-.intro { border-bottom: 1px solid #d2d2ca; }
+.nav, .intro, .villains, .how, .footer { overflow: hidden; clear: both; }
 
-.intro, .villains, .how, .footer { overflow: hidden; clear: both; }
+/*--------------------------------------------------
+NAV
+--------------------------------------------------*/
+
+.nav { padding: 15px 0; text-align: right; }
+.nav ul { margin: 0; padding: 0; }
+.nav ul li { display: inline; list-style-type: none; margin-left: 30px; }
+
+/*--------------------------------------------------
+MEAT
+--------------------------------------------------*/
+
+.intro { border-bottom: 1px solid #d2d2ca; }
 
 a.screencast {
   display: block;

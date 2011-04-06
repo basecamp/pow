@@ -46,9 +46,10 @@ h3 { font-size: 32px;}
 NAV
 --------------------------------------------------*/
 
-.nav { padding: 15px 0; text-align: right; }
+.nav { margin-top: 30px; width: 500px; }
 .nav ul { margin: 0; padding: 0; }
 .nav ul li { display: inline; list-style-type: none; margin-left: 30px; }
+.nav ul li a { color: #666; font-weight: bold; text-decoration: none; border-bottom: 2px solid #d2d2ca; }
 
 /*--------------------------------------------------
 MEAT

@@ -99,6 +99,8 @@ a.screencast:hover { background: url('images/btn-screencast.png') 0 -51px no-rep
 
 .how h3 { margin-bottom: 5px; }
 
+.how p { font-size: 16px; }
+
 code { font: 16px Monaco,'Courier New','DejaVu Sans Mono','Bitstream Vera Sans Mono',monospace; }
 
 code span.light {

@@ -135,3 +135,53 @@ code span.light {
   border-top: 1px solid #d2d2ca;
   padding: 15px 18px;
 }
+
+.footer img { margin-top: 8px; }
+
+/*--------------------------------------------------
+MANUAL
+--------------------------------------------------*/
+
+body.manual div.container {
+  width: 660px;
+  padding-bottom: 80px;
+}
+
+body.manual div.container p.back {
+  margin-left: -18px;
+  margin-top: 50px;
+  color: #999;
+}
+
+body.manual div.container p.back a { color: #999; font-weight: bold; text-decoration: none; border-bottom: 2px solid #d2d2ca; }
+body.manual div.container p.back a:hover { color: #000; border-bottom: 2px solid #c56342; }
+
+body.manual pre { background-color: #d2d2ca; padding: 5px 10px; border-radius: 5px; }
+
+body.manual h1 { margin-bottom: 30px; } 
+
+body.manual h2 {
+  font-size: 32px;
+  color: #000;
+  font-weight: bold;
+  border-top: 3px double #d2d2ca;
+  padding-top: 20px;
+  margin-bottom: 20px;
+  line-height: normal; }
+
+body.manual h3, body.manual h4 {
+  font-size: 21px;
+  color: #000;
+  font-weight: bold;
+  line-height: 1.3em;
+  margin-top: 30px;
+  margin-bottom: 0;
+}
+
+body.manual p code {
+  font-size: 14px;
+  background-color: #d9eaeb;
+  padding: 3px;
+  border-radius: 5px;
+  border: 1px solid #d2d2ca;
+}

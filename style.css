@@ -136,9 +136,16 @@ body.manual pre { background-color: #d2d2ca; padding: 5px 10px; border-radius: 5
 
 body.manual h1 { margin-bottom: 30px; } 
 
-body.manual h3 { border-top: 3px double #d2d2ca; padding-top: 20px; margin-bottom: 20px; line-height: normal; }
+body.manual h2 {
+  font-size: 32px;
+  color: #000;
+  font-weight: bold;
+  border-top: 3px double #d2d2ca;
+  padding-top: 20px;
+  margin-bottom: 20px;
+  line-height: normal; }
 
-body.manual h2, body.manual h4 {
+body.manual h3, body.manual h4 {
   font-size: 21px;
   color: #000;
   font-weight: bold;

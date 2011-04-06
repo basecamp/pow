@@ -6,9 +6,12 @@ body {
   text-shadow: 0 1px 0 #fff;
   margin: 0;
   padding: 0;
+  color: #000;
 }
 
 img { border: 0; }
+
+a { color: #000; }
 
 h1 {
   font-size: 44px;

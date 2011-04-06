@@ -58,7 +58,7 @@ NAV
 MEAT
 --------------------------------------------------*/
 
-.intro { border-bottom: 1px solid #d2d2ca; }
+.intro { border-bottom: 1px solid #d2d2ca; padding-bottom: 30px; }
 
 a.screencast {
   display: block;

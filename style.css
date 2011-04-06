@@ -114,12 +114,16 @@ code span.light {
 }
 
 .install .source a {
+  padding: 0 2px;
+  text-decoration: none;
   font-weight: bold;
   color: #999;
+  border-bottom: 1px solid #d2d2ca;
 }
 
 .install .source a:hover {
-  color: #c56342;
+  color: #000;
+  border-bottom: 1px solid #c56342;
 }
 
 .bottom {
@@ -128,12 +132,24 @@ code span.light {
 }
 
 .footer {
+  color: #999;
   width: 916px;
   margin: 2px auto 30px;
   font-size: 11px;
   line-height: 1.3em;
   border-top: 1px solid #d2d2ca;
   padding: 15px 18px;
+}
+
+.footer a {
+  text-decoration: none;
+  color: #999;
+  border-bottom: 1px solid #d2d2ca;
+}
+
+.footer a:hover {
+  color: #000;
+  border-bottom: 1px solid #c56342;
 }
 
 .footer img { margin-top: 8px; }
@@ -158,7 +174,7 @@ body.manual div.container p.back a:hover { color: #000; border-bottom: 2px solid
 
 body.manual pre { background-color: #d2d2ca; padding: 5px 10px; border-radius: 5px; }
 
-body.manual h1 { margin-bottom: 30px; } 
+body.manual h1 { margin-bottom: 30px; }
 
 body.manual h2 {
   font-size: 32px;

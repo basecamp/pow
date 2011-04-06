@@ -114,6 +114,8 @@ code { font: 16px Monaco,'Courier New','DejaVu Sans Mono','Bitstream Vera Sans M
   padding: 15px 18px;
 }
 
+.footer img { margin-top: 8px; }
+
 /*--------------------------------------------------
 MANUAL
 --------------------------------------------------*/

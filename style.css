@@ -16,12 +16,13 @@ body {
 img { border: 0; }
 
 a { color: #000; }
+a:hover { color: #c56342; }
 
 h1 {
   font-size: 44px;
   line-height: 1.0em;
   letter-spacing: -1px;
-  margin-top: 80px;
+  margin-top: 60px;
   margin-bottom: 0;
 }
 
@@ -46,10 +47,12 @@ h3 { font-size: 32px;}
 NAV
 --------------------------------------------------*/
 
-.nav { margin-top: 30px; width: 500px; }
+.nav { margin-top: 30px; width: 500px; float: right; font-size: 14px; }
 .nav ul { margin: 0; padding: 0; }
 .nav ul li { display: inline; list-style-type: none; margin-left: 30px; }
-.nav ul li a { color: #666; font-weight: bold; text-decoration: none; border-bottom: 2px solid #d2d2ca; }
+.nav ul li.first { margin-left: 5px; }
+.nav ul li a { color: #999; font-weight: bold; text-decoration: none; border-bottom: 2px solid #d2d2ca; }
+.nav ul li a:hover { color: #000; border-bottom: 2px solid #c56342; }
 
 /*--------------------------------------------------
 MEAT
@@ -72,7 +75,6 @@ a.screencast:hover { background: url('/images/btn-screencast.png') 0 -51px no-re
   float: left;
   width: 410px;
   margin-right: 40px;
-  padding-top: 20px;
 }
 
 .middle { float: left; width: 500px; }

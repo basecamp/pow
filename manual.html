@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+</head>
+<body>
+
+<h1>Pow: Zero-configuration Rack server for Mac OS X</h1>
+
+<p><strong>Pow is a zero-configuration Rack server for Mac OS X.</strong> It makes
+developing Rails and Rack applications as frictionless as
+possible. You can install it in ten seconds and have your first app up
+and running in under a minute. No mucking around with <code>/etc/hosts</code>, no
+compiling Apache modules, no editing configuration files or installing
+preference panes. And running multiple apps with multiple versions of
+Ruby is trivial.</p>
+
+<p>How does it work? A few simple conventions eliminate the need for
+tedious configuration. Pow runs as your user on an unprivileged port,
+and includes both an HTTP and a DNS server. The installation process
+sets up a firewall rule to forward incoming requests on port 80 to
+Pow. It also sets up a system hook so that all DNS queries for a
+special top-level domain (<code>.dev</code>) resolve to your local machine.</p>
+
+<p>To serve a Rack app, just symlink it into your <code>~/.pow</code>
+directory. Let's say you're working on an app that lives in
+<code>~/Projects/myapp</code>. You'd like to access it at
+<code>http://myapp.dev/</code>. Setting it up is as easy as:</p>
+
+<pre><code>$ cd ~/.pow
+$ ln -s ~/Projects/myapp
+</code></pre>
+
+<p>That's it! The name of the symlink (<code>myapp</code>) determines the hostname
+you use (<code>myapp.dev</code>) to access the application it points to
+(<code>~/Projects/myapp</code>).</p>
+
+<h2>Installation</h2>
+
+<p>Pow requires Mac OS X version 10.6 or newer. To install or upgrade
+Pow, just open a terminal and run this command:</p>
+
+<pre><code>$ curl get.pow.cx | sh
+</code></pre>
+
+<p>You can <a href="http://get.pow.cx/">review the install script</a> yourself
+before running it, if you'd like. Always a good idea.</p>
+
+<p>The installer unpacks the latest Pow version into
+<code>~/Library/Application Support/Pow/Versions</code> and points the
+<code>~/Library/Application Support/Pow/Current</code> symlink there. It also
+installs
+<a href="http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man8/launchd.8.html">launchd</a>
+scripts for your user (the Pow server itself) and for the system (to
+set up the <code>ipfw</code> rule), if necessary. Then it boots the server.</p>
+
+<p><strong>Note</strong>: The firewall rule installed by Pow redirects all incoming
+  traffic on port 80 to port 20559, where Pow runs. This means if you
+  have another web server running on port 80, like the Apache that
+  comes with Mac OS X, it will be inaccessible without either
+  disabling the firewall rule or updating that server's configuration
+  to listen on another port.</p>
+
+<h2>Managing Applications</h2>
+
+<p>Pow deals exclusively with Rack applications. For the purposes of this
+document, a <em>Rack application</em> is a directory with a <code>config.ru</code>
+rackup file (and optionally a <code>public</code> subdirectory containing static
+assets). For more information on rackup files, see the <a href="http://rack.rubyforge.org/doc/Rack/Builder.html">Rack::Builder
+documentation</a>.</p>
+
+<p>Pow automatically spawns a worker process for an application the first
+time it's accessed, and will keep up to two workers running for each
+application. Workers are automatically terminated after 15 minutes of
+inactivity.</p>
+
+<h3>Using virtual hosts and the .dev domain</h3>
+
+<p>A <em>virtual host</em> specifies a mapping between a hostname and an
+application. To install a virtual host, symlink a Rack application
+into your <code>~/.pow</code> directory. The name of the symlink tells Pow which
+hostname you want to use to access the application. For example, a
+symlink named <code>myapp</code> will be accessible at <code>http://myapp.dev/</code>.</p>
+
+<p><strong>Note</strong>: The Pow installer creates <code>~/.pow</code> as a convenient symlink
+  to <code>~/Library/Application Support/Pow/Hosts</code>, the actual location
+  from which virtual host symlinks are read.</p>
+
+<h4>Subdomains</h4>
+
+<p>Once a virtual host is installed, it's also automatically accessible
+from all subdomains of the named host. For example, the <code>myapp</code>
+virtual host described above could also be accessed at
+<code>http://www.myapp.dev/</code> and <code>http://assets.www.myapp.dev/</code>. You can
+override this behavior to, say, point <code>www.myapp.dev</code> to a different
+application &mdash; just create another virtual host symlink named
+<code>www.myapp</code> for the application you want.</p>
+
+<h4>Multiple virtual hosts</h4>
+
+<p>You might want to serve the same application from multiple hostnames.
+In Pow, an application may have more than one virtual host. Multiple
+symlinks that point to the same application will share the same worker
+processes.</p>
+
+<h3>Customizing environment variables</h3>
+
+<p>Pow lets you customize the environment in which worker processes
+run. Before an application boots, Pow attempts to execute two scripts
+&mdash; first <code>.powrc</code>, then <code>.powenv</code> &mdash; in the application's
+root. Any environment variables exported from these scripts are passed
+along to Rack.</p>
+
+<p>For example, if you wanted to adjust the Ruby load path for a
+particular application, you could modify <code>RUBYLIB</code> in <code>.powrc</code>:</p>
+
+<pre><code>export RUBYLIB="app:lib:$RUBYLIB"
+</code></pre>
+
+<h4>Choosing the right environment script</h4>
+
+<p>Pow supports two separate environment scripts with the intention that
+one may be checked into your source control repository, leaving the
+other free for any local overrides. If this sounds like something you
+need, you'll want to keep <code>.powrc</code> under version control, since it's
+loaded first.</p>
+
+<h3>Working with different versions of Ruby</h3>
+
+<p>Pow offers full support for running multiple applications under
+different versions of Ruby with
+<a href="http://rvm.beginrescueend.com/">rvm</a>. Just add a <a href="http://rvm.beginrescueend.com/workflow/rvmrc/#project">project
+<code>.rvmrc</code></a>
+file to your application's root directory and you're good to go.</p>
+
+<p>For example, to instruct Pow to run an application with Ruby 1.9.2,
+use this <code>.rvmrc</code> file:</p>
+
+<pre><code>rvm 1.9.2
+</code></pre>
+
+<p>If an application has an <code>.rvmrc</code> file but rvm isn't installed, Pow
+will show an error message without booting the app.</p>
+
+<h3>Serving static files</h3>
+
+<p>Pow automatically serves static files in the <code>public</code> directory of
+your application. It's possible to serve a completely static site
+without a <code>config.ru</code> file as long as it has a <code>public</code> directory.</p>
+
+<h3>Restarting applications</h3>
+
+<p>You can tell Pow to restart an application the next time it's
+accessed. Simply save a file named <code>restart.txt</code> in the <code>tmp</code>
+directory of your application (you'll need to create the directory
+first if it doesn't exist). The easiest way to do this is with the
+<code>touch</code> command:</p>
+
+<pre><code>touch tmp/restart.txt
+</code></pre>
+
+<p>Restarting an application will also reload any environment scripts
+(<code>.powrc</code>, <code>.powenv</code>, or <code>.rvmrc</code>) before booting the app, so don't
+forget to touch <code>restart.txt</code> if you make changes to these scripts.</p>
+
+<p>It's also fine to kill worker processes manually &mdash; they'll
+restart the next time you access the virtual host. A handy way to do
+this is with OS X's Activity Monitor. Select "All Processes,
+Hierarchically" from the dropdown at the top of the Activity Monitor
+window. Then find the <code>pow</code> process, expand the disclosure triangle,
+find the Ruby worker process you want to kill, and choose "Quit
+Process." (You can click "Inspect" on a worker process and choose
+"Open Files and Ports" to determine which application the process is
+serving.)</p>
+
+<h3>Viewing log files</h3>
+
+<p>Pow stores log files in the <code>~/Library/Logs/Pow</code> directory so they can
+be viewed easily with OS X's Console application. Each incoming
+request URL is logged, along with its hostname and HTTP method, in the
+<code>access.log</code> file. The stdout and stderr streams for each worker
+process are captured and logged to the <code>apps</code> directory in a file
+matching the name of the application.</p>
+
+<p><strong>Note</strong>: Rails logger output does not appear in Pow's logs. You'll
+  want to <code>tail -f log/development.log</code> to see those.</p>
+
+<h2>Configuring Pow</h2>
+
+<p>Pow is designed so that most people will never need to configure
+it. Sometimes you can't avoid having to adjust a setting or two,
+though. When Pow boots, it executes the <code>.powconfig</code> script in your
+home directory if it's present. You can use this script to set
+environment variables that will override Pow's default settings.</p>
+
+<p>For example, this <code>~/.powconfig</code> file tells Pow to kill idle
+applications after 5 minutes (300,000 ms) and spawn 3 workers per app:</p>
+
+<pre><code>export POW_TIMEOUT=300000
+export POW_WORKERS=3
+</code></pre>
+
+<p>See the <a href="http://pow.cx/docs/configuration.html#section-5">Configuration class
+documentation</a> for a
+full list of settings that you can change.</p>
+
+<p><strong>Note</strong>: After modifying a setting in <code>~/.powconfig</code>, you'll need to
+  restart Pow for the change to take effect. You can do this by
+  finding the <code>pow</code> process in OS X's Activity Monitor and clicking
+  "Quit Process".</p>
+
+<h2>Contributing</h2>
+
+<p>Pow is written in <a href="http://nodejs.org/">Node.js</a> with
+<a href="http://jashkenas.github.com/coffee-script/">CoffeeScript</a>. You can
+read the <a href="http://pow.cx/docs/">annotated source code</a> to learn about
+how it works internally. Please report bugs on the <a href="https://github.com/37signals/pow/issues">GitHub issue
+tracker</a>.</p>
+
+<p>If you're interested in contributing to Pow, first start by cloning a
+copy of the Git repository:</p>
+
+<pre><code>$ git clone https://github.com/37signals/pow.git
+</code></pre>
+
+<p>Install the required JavaScript dependencies with
+<a href="http://npmjs.org/">npm</a> (you'll need version 1.0 or higher):</p>
+
+<pre><code>$ cd pow
+$ npm install --dev
+</code></pre>
+
+<p>Run the test suite:</p>
+
+<pre><code>$ cake test
+</code></pre>
+
+<h2>License</h2>
+
+<p>(The MIT License)</p>
+
+<p>Copyright &copy; 2011 Sam Stephenson, 37signals</p>
+
+<p>Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:</p>
+
+<p>The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+
+</body>
+</html>

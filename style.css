@@ -64,7 +64,7 @@ a.screencast {
   display: block;
   width: 300px;
   height: 50px;
-  background: url('/images/btn-screencast.png') 0 0 no-repeat;
+  background: url('images/btn-screencast.png') 0 0 no-repeat;
   text-decoration: none;
   text-indent: -10000em;
 }

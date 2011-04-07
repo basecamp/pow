@@ -15,6 +15,9 @@
 #
 #     Install Pow by running this command:
 #     curl get.pow.cx | sh
+#
+#     Uninstall Pow: :'(
+#     curl get.pow.cx/uninstall.sh | sh
 
 
 # Set up the environment. Respect $VERSION if it's set.

@@ -53,6 +53,14 @@ set up the `ipfw` rule), if necessary. Then it boots the server.
   disabling the firewall rule or updating that server's configuration
   to listen on another port.
 
+### Uninstalling Pow
+
+If you decide Pow's not for you, uninstallation is just as easy:
+
+    $ curl get.pow.cx/uninstall.sh | sh
+
+([Review the uninstall script](http://get.pow.cx/uninstall.sh).)
+
 ## Managing Applications
 
 Pow deals exclusively with Rack applications. For the purposes of this

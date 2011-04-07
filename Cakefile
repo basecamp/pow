@@ -84,3 +84,16 @@ task 'install', 'Install pow configuration files', ->
   async.parallel [installLocal, installSystem], (err) ->
     throw err if err
     console.error "*** Installed"
+
+task 'start', 'Start pow server', ->
+  agent = "#{process.env['HOME']}/Library/LaunchAgents/cx.pow.powd.plist"
+  exec "launchctl unload '#{agent}'", ->
+    console.error "*** Starting the Pow server..."
+    exec "launchctl load '#{agent}'", (err, stdout, stderr) ->
+      console.error stderr if err
+
+task 'stop', 'Stop pow server', ->
+  agent = "#{process.env['HOME']}/Library/LaunchAgents/cx.pow.powd.plist"
+  console.error "*** Stopping the Pow server..."
+  exec "launchctl unload '#{agent}'", (err, stdout, stderr) ->
+    console.error stderr if err

@@ -87,10 +87,9 @@ task 'install', 'Install pow configuration files', ->
 
 task 'start', 'Start pow server', ->
   agent = "#{process.env['HOME']}/Library/LaunchAgents/cx.pow.powd.plist"
-  exec "launchctl unload '#{agent}'", ->
-    console.error "*** Starting the Pow server..."
-    exec "launchctl load '#{agent}'", (err, stdout, stderr) ->
-      console.error stderr if err
+  console.error "*** Starting the Pow server..."
+  exec "launchctl load '#{agent}'", (err, stdout, stderr) ->
+    console.error stderr if err
 
 task 'stop', 'Stop pow server', ->
   agent = "#{process.env['HOME']}/Library/LaunchAgents/cx.pow.powd.plist"

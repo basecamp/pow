@@ -60,7 +60,7 @@ task 'install', 'Install pow configuration files', ->
   sh = (command, callback) ->
     exec command, (err, stdout, stderr) ->
       if err
-        console.err stderr
+        console.error stderr
         callback err
       else
         callback()

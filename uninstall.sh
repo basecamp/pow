@@ -35,13 +35,16 @@
       fi
 
 
+# Find the tty so we can prompt for confirmation even if we're being piped from curl.
+
+      TTY="/dev/$( ps -p$$ | tail -1 | awk '{print$2}' )"
+
+
 # Make sure we really want to uninstall.
 
-      read -p "Sorry to see you go. Uninstall Pow [y/n]? " answer
-      case $answer in
-        y* ) break  ;;
-        *  ) exit 1 ;;
-      esac
+      read -p "Sorry to see you go. Uninstall Pow [y/n]? " ANSWER < $TTY
+      [[ $ANSWER == "y" ]] || exit 1
+      echo "*** Uninstalling Pow..."
 
 
 # Remove the Versions directory and the Current symlink.

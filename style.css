@@ -113,6 +113,22 @@ code span.light {
   clear: left;
 }
 
+.version {
+  overflow: hidden;
+  float: right;
+  background-color: #e7e7de;
+  text-align: center;
+  border-radius: 5px;
+  padding: 15px;
+  border: 1px solid #d2d2ca;
+  margin-right: 280px;
+  margin-top: 75px;
+}
+
+.version h4 { font-weight: normal; font-size: 14px; margin: 0; }
+.version h5 { font-size: 48px; letter-spacing: -1px; margin: 10px 0 20px; }
+.version p { font-size: 12px; margin: 0; color: #999; }
+
 .install code {
   background-color: #d2d2ca;
   float: left;
@@ -234,6 +250,7 @@ RESPONSIVE CSS
   .logo { display: none; }
   .villains { padding-top: 0; }
   .villains img, .footer img { display: none; }
+  .version { float: none; width: 90%; margin-top: 0; clear: both; }
   body.manual div.container { width: 100%; padding: 10px; }
 }
 

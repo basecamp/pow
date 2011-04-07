@@ -54,22 +54,28 @@
         <img src="images/img-gem.png" width="350" height="350" alt="Ruby Hydra" align="right" style="margin-top: -130px;" />
         <p><strong>Tame multiple Rubies.</strong> &nbsp; With full
         support for <a href="http://rvm.beginrescueend.com/">rvm</a>
-        and <a href="http://gembundler.com/">Bundler</a>, Pow makes
-        it simple to run multiple apps at once, each with its own
-        version of Ruby and its own set of gems. Gem activation
-        errors are a thing of the past. And testing your apps on
-        different runtimes like JRuby and Rubinius has never been
-        easier.</p>
+        and <a href="http://gembundler.com/">Bundler</a>, Pow makes it
+        simple to run multiple apps at once, each with its own version
+        of Ruby and its own set of gems. Testing your apps on
+        different runtimes&mdash;like JRuby and Rubinius&mdash;has
+        never been easier. And gem activation errors are a thing of
+        the past.</p>
       </div>
     </div>
 
     <div class="how">
       <h3>Installs faster than a speeding SSD.</h3>
-      <p>Pow requires Mac OS X version 10.6 or newer. To install or upgrade Pow, just open a terminal and run this command:</p>
+      <p>Pow requires Mac OS X version 10.6 or newer. To install or upgrade Pow, open a terminal and run this command:</p>
       <div class="install">
         <code><span class="light">$</span> curl get.pow.cx | sh</code>
         <span class="source">(<a href="http://get.pow.cx/">See the installer source code</a>)</span>
       </div>
+      <p>To set up a Rack app, just symlink it into <code>~/.pow</code>:
+      <div class="install">
+        <code><span class="light">$</span> cd ~/.pow<br>
+        <span class="light">$</span> ln -s /path/to/myapp</code>
+      </div>
+      <p>That&rsquo;s it! Your app will be up and running at <code>http://myapp.dev/</code>.</p>
     </div>
   </div>
 
@@ -83,6 +89,10 @@
         A <a href="http://37signals.com">37signals</a> project</p>
     </div>
   </div>
+
+  <script src="//static.getclicky.com/js" type="text/javascript"></script>
+  <script type="text/javascript">try{ clicky.init(66408357); }catch(e){}</script>
+  <noscript><p><img alt="Clicky" width="1" height="1" src="//in.getclicky.com/66408357ns.gif" /></p></noscript>
 
 </body>
 

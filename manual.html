@@ -2,14 +2,18 @@
 <html>
 <head>
 <meta charset="utf-8">
+<<<<<<< HEAD
 <meta name="viewport" content="width=1065" />
+=======
+<title>Pow User's Manual</title>
+>>>>>>> 25f65e57ef5430bbbed8c67ad69148128b733926
 <link rel="stylesheet" href="style.css" type="text/css" media="screen" charset="utf-8">
 </head>
 <body class="manual">
   <div class="container">
     <p class="back">&larr; <a href="index.html">Back to the main page</a></p>
 
-<h1>Pow: Zero-configuration Rack server for Mac OS X</h1>
+<!--begin--><h1>Pow: Zero-configuration Rack server for Mac OS X</h1>
 
 <p><strong>Pow is a zero-configuration Rack server for Mac OS X.</strong> It makes
 developing Rails and Rack applications as frictionless as
@@ -64,6 +68,15 @@ set up the <code>ipfw</code> rule), if necessary. Then it boots the server.</p>
   comes with Mac OS X, it will be inaccessible without either
   disabling the firewall rule or updating that server's configuration
   to listen on another port.</p>
+
+<h3>Uninstalling Pow</h3>
+
+<p>If you decide Pow's not for you, uninstallation is just as easy:</p>
+
+<pre><code>$ curl get.pow.cx/uninstall.sh | sh
+</code></pre>
+
+<p>(<a href="http://get.pow.cx/uninstall.sh">Review the uninstall script</a>.)</p>
 
 <h2>Managing Applications</h2>
 
@@ -160,7 +173,7 @@ directory of your application (you'll need to create the directory
 first if it doesn't exist). The easiest way to do this is with the
 <code>touch</code> command:</p>
 
-<pre><code>touch tmp/restart.txt
+<pre><code>$ touch tmp/restart.txt
 </code></pre>
 
 <p>Restarting an application will also reload any environment scripts
@@ -263,8 +276,13 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+<!--end-->
 
 </div>
+
+<script src="//static.getclicky.com/js" type="text/javascript"></script>
+<script type="text/javascript">try{ clicky.init(66408357); }catch(e){}</script>
+<noscript><p><img alt="Clicky" width="1" height="1" src="//in.getclicky.com/66408357ns.gif" /></p></noscript>
 
 </body>
 </html>

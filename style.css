@@ -87,7 +87,8 @@ a.screencast:hover { background: url('images/btn-screencast.png') 0 -51px no-rep
 
 .villains p { margin-top: 40px;}
 
-.villains p code {
+.villains p code,
+.how p code {
   font-size: 14px;
   background-color: #d9eaeb;
   padding: 3px;
@@ -106,6 +107,10 @@ code { font: 16px Monaco,'Courier New','DejaVu Sans Mono','Bitstream Vera Sans M
 code span.light {
   color: #999;
   text-shadow: none;
+}
+
+.how p {
+  clear: left;
 }
 
 .install code {

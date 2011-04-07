@@ -1,5 +1,6 @@
 #!/usr/bin/ruby
 require 'pathname'
-ENV['POW_BIN'] = bin = Pathname.new(__FILE__).realpath.to_s
+bin  = Pathname.new(__FILE__).realpath
 root = bin.dirname.parent
+ENV['POW_BIN'] = bin.to_s
 exec root.join("bin/node").to_s, root.join("lib/command.js").to_s, *ARGV

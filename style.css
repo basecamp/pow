@@ -201,6 +201,7 @@ body.manual h2 {
   line-height: normal; }
 
 body.manual h3, body.manual h4 {
+  display: block;
   font-size: 21px;
   color: #000;
   font-weight: bold;
@@ -233,6 +234,7 @@ RESPONSIVE CSS
   .logo { display: none; }
   .villains { padding-top: 0; }
   .villains img, .footer img { display: none; }
+  body.manual div.container { width: 100%; padding: 10px; }
 }
 
 /* iPad */

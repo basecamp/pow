@@ -216,3 +216,18 @@ body.manual p code {
   border-radius: 5px;
   border: 1px solid #d2d2ca;
 }
+
+/*----------------------------------------------------
+RESPONSIVE CSS
+----------------------------------------------------*/
+
+/* iPhone */
+@media only screen and (max-device-width: 480px) {
+}
+
+/* iPad */
+@media only screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:portrait) {
+}
+
+@media only screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:landscape) {
+}

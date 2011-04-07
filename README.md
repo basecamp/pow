@@ -154,7 +154,7 @@ directory of your application (you'll need to create the directory
 first if it doesn't exist). The easiest way to do this is with the
 `touch` command:
 
-    touch tmp/restart.txt
+    $ touch tmp/restart.txt
 
 Restarting an application will also reload any environment scripts
 (`.powrc`, `.powenv`, or `.rvmrc`) before booting the app, so don't

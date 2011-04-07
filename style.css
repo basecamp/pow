@@ -223,6 +223,9 @@ RESPONSIVE CSS
 
 /* iPhone */
 @media only screen and (max-device-width: 480px) {
+  .container { width: 480px; }
+  .logo { display: none; }
+  .villains img { display: none; }
 }
 
 /* iPad */

@@ -25,7 +25,7 @@
       set -e
       POW_ROOT="$HOME/Library/Application Support/Pow"
       POW_BIN="$POW_ROOT/Current/bin"
-      [[ -z "$VERSION" ]] && VERSION=0.2.1
+      [[ -z "$VERSION" ]] && VERSION=0.2.2
 
 
 # Fail fast if we're not on OS X >= 10.6.0.

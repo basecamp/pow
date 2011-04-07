@@ -223,9 +223,16 @@ RESPONSIVE CSS
 
 /* iPhone */
 @media only screen and (max-device-width: 480px) {
-  .container { width: 480px; }
+  .container, .middle, .nav, .footer { width: 100%; margin: 0; }
+  .nav { margin-top: 30px; font-size: 14px; overflow: hidden; }
+  .nav ul li, .nav ul li.first { display: block; margin-left: 10px; line-height: 1.5em; }
+  .intro { padding: 10px;}
+  h1 { font-size: 32px; margin-top: 10px; }
+  h2 { font-size: 18px; }
+  h3 { display: none; }
   .logo { display: none; }
-  .villains img { display: none; }
+  .villains { padding-top: 0; }
+  .villains img, .footer img { display: none; }
 }
 
 /* iPad */

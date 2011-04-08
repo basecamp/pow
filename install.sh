@@ -90,6 +90,10 @@
       fi
 
 
+# Install pow command
+
+      ln -s $POW_ROOT/Current/pow /usr/local/bin/pow
+
 # Start (or restart) powd.
 
       echo "*** Starting the Pow server..."

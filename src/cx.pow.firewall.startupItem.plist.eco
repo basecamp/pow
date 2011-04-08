@@ -1,0 +1,31 @@
+#!/bin/sh
+. /etc/rc.common
+ 
+IPFW=/sbin/ipfw -q
+SYSCTL=/usr/sbin/sysctl
+HTTP_PORT=<%= @httpPort %>
+DST_PORT=<%= @dstPort %>
+
+# The start subroutine
+StartService() {
+  ConsoleMessage "Starting pow ipfw route from 127.0.0.1:${HTTP_PORT} to ${DST_PORT}"
+  ${IPFW} add 5000 fwd 127.0.0.1,${HTTP_PORT} tcp from any to me dst-port ${DST_PORT} in
+  ${SYSCTL} -w net.inet.ip.forwarding=1
+}
+ 
+# The stop subroutine
+StopService() {
+  ConsoleMessage "Stopping pow ipfw route from 127.0.0.1:${HTTP_PORT} to ${DST_PORT}"
+  ${IPFW} del 5000
+}
+ 
+# The restart subroutine
+RestartService() {
+  ConsoleMessage "Restarting pow ipfw route from 127.0.0.1:${HTTP_PORT} to ${DST_PORT}"
+  ${IPFW} del 5000
+  ${IPFW} add 5000 fwd 127.0.0.1,${HTTP_PORT} tcp from any to me dst-port ${DST_PORT} in
+  ${SYSCTL} -w net.inet.ip.forwarding=1
+}
+ 
+RunService "$1"
+

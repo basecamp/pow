@@ -24,7 +24,7 @@
       POW_CURRENT_PATH="$POW_ROOT/Current"
       POW_VERSIONS_PATH="$POW_ROOT/Versions"
       POWD_PLIST_PATH="$HOME/Library/LaunchAgents/cx.pow.powd.plist"
-      FIREWALL_PLIST_PATH="/Library/LaunchDaemons/cx.pow.firewall.plist"
+      FIREWALL_PLIST_PATH="/Library/StartupItems/PowFirewallRules"
 
 
 # Fail fast if Pow isn't present.
@@ -61,8 +61,8 @@
 
 # Read the firewall plist, if possible, to figure out what ports are in use.
 
-      if [[ -a "$FIREWALL_PLIST_PATH" ]]; then
-        ports=($(ruby -e'puts $<.read.scan(/fwd .*?,([\d]+).*?dst-port ([\d]+)/)' "$FIREWALL_PLIST_PATH"))
+      if [[ -a "$FIREWALL_PLIST_PATH"/PowFirewallRules ]]; then
+        ports=($(ruby -e'puts $<.read.scan(/fwd .*?,([\d]+).*?dst-port ([\d]+)/)' "$FIREWALL_PLIST_PATH"/PowFirewallRules))
 
         HTTP_PORT=${ports[0]}
         DST_PORT=${ports[1]}
@@ -83,7 +83,8 @@
 
 # Unload the firewall plist and remove it.
 
+      sudo SystemStarter stop PowFirewallRules 2>/dev/null
       sudo launchctl unload "$FIREWALL_PLIST_PATH" 2>/dev/null || true
-      sudo rm -f "$FIREWALL_PLIST_PATH"
+      sudo rm -fr "$FIREWALL_PLIST_PATH"
 
       echo "*** Uninstalled"

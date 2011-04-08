@@ -6,7 +6,8 @@ path     = require "path"
 sys      = require "sys"
 
 resolverSource = require "./resolver"
-firewallSource = require "./cx.pow.firewall.plist"
+startupItemSource = require "./cx.pow.firewall.startupItem.plist"
+startupParametersSource = require "./cx.pow.firewall.startupParameters.plist"
 daemonSource   = require "./cx.pow.powd.plist"
 
 chown = (path, owner, callback) ->
@@ -51,11 +52,8 @@ class InstallerFile
 
 module.exports = class Installer
   @getSystemInstaller: (@configuration) ->
-    files = [
-      new InstallerFile "/Library/LaunchDaemons/cx.pow.firewall.plist",
-        firewallSource(@configuration),
-        true
-    ]
+    files = [ new InstallerFile("/Library/StartupItems/PowFirewallRules/PowFirewallRules", startupItemSource(@configuration), true),
+              new InstallerFile("/Library/StartupItems/PowFirewallRules/StartupParameters.plist", startupParametersSource(@configuration), true)]
 
     for domain in @configuration.domains
       files.push new InstallerFile "/etc/resolver/#{domain}",

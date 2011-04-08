@@ -26,7 +26,8 @@ buildTemplates = (callback) ->
         else fs.writeFile "lib/#{name}.js", eco.compile(data), callback
 
   async.parallel [
-    compile("cx.pow.firewall.plist")
+    compile("cx.pow.firewall.startupItem.plist")
+    compile("cx.pow.firewall.startupParameters.plist")
     compile("cx.pow.powd.plist")
     compile("resolver")
   ], callback
@@ -77,7 +78,7 @@ task 'install', 'Install pow configuration files', ->
           if err
             callback err
           else
-            sh "sudo launchctl load /Library/LaunchDaemons/cx.pow.firewall.plist", callback
+            sh "sudo SystemStarter -q start PowFirewallRules", callback
       else
         callback()
 

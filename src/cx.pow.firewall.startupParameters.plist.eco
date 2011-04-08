@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.9">
+    <dict>
+        <key>Description</key>
+        <string>Pow.cx Firewall Rules</string>
+        <key>OrderPreference</key>
+        <string>Late</string>
+        <key>Requires</key>
+        <array>
+                <string>Network</string>
+        </array>
+
+        <key>Provides</key>
+        <array>
+                <string>PowFirewallRules</string>
+        </array>
+    </dict>
+</plist>
+

@@ -76,18 +76,13 @@
       "$POW_BIN/pow" --install-local
 
 
-# Check to see whether we need root privileges.
-
-      "$POW_BIN/pow" --install-system --dry-run >/dev/null && NEEDS_ROOT=0 || NEEDS_ROOT=1
-
-
 # Install system configuration files, if necessary. (Avoid sudo otherwise.)
 
-      if [ $NEEDS_ROOT -eq 1 ]; then
-        echo "*** Installing system configuration files as root..."
-        sudo "$POW_BIN/pow" --install-system
-        sudo launchctl load /Library/LaunchDaemons/cx.pow.firewall.plist 2>/dev/null
-      fi
+      echo "*** Installing system configuration files as root..."
+      sudo mkdir -p /Library/StartupItems/PowFirewallRules
+      sudo "$POW_BIN/pow" --install-system
+      [[ ! -a /Library/StartupItems/PowFirewallRules/PowFirewallRules ]] || sudo chmod 555 /Library/StartupItems/PowFirewallRules/PowFirewallRules
+      [[ ! -a /Library/StartupItems/PowFirewallRules/PowFirewallRules ]] || sudo SystemStarter start PowFirewallRules 2>/dev/null
 
 
 # Start (or restart) powd.

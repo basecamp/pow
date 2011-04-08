@@ -4,7 +4,7 @@
 if [ -r config.ru ] || [ -d public/ ]; then
   
   # Allow the user to specify a site name, or use the current dir name. Make sure it's lowercase.
-  SITE_NAME=$( echo "${1-${PWD##*/}}" | tr -s  '[:upper:]'  '[:lower:]' )
+  SITE_NAME=$( echo "${1-${PWD##*/}}" | tr '[:upper:]'  '[:lower:]' )
   
   # Symlink current dir if it doesn't already exist
   if [ ! -L ~/.pow/$SITE_NAME ]; then

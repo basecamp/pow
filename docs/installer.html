@@ -1,25 +1,22 @@
-<!DOCTYPE html>  <html> <head>   <title>installer.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="command.html">                 command.coffee               </a>                                           <a class="source" href="configuration.html">                 configuration.coffee               </a>                                           <a class="source" href="daemon.html">                 daemon.coffee               </a>                                           <a class="source" href="dns_server.html">                 dns_server.coffee               </a>                                           <a class="source" href="http_server.html">                 http_server.coffee               </a>                                           <a class="source" href="index.html">                 index.coffee               </a>                                           <a class="source" href="installer.html">                 installer.coffee               </a>                                           <a class="source" href="logger.html">                 logger.coffee               </a>                                           <a class="source" href="rack_application.html">                 rack_application.coffee               </a>                                           <a class="source" href="util.html">                 util.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               installer.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="nv">async    = </span><span class="nx">require</span> <span class="s2">&quot;async&quot;</span>
+<!DOCTYPE html>  <html> <head>   <title>installer.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="command.html">                 command.coffee               </a>                                           <a class="source" href="configuration.html">                 configuration.coffee               </a>                                           <a class="source" href="daemon.html">                 daemon.coffee               </a>                                           <a class="source" href="dns_server.html">                 dns_server.coffee               </a>                                           <a class="source" href="http_server.html">                 http_server.coffee               </a>                                           <a class="source" href="index.html">                 index.coffee               </a>                                           <a class="source" href="installer.html">                 installer.coffee               </a>                                           <a class="source" href="logger.html">                 logger.coffee               </a>                                           <a class="source" href="rack_application.html">                 rack_application.coffee               </a>                                           <a class="source" href="util.html">                 util.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               installer.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>The <code>Installer</code> class, in conjunction with the private
+<code>InstallerFile</code> class, creates and installs local and system
+configuration files if they're missing or out of date. It's used by
+the Pow install script to set up the system for local development.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">async    = </span><span class="nx">require</span> <span class="s2">&quot;async&quot;</span>
 <span class="nv">fs       = </span><span class="nx">require</span> <span class="s2">&quot;fs&quot;</span>
 <span class="nv">path     = </span><span class="nx">require</span> <span class="s2">&quot;path&quot;</span>
 <span class="p">{</span><span class="nx">mkdirp</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;./util&quot;</span>
-<span class="p">{</span><span class="nx">spawn</span><span class="p">}</span>  <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;child_process&quot;</span>
-<span class="nv">sys      = </span><span class="nx">require</span> <span class="s2">&quot;sys&quot;</span>
-
-<span class="nv">resolverSource = </span><span class="nx">require</span> <span class="s2">&quot;./resolver&quot;</span>
+<span class="p">{</span><span class="nx">chown</span><span class="p">}</span>  <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;./util&quot;</span>
+<span class="nv">sys      = </span><span class="nx">require</span> <span class="s2">&quot;sys&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>Import the Eco templates for the <code>/etc/resolver</code> and <code>launchd</code>
+configuration files.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">resolverSource = </span><span class="nx">require</span> <span class="s2">&quot;./resolver&quot;</span>
 <span class="nv">firewallSource = </span><span class="nx">require</span> <span class="s2">&quot;./cx.pow.firewall.plist&quot;</span>
-<span class="nv">daemonSource   = </span><span class="nx">require</span> <span class="s2">&quot;./cx.pow.powd.plist&quot;</span>
-
-<span class="nv">chown = </span><span class="nf">(path, owner, callback) -&gt;</span>
-  <span class="nv">error = </span><span class="s2">&quot;&quot;</span>
-  <span class="nv">chown = </span><span class="nx">spawn</span> <span class="s2">&quot;chown&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nx">owner</span><span class="p">,</span> <span class="nx">path</span><span class="p">]</span>
-  <span class="nx">chown</span><span class="p">.</span><span class="nx">stderr</span><span class="p">.</span><span class="kc">on</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="nf">(data) -&gt;</span> <span class="nx">error</span> <span class="o">+=</span> <span class="nx">data</span><span class="p">.</span><span class="nx">toString</span> <span class="s2">&quot;utf8&quot;</span>
-  <span class="nx">chown</span><span class="p">.</span><span class="kc">on</span> <span class="s2">&quot;exit&quot;</span><span class="p">,</span> <span class="nf">(code) -&gt;</span> <span class="nx">callback</span> <span class="nx">error</span><span class="p">,</span> <span class="nx">code</span> <span class="o">is</span> <span class="mi">0</span>
-
-<span class="k">class</span> <span class="nx">InstallerFile</span>
+<span class="nv">daemonSource   = </span><span class="nx">require</span> <span class="s2">&quot;./cx.pow.powd.plist&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p><code>InstallerFile</code> represents a single file candidate for installation:
+a pathname, a string of the file's source, and an optional flag
+indicating whether the file needs to be installed as root.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">InstallerFile</span>
   <span class="nv">constructor: </span><span class="nf">(@path, source, @root = false) -&gt;</span>
-    <span class="vi">@source = </span><span class="nx">source</span><span class="p">.</span><span class="nx">trim</span><span class="p">()</span>
-
-  <span class="nv">isStale: </span><span class="nf">(callback) -&gt;</span>
+    <span class="vi">@source = </span><span class="nx">source</span><span class="p">.</span><span class="nx">trim</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Check to see whether the file actually needs to be installed. If
+the file exists on the filesystem with the specified path and
+contents, <code>callback</code> is invoked with false. Otherwise, <code>callback</code>
+is invoked with true.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">isStale: </span><span class="nf">(callback) -&gt;</span>
     <span class="nx">path</span><span class="p">.</span><span class="nx">exists</span> <span class="nx">@path</span><span class="p">,</span> <span class="p">(</span><span class="nx">exists</span><span class="p">)</span> <span class="o">=&gt;</span>
       <span class="k">if</span> <span class="nx">exists</span>
         <span class="nx">fs</span><span class="p">.</span><span class="nx">readFile</span> <span class="nx">@path</span><span class="p">,</span> <span class="s2">&quot;utf8&quot;</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">contents</span><span class="p">)</span> <span class="o">=&gt;</span>
@@ -28,29 +25,26 @@
           <span class="k">else</span>
             <span class="nx">callback</span> <span class="nx">@source</span> <span class="o">isnt</span> <span class="nx">contents</span><span class="p">.</span><span class="nx">trim</span><span class="p">()</span>
       <span class="k">else</span>
-        <span class="nx">callback</span> <span class="kc">true</span>
-
-  <span class="nv">vivifyPath: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="nx">mkdirp</span> <span class="nx">path</span><span class="p">.</span><span class="nx">dirname</span><span class="p">(</span><span class="nx">@path</span><span class="p">),</span> <span class="nx">callback</span>
-
-  <span class="nv">writeFile: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="nx">fs</span><span class="p">.</span><span class="nx">writeFile</span> <span class="nx">@path</span><span class="p">,</span> <span class="nx">@source</span><span class="p">,</span> <span class="s2">&quot;utf8&quot;</span><span class="p">,</span> <span class="nx">callback</span>
-
-  <span class="nv">setOwnership: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">callback</span> <span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Create all the parent directories of the file's path, if
+necessary, and then invoke <code>callback</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">vivifyPath: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="nx">mkdirp</span> <span class="nx">path</span><span class="p">.</span><span class="nx">dirname</span><span class="p">(</span><span class="nx">@path</span><span class="p">),</span> <span class="nx">callback</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Write the file's source to disk and invoke <code>callback</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">writeFile: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="nx">fs</span><span class="p">.</span><span class="nx">writeFile</span> <span class="nx">@path</span><span class="p">,</span> <span class="nx">@source</span><span class="p">,</span> <span class="s2">&quot;utf8&quot;</span><span class="p">,</span> <span class="nx">callback</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>If the root flag is set for this file, change its ownership to the
+<code>root</code> user and <code>wheel</code> group. Then invoke <code>callback</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">setOwnership: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
     <span class="k">if</span> <span class="nx">@root</span>
       <span class="nx">chown</span> <span class="nx">@path</span><span class="p">,</span> <span class="s2">&quot;root:wheel&quot;</span><span class="p">,</span> <span class="nx">callback</span>
     <span class="k">else</span>
-      <span class="nx">callback</span> <span class="kc">false</span>
-
-  <span class="nv">install: </span><span class="nf">(callback) -&gt;</span>
+      <span class="nx">callback</span> <span class="kc">false</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Install a file asynchronously, first by making its parent
+directory, then writing it to disk, and finally setting its
+ownership.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">install: </span><span class="nf">(callback) -&gt;</span>
     <span class="nx">async</span><span class="p">.</span><span class="nx">series</span> <span class="p">[</span>
       <span class="nx">@vivifyPath</span><span class="p">,</span>
       <span class="nx">@writeFile</span><span class="p">,</span>
       <span class="nx">@setOwnership</span>
-    <span class="p">],</span> <span class="nx">callback</span>
-
-<span class="nv">module.exports = </span><span class="k">class</span> <span class="nx">Installer</span>
-  <span class="vi">@getSystemInstaller: </span><span class="nf">(@configuration) -&gt;</span>
+    <span class="p">],</span> <span class="nx">callback</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>The <code>Installer</code> class operates on a set of <code>InstallerFile</code> instances.
+It can check to see if any files are stale and whether or not root
+access is necessary for installation. It can also install any stale
+files asynchronously.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">module.exports = </span><span class="k">class</span> <span class="nx">Installer</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>Factory method that takes a <code>Configuration</code> instance and returns
+an <code>Installer</code> for system firewall and DNS configuration files.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="vi">@getSystemInstaller: </span><span class="nf">(@configuration) -&gt;</span>
     <span class="nv">files = </span><span class="p">[</span>
       <span class="k">new</span> <span class="nx">InstallerFile</span> <span class="s2">&quot;/Library/LaunchDaemons/cx.pow.firewall.plist&quot;</span><span class="p">,</span>
         <span class="nx">firewallSource</span><span class="p">(</span><span class="nx">@configuration</span><span class="p">),</span>
@@ -62,29 +56,23 @@
         <span class="nx">resolverSource</span><span class="p">(</span><span class="nx">@configuration</span><span class="p">),</span>
         <span class="kc">true</span>
 
-    <span class="k">new</span> <span class="nx">Installer</span> <span class="nx">@configuration</span><span class="p">,</span> <span class="nx">files</span>
-
-  <span class="vi">@getLocalInstaller: </span><span class="nf">(@configuration) -&gt;</span>
-    <span class="k">new</span> <span class="nx">Installer</span> <span class="nx">@configuration</span><span class="p">,</span> <span class="p">[</span>
+    <span class="k">new</span> <span class="nx">Installer</span> <span class="nx">files</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>Factory method that takes a <code>Configuration</code> instance and returns
+an <code>Installer</code> for the Pow <code>launchctl</code> daemon configuration file.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="vi">@getLocalInstaller: </span><span class="nf">(@configuration) -&gt;</span>
+    <span class="k">new</span> <span class="nx">Installer</span> <span class="p">[</span>
       <span class="k">new</span> <span class="nx">InstallerFile</span> <span class="s2">&quot;#{process.env.HOME}/Library/LaunchAgents/cx.pow.powd.plist&quot;</span><span class="p">,</span>
         <span class="nx">daemonSource</span><span class="p">(</span><span class="nx">@configuration</span><span class="p">)</span>
-    <span class="p">]</span>
-
-  <span class="nv">constructor: </span><span class="nf">(@configuration, @files = []) -&gt;</span>
-
-  <span class="nv">getStaleFiles: </span><span class="nf">(callback) -&gt;</span>
+    <span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>Create an installer for a set of files.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">constructor: </span><span class="nf">(@files = []) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>Invoke <code>callback</code> with an array of any files that need to be
+installed.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">getStaleFiles: </span><span class="nf">(callback) -&gt;</span>
     <span class="nx">async</span><span class="p">.</span><span class="nx">select</span> <span class="nx">@files</span><span class="p">,</span> <span class="nf">(file, proceed) -&gt;</span>
       <span class="nx">file</span><span class="p">.</span><span class="nx">isStale</span> <span class="nx">proceed</span>
-    <span class="p">,</span> <span class="nx">callback</span>
-
-  <span class="nv">needsRootPrivileges: </span><span class="nf">(callback) -&gt;</span>
+    <span class="p">,</span> <span class="nx">callback</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>Invoke <code>callback</code> with a boolean argument indicating whether or
+not any files need to be installed as root.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">needsRootPrivileges: </span><span class="nf">(callback) -&gt;</span>
     <span class="nx">@getStaleFiles</span> <span class="nf">(files) -&gt;</span>
       <span class="nx">async</span><span class="p">.</span><span class="nx">detect</span> <span class="nx">files</span><span class="p">,</span> <span class="nf">(file, proceed) -&gt;</span>
         <span class="nx">proceed</span> <span class="nx">file</span><span class="p">.</span><span class="nx">root</span>
       <span class="p">,</span> <span class="nf">(result) -&gt;</span>
-        <span class="nx">callback</span> <span class="nx">result</span><span class="o">?</span>
-
-  <span class="nv">install: </span><span class="nf">(callback) -&gt;</span>
+        <span class="nx">callback</span> <span class="nx">result</span><span class="o">?</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <p>Installs any stale files asynchronously and then invokes
+<code>callback</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">install: </span><span class="nf">(callback) -&gt;</span>
     <span class="nx">@getStaleFiles</span> <span class="nf">(files) -&gt;</span>
       <span class="nx">async</span><span class="p">.</span><span class="nx">forEach</span> <span class="nx">files</span><span class="p">,</span> <span class="nf">(file, proceed) -&gt;</span>
         <span class="nx">file</span><span class="p">.</span><span class="nx">install</span> <span class="nf">(err) -&gt;</span>

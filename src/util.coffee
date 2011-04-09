@@ -5,6 +5,7 @@ fs       = require "fs"
 path     = require "path"
 async    = require "async"
 {exec}   = require "child_process"
+{spawn}  = require "child_process"
 {Stream} = require 'stream'
 
 # The `LineBuffer` class is a `Stream` that emits a `data` event for
@@ -73,6 +74,16 @@ exports.mkdirp = (dirname, callback) ->
       callback()
     else
       callback "file exists"
+
+# A wrapper around `chown(8)` for taking ownership of a given path
+# with the specified owner string (such as `"root:wheel"`). Invokes
+# `callback` with the error string, if any, and a boolean value
+# indicating whether or not the operation succeeded.
+exports.chown = (path, owner, callback) ->
+  error = ""
+  chown = spawn "chown", [owner, path]
+  chown.stderr.on "data", (data) -> error += data.toString "utf8"
+  chown.on "exit", (code) -> callback error, code is 0
 
 # Capture all `data` events on the given stream and return a function
 # that, when invoked, replays the captured events on the stream in

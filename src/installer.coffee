@@ -2,7 +2,7 @@ async    = require "async"
 fs       = require "fs"
 path     = require "path"
 {mkdirp} = require "./util"
-{spawn}  = require "child_process"
+{chown}  = require "./util"
 sys      = require "sys"
 
 resolverSource = require "./resolver"

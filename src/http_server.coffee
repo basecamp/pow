@@ -9,6 +9,7 @@
 fs              = require "fs"
 sys             = require "sys"
 connect         = require "connect"
+PowApplication  = require "./pow_application"
 RackApplication = require "./rack_application"
 
 {pause, escapeHTML} = require "./util"
@@ -42,6 +43,7 @@ module.exports = class HttpServer extends connect.HTTPServer
 
     @staticHandlers = {}
     @rackApplications = {}
+    @powApplication = new PowApplication @configuration
 
     @accessLog = @configuration.getLogger "access"
 
@@ -61,9 +63,15 @@ module.exports = class HttpServer extends connect.HTTPServer
   # path, and application, if any. (Only the `pow.host` property is
   # set here.)
   annotateRequest: (req, res, next) ->
-    host = req.headers.host.replace /:.*/, ""
+    host = req.headers.host?.replace /:.*/, ""
     req.pow = {host}
     next()
+
+  handlePowRequest: (req, res, next) =>
+    if req.pow.host is "pow.dev"
+      @powApplication.handle req, res, next
+    else
+      next()
 
   # After the request has been annotated, attempt to match its
   # hostname to a Rack application using the server's

@@ -1,0 +1,184 @@
+<!doctype html>
+<html>
+<head>
+  <title>Pow Console</title>
+  <meta charset="utf8">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      line-height: 18px;
+    }
+    .grid {
+      background: transparent url(grid-v.png);
+      background-position-x: 36px;
+    }
+    .grid body {
+      background: transparent url(grid-h.png);
+    }
+    h1, section {
+      margin: 0;
+      padding: 0 36px;
+      font-family: Helvetica Neue, sans-serif;
+    }
+    h1 {
+      line-height: 27px;
+      font-size: 12px;
+      font-weight: normal;
+      background: #000;
+      color: #999;
+      margin: 0 0 9px;
+    }
+    .grid h1 {
+      background: rgba(0,0,0,.25);
+    }
+    h1 span {
+      color: #fff;
+      font-weight: bold;
+      margin-right: 2px;
+    }
+    h2 {
+      margin: 0 0 -1px;
+      font-size: 18px;
+      line-height: 36px;
+      width: 759px; /* (192 * 4) - 9 */
+      border-bottom: 1px solid #ddd;
+    }
+    table {
+      border-collapse: collapse;
+      margin: 18px 0 18px 96px;
+    }
+    th, td {
+      padding: 0;
+    }
+    th {
+      text-align: left;
+      font-weight: normal;
+      font-size: 11px;
+      color: #999;
+      width: 196px;
+    }
+    td {
+      font-size: 13px;
+    }
+    a.action {
+      margin: 0 6px;
+      color: #942;
+      text-decoration: none;
+      border-bottom: 1px solid #ccc;
+      font-size: 11px;
+    }
+    .applications article {
+      margin: 9px 0 9px 36px;
+      height: 54px;
+      position: relative;
+    }
+    img, h3, h4, h5 {
+      margin: 0;
+    }
+    .applications img, .applications header {
+      float: left;
+    }
+    .applications img {
+      width: 48px;
+      height: 48px;
+      margin: 1px 12px -1px 0px;
+    }
+    .applications header {
+      position: relative;
+    }
+    h3, h4, h5 {
+      line-height: 18px;
+      font-weight: normal;
+    }
+    h3 {
+      margin: 10px 0 2px;
+      color: #000;
+      font-size: 18px;
+    }
+    h4 {
+      color: #999;
+      font-size: 13px;
+    }
+    h5 {
+      position: absolute;
+      float: left;
+      top: 0;
+      left: 192px;
+      font-size: 13px;
+      width: 174px;
+      margin: 13px 0 0;
+      color: #999;
+    }
+    span.running {
+      color: #000;
+    }
+    span.running:before {
+      position: absolute;
+      content: "✓";
+      right: 177px;
+    }
+  </style>
+</head>
+<body ondblclick="with (document.documentElement) className = className == 'grid' ? '' : 'grid'">
+  <h1>Pow Console</h1>
+  <section class="server">
+    <h2>Server configuration</h2>
+    <table>
+      <tr><th>Process ID</th><td>12345 <a class="action" href="#">Terminate</a></td></tr>
+      <tr><th>Public HTTP port</th><td>80</td></tr>
+      <tr><th>Internal HTTP port</th><td>20559</td></tr>
+      <tr><th>DNS port</th><td>20560</td></tr>
+      <tr><th>Idle application timeout</th><td>15 minutes</td></tr>
+      <tr><th>Workers per application</th><td>2</td></tr>
+      <tr><th>Top-level domains</th><td><code>.dev</code>, <code>.test</code></td></tr>
+      <tr><th>Virtual host root</th><td><code>~/Library/Application Support/Pow/Hosts</code></td></tr>
+      <tr><th>RVM path</th><td><code>~/.rvm/scripts/rvm</code></td></tr>
+    </table>
+  </section>
+  <section class="applications">
+    <h2>Installed applications</h2>
+    <article>
+      <img src="folder.png">
+      <header>
+        <h3>basecamp</h3>
+        <h4>/Volumes/37signals</h4>
+        <h5><span class="running">Running</span> <a class="action" href="#">Terminate</a></span></h5>
+      </header>
+    </article>
+    <article>
+      <img src="folder.png">
+      <header>
+        <h3>campfire</h3>
+        <h4>/Volumes/37signals</h4>
+        <h5>Inactive</h5>
+      </header>
+    </article>
+    <article>
+      <img src="folder.png">
+      <header>
+        <h3>highrise</h3>
+        <h4>/Volumes/37signals</h4>
+        <h5>Inactive</h5>
+      </header>
+    </article>
+    <article>
+      <img src="folder.png">
+      <header>
+        <h3>launchpad</h3>
+        <h4>/Volumes/37signals</h4>
+        <h5><span class="running">Running</span> <a class="action" href="#">Terminate</a></span></h5>
+      </header>
+    </article>
+    <article>
+      <img src="folder.png">
+      <header>
+        <h3>resque</h3>
+        <h4>~/Projects</h4>
+        <h5>Inactive</h5>
+      </header>
+    </article>
+  </section>
+</body>
+</html>

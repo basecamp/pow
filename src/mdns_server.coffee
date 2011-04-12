@@ -75,7 +75,8 @@ module.exports = class mDnsServer extends ndns.Server
       @logger.debug "binding to port #{@configuration.mDnsPort}"
       @bind @configuration.mDnsPort
       
-      @logger.debug "address: #{util.inspect @address()}"
+      @logger.debug "adding mDNS domain to configuration"
+      @configuration.domains.push "#{hostname}.#{@configuration.mDnsDomain}"
       
       callback?()
 

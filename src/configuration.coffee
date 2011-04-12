@@ -185,7 +185,7 @@ libraryPath = (args...) ->
 # "37s.basecamp", "basecamp"]`, and `basecamp.dev` will produce
 # `["basecamp"]`.
 getFilenamesForHost = (host, domain) ->
-  if host.slice(-domain.length - 1) is ".#{domain}"
+  if host.slice(-domain.length - 1).toLowerCase() is ".#{domain}".toLowerCase()
     parts  = host.slice(0, -domain.length - 1).split "."
     length = parts.length
     for i in [0...length]

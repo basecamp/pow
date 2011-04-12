@@ -34,6 +34,7 @@ module.exports = class HttpServer extends connect.HTTPServer
     super [
       o @logRequest
       o @annotateRequest
+      o @handlePowRequest
       o @findApplicationRoot
       o @handleStaticRequest
       o @findRackApplication
@@ -43,9 +44,10 @@ module.exports = class HttpServer extends connect.HTTPServer
 
     @staticHandlers = {}
     @rackApplications = {}
-    @powApplication = new PowApplication @configuration
+    @powApplication = new PowApplication @configuration, this
 
     @accessLog = @configuration.getLogger "access"
+    @debugLog = @configuration.getLogger "debug"
 
     @on "close", =>
       for root, application of @rackApplications
@@ -62,14 +64,21 @@ module.exports = class HttpServer extends connect.HTTPServer
   # an object that will hold the request's normalized hostname, root
   # path, and application, if any. (Only the `pow.host` property is
   # set here.)
-  annotateRequest: (req, res, next) ->
+  annotateRequest: (req, res, next) =>
     host = req.headers.host?.replace /:.*/, ""
-    req.pow = {host}
+
+    for domain in @configuration.domains
+      if domain is host?.slice -domain.length
+        hostWithoutDomain = host.slice 0, -domain.length - 1
+
+    req.pow = {host, hostWithoutDomain}
+    @debugLog.debug "url = #{req.url}, req.pow = #{JSON.stringify req.pow}"
     next()
 
   handlePowRequest: (req, res, next) =>
-    if req.pow.host is "pow.dev"
+    if req.pow.hostWithoutDomain is "pow"
       @powApplication.handle req, res, next
+      @debugLog.debug "sent request to @powApplication"
     else
       next()
 
@@ -185,10 +194,6 @@ module.exports = class HttpServer extends connect.HTTPServer
   # Show a friendly message when accessing a hostname that hasn't been
   # set up with Pow yet.
   handleNonexistentDomain: (req, res, next) =>
-    host = req.pow.host
-    name = host.slice 0, host.length - @configuration.domains[0].length - 1
-    path = join @configuration.root, name
-
     res.writeHead 503, "Content-Type": "text/html; charset=utf8", "X-Pow-Handler": "NonexistentDomain"
     res.end """
       <!doctype html>
@@ -219,7 +224,7 @@ module.exports = class HttpServer extends connect.HTTPServer
       </head>
       <body>
         <h1>This domain isn&rsquo;t set up yet.</h1>
-        <h2>Symlink your application to <code>#{escapeHTML path}</code> first.</h2>
+        <h2>Symlink your application to <code>#{req.pow.hostWithoutDomain}</code> first.</h2>
       </body>
       </html>
     """

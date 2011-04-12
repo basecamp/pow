@@ -66,6 +66,21 @@ module.exports = class Configuration
     # queries. Defaults to `20560`.
     @dnsPort  = options.dnsPort  ? process.env['POW_DNS_PORT']  ? 20560
 
+    # `mDnsPort`: the UDP port Pow listens on for incoming DNS
+    # queries. Defaults to `5353`.
+    @mDnsPort  = options.mDnsPort ? process.env['POW_MDNS_PORT']  ? 5353
+
+    # `mDnsPort`: the UDP port Pow listens on for incoming DNS
+    # queries. Defaults to `5353`.
+    @mDnsAddress = options.mDnsAddress ? process.env['POW_MDNS_ADDRESS']  ? "224.0.0.251"
+    
+    # `mDnsDomain`: the mDNS domain name. Defaults to `local`.
+    @mDnsDomain = options.mDnsDomain ? process.env['POW_MDNS_DOMAIN'] ? 'local'
+    
+    # `mDnsHost`: the mDNS hostname portion responded to.
+    # Defaults to system hostname.
+    @mDnsHost = options.mDnsHost ? process.env['POW_MDNS_HOST'] ? null
+
     # `timeout`: how long (in milliseconds) to leave inactive Rack
     # applications running before they're killed. Defaults to 15
     # minutes.

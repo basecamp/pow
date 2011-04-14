@@ -71,6 +71,21 @@ module.exports = testCase
             test.same pid, newpid
             done -> fs.unlink restart, -> test.done()
 
+  "always restart when always_restart.txt is present":(test) ->
+    test.expect 6
+    touch always_restart = fixturePath("apps/pid/tmp/always_restart.txt"),
+      serveApp "apps/pid", (request, done) ->
+        request "GET", "/", (body) ->
+          test.ok pid = parseInt body
+          request "GET", "/", (body) ->
+            test.ok newpid = parseInt body
+            test.ok pid isnt newpid
+            request "GET", "/", (body) ->
+              test.ok  newnewpid = parseInt body
+              test.ok newnewpid isnt newpid
+              test.ok newnewpid isnt pid
+              done -> fs.unlink always_restart, -> test.done()
+
   "custom environment": (test) ->
     test.expect 3
     serveApp "apps/env", (request, done) ->

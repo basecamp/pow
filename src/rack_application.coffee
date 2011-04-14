@@ -27,6 +27,7 @@
 async = require "async"
 fs    = require "fs"
 nack  = require "nack"
+path  = require "path"
 
 {bufferLines, pause, sourceScriptEnv} = require "./util"
 {join, exists, basename} = require "path"
@@ -54,14 +55,18 @@ module.exports = class RackApplication
   # the file has been touched since the last call to
   # `queryRestartFile`.
   queryRestartFile: (callback) ->
-    fs.stat join(@root, "tmp/restart.txt"), (err, stats) =>
-      if err
-        @mtime = null
-        callback false
+    path.exists join(@root, "tmp/always_restart.txt"), (exists) =>
+      if exists
+        callback true
       else
-        lastMtime = @mtime
-        @mtime = stats.mtime.getTime()
-        callback lastMtime isnt @mtime
+        fs.stat join(@root, "tmp/restart.txt"), (err, stats) =>
+          if err
+            @mtime = null
+            callback false
+          else
+            lastMtime = @mtime
+            @mtime = stats.mtime.getTime()
+            callback lastMtime isnt @mtime
 
   # Collect environment variables from `.powrc` and `.powenv`, in that
   # order, if present. The idea is that `.powrc` files can be checked

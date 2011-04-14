@@ -118,6 +118,10 @@ module.exports = class Configuration
         for file in getFilenamesForHost host, domain
           if root = roots[file]
             return callback null, domain, root
+
+      if root = roots["default"]
+        return callback null, @domains[0], root
+
       callback null
 
   # Asynchronously build a mapping of entries in `hostRoot` to

@@ -72,6 +72,14 @@ module.exports = testCase
         test.same fixturePath("configuration/directory"), root
         test.done()
 
+  "findApplicationRootForHost with default host": (test) ->
+    configuration = createConfiguration hostRoot: fixturePath("configuration-with-default")
+    test.expect 2
+    configuration.findApplicationRootForHost "missing.dev", (err, domain, root) ->
+      test.same "dev", domain
+      test.same fixturePath("apps/hello"), root
+      test.done()
+
   "getLogger returns the same logger instance": (test) ->
     configuration = createConfiguration()
     logger = configuration.getLogger "test"

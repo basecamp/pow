@@ -68,7 +68,7 @@ module.exports = class RackApplication
   # into a source code repository for global configuration, leaving
   # `.powenv` free for any necessary local overrides.
   loadScriptEnvironment: (env, callback) ->
-    async.reduce [".powrc", ".powenv"], env, (env, filename, callback) =>
+    async.reduce [".powrc", ".envrc", ".powenv"], env, (env, filename, callback) =>
       exists script = join(@root, filename), (scriptExists) ->
         if scriptExists
           sourceScriptEnv script, env, callback

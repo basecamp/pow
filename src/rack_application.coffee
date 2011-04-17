@@ -63,6 +63,20 @@ module.exports = class RackApplication
         @mtime = stats.mtime.getTime()
         callback lastMtime isnt @mtime
 
+  # Check for `tmp/always_restart.txt` in the application root and invoke the
+	# given callback with a boolean indicating whether or not
+	# this file exists. If it does, only restart if flagForAlwaysRestart is true
+	# to prevent endless loop during restart.
+  queryAlwaysRestartFile: (callback) ->
+    fs.stat join(@root, "tmp/always_restart.txt"), (err, stats) =>
+      if err
+        callback false
+      else
+        if @flagForAlwaysRestart
+          callback true
+        else
+          callback false
+
   # Collect environment variables from `.powrc` and `.powenv`, in that
   # order, if present. The idea is that `.powrc` files can be checked
   # into a source code repository for global configuration, leaving
@@ -164,6 +178,7 @@ module.exports = class RackApplication
         finally
           resume()
           callback?()
+          @flagForAlwaysRestart = true # flag to restart after request
 
   # Reset the application's state if it's ready, and invoke the given
   # callback when all its Nack workers have terminated.
@@ -173,6 +188,7 @@ module.exports = class RackApplication
       @pool = null
       @mtime = null
       @state = null
+      @flagForAlwaysRestart = false # flag to not restart
     else
       callback?()
 
@@ -192,10 +208,15 @@ module.exports = class RackApplication
       @ready callback
 
   # Restart the application if `tmp/restart.txt` has been touched
-  # since the last call to this function.
+  # since the last call to this function, or if `tmp/always_restart.txt`
+	# is present.
   restartIfNecessary: (callback) ->
     @queryRestartFile (mtimeChanged) =>
       if mtimeChanged
         @restart callback
       else
-        callback()
+        @queryAlwaysRestartFile (fileExists) =>
+          if fileExists
+            @restart callback
+          else
+            callback()

@@ -17,10 +17,11 @@ firewallSource = require "./cx.pow.firewall.plist"
 daemonSource   = require "./cx.pow.powd.plist"
 
 # `InstallerFile` represents a single file candidate for installation:
-# a pathname, a string of the file's source, and an optional flag
-# indicating whether the file needs to be installed as root.
+# a pathname, a string of the file's source, and optional flags
+# indicating whether the file needs to be installed as root and what
+# permission bits it should have.
 class InstallerFile
-  constructor: (@path, source, @root = false) ->
+  constructor: (@path, source, @root = false, @mode = 0644) ->
     @source = source.trim()
 
   # Check to see whether the file actually needs to be installed. If
@@ -55,14 +56,19 @@ class InstallerFile
     else
       callback false
 
+  # Set permissions on the installed file with `chmod`.
+  setPermissions: (callback) =>
+    fs.chmod @path, @mode, callback
+
   # Install a file asynchronously, first by making its parent
   # directory, then writing it to disk, and finally setting its
-  # ownership.
+  # ownership and permission bits.
   install: (callback) ->
     async.series [
       @vivifyPath,
       @writeFile,
-      @setOwnership
+      @setOwnership,
+      @setPermissions
     ], callback
 
 # The `Installer` class operates on a set of `InstallerFile` instances.

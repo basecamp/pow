@@ -216,16 +216,7 @@ module.exports = class RackApplication
             resume()
             callback?()
 
-  # Terminate any active Nack workers and invoke the given callback
-  # when they exit.
-  quit: (callback) ->
-    if @state is "ready"
-      @pool.once "exit", callback if callback
-      @pool.quit()
-    else
-      process.nextTick callback if callback
-
-  # Reset the application, re-initialize it, and invoke the given
+  # Terminate the application, re-initialize it, and invoke the given
   # callback when the application's state becomes ready.
   restart: (callback) ->
     @quit =>

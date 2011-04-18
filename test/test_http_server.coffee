@@ -116,3 +116,23 @@ module.exports = testCase
         test.same 200, response.statusCode
         test.same "foo=bar", body
         done -> test.done()
+
+  "hostnames are case-insensitive": (test) ->
+    test.expect 3
+    async.series [
+      (proceed) ->
+        serveRoot "apps", (request, done) ->
+          request "GET", "/", host: "Capital.dev", (body, response) ->
+            test.same 200, response.statusCode
+            done proceed
+      (proceed) ->
+        serveRoot "apps", (request, done) ->
+          request "GET", "/", host: "capital.dev", (body, response) ->
+            test.same 200, response.statusCode
+            done proceed
+      (proceed) ->
+        serveRoot "apps", (request, done) ->
+          request "GET", "/", host: "CAPITAL.DEV", (body, response) ->
+            test.same 200, response.statusCode
+            done proceed
+    ], test.done

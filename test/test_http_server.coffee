@@ -46,7 +46,7 @@ module.exports = testCase
     serveRoot "apps", (request, done) ->
       request "GET", "/redirect", host: "nonexistent.dev", (body, response) ->
         test.same 503, response.statusCode
-        test.same "NonexistentDomain", response.headers["x-pow-handler"]
+        test.same "nonexistent_domain", response.headers["x-pow-template"]
         done -> test.done()
 
   "responds with a custom 500 when an app can't boot": (test) ->
@@ -54,7 +54,7 @@ module.exports = testCase
     serveRoot "apps", (request, done) ->
       request "GET", "/", host: "error.dev", (body, response) ->
         test.same 500, response.statusCode
-        test.same "ApplicationException", response.headers["x-pow-handler"]
+        test.same "application_exception", response.headers["x-pow-template"]
         done -> test.done()
 
   "recovering from a boot error": (test) ->

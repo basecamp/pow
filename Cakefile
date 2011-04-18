@@ -26,6 +26,8 @@ buildTemplates = (callback) ->
         else fs.writeFile "lib/templates/#{name}.js", eco.compile(data), callback
 
   async.parallel [
+    compile("http_server/application_exception.html")
+    compile("http_server/nonexistent_domain.html")
     compile("installer/cx.pow.firewall.plist")
     compile("installer/cx.pow.powd.plist")
     compile("installer/resolver")

@@ -11,7 +11,7 @@ sys             = require "sys"
 connect         = require "connect"
 RackApplication = require "./rack_application"
 
-{pause, escapeHTML} = require "./util"
+{pause} = require "./util"
 {dirname, join, exists} = require "path"
 
 # `HttpServer` is a subclass of
@@ -131,87 +131,22 @@ module.exports = class HttpServer extends connect.HTTPServer
     else
       next()
 
+  # Render `templateName` to the given `res` response with the given
+  # `status` code and `context` values.
+  render: (res, status, templateName, context = {}) ->
+    template = require "./templates/http_server/#{templateName}.html"
+    res.writeHead status, "Content-Type": "text/html; charset=utf8", "X-Pow-Template": templateName
+    res.end template context
+
   # If there's an exception thrown while handling a request, show a
   # nicely formatted error page along with the full backtrace.
   handleApplicationException: (err, req, res, next) =>
-    return next() unless req.pow.root
-
-    res.writeHead 500, "Content-Type": "text/html; charset=utf8", "X-Pow-Handler": "ApplicationException"
-    res.end """
-      <!doctype html>
-      <html>
-      <head>
-        <title>Pow: Error Starting Application</title>
-        <style>
-          body {
-            margin: 0;
-            padding: 0;
-          }
-          h1, h2, pre {
-            margin: 0;
-            padding: 15px 30px;
-          }
-          h1, h2 {
-            font-family: Helvetica, sans-serif;
-          }
-          h1 {
-            font-size: 36px;
-            background: #eeedea;
-            color: #c00;
-            border-bottom: 1px solid #999090;
-          }
-          h2 {
-            font-size: 18px;
-            font-weight: normal;
-          }
-        </style>
-      </head>
-      <body>
-        <h1>Pow can&rsquo;t start your application.</h1>
-        <h2><code>#{escapeHTML req.pow.root}</code> raised an exception during boot.</h2>
-        <pre><strong>#{escapeHTML err}</strong>#{escapeHTML "\n" + err.stack}</pre>
-      </body>
-      </html>
-    """
+    return next() unless root = req.pow.root
+    @render res, 500, "application_exception", {err, root}
 
   # Show a friendly message when accessing a hostname that hasn't been
   # set up with Pow yet.
   handleNonexistentDomain: (req, res, next) =>
     host = req.pow.host
     name = host.slice 0, host.length - @configuration.domains[0].length - 1
-    path = join @configuration.root, name
-
-    res.writeHead 503, "Content-Type": "text/html; charset=utf8", "X-Pow-Handler": "NonexistentDomain"
-    res.end """
-      <!doctype html>
-      <html>
-      <head>
-        <title>Pow: No Such Application</title>
-        <style>
-          body {
-            margin: 0;
-            padding: 0;
-          }
-          h1, h2 {
-            margin: 0;
-            padding: 15px 30px;
-            font-family: Helvetica, sans-serif;
-          }
-          h1 {
-            font-size: 36px;
-            background: #eeedea;
-            color: #000;
-            border-bottom: 1px solid #999090;
-          }
-          h2 {
-            font-size: 18px;
-            font-weight: normal;
-          }
-        </style>
-      </head>
-      <body>
-        <h1>This domain isn&rsquo;t set up yet.</h1>
-        <h2>Symlink your application to <code>#{escapeHTML path}</code> first.</h2>
-      </body>
-      </html>
-    """
+    @render res, 503, "nonexistent_domain", path: join @configuration.root, name

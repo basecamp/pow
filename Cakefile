@@ -21,14 +21,14 @@ buildTemplates = (callback) ->
   eco = require 'eco'
   compile = (name) ->
     (callback) ->
-      fs.readFile "src/#{name}.eco", "utf8", (err, data) ->
+      fs.readFile "src/templates/#{name}.eco", "utf8", (err, data) ->
         if err then callback err
-        else fs.writeFile "lib/#{name}.js", eco.compile(data), callback
+        else fs.writeFile "lib/templates/#{name}.js", eco.compile(data), callback
 
   async.parallel [
-    compile("cx.pow.firewall.plist")
-    compile("cx.pow.powd.plist")
-    compile("resolver")
+    compile("installer/cx.pow.firewall.plist")
+    compile("installer/cx.pow.powd.plist")
+    compile("installer/resolver")
   ], callback
 
 task 'docs', 'Generate annotated source code with Docco', ->

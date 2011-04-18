@@ -12,9 +12,9 @@ sys      = require "sys"
 
 # Import the Eco templates for the `/etc/resolver` and `launchd`
 # configuration files.
-resolverSource = require "./resolver"
-firewallSource = require "./cx.pow.firewall.plist"
-daemonSource   = require "./cx.pow.powd.plist"
+resolverSource = require "./templates/installer/resolver"
+firewallSource = require "./templates/installer/cx.pow.firewall.plist"
+daemonSource   = require "./templates/installer/cx.pow.powd.plist"
 
 # `InstallerFile` represents a single file candidate for installation:
 # a pathname, a string of the file's source, and optional flags

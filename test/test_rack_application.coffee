@@ -71,6 +71,68 @@ module.exports = testCase
             test.same pid, newpid
             done -> fs.unlink restart, -> test.done()
 
+  "handling a request, always_restart.txt present, request": (test) ->
+    test.expect 3
+    always_restart = fixturePath("apps/pid/tmp/always_restart.txt")
+    serveApp "apps/pid", (request, done) ->
+      fs.unlink always_restart, ->
+        request "GET", "/", (body) ->
+          test.ok pid = parseInt body
+          touch always_restart, ->
+            request "GET", "/", (body) ->
+              test.ok newpid = parseInt body
+              test.ok pid isnt newpid
+              done -> fs.unlink always_restart, -> test.done()
+
+  "always_restart.txt present, handling a request, request": (test) ->
+    test.expect 3
+    touch always_restart = fixturePath("apps/pid/tmp/always_restart.txt"), ->
+      serveApp "apps/pid", (request, done) ->
+        request "GET", "/", (body) ->
+          test.ok pid = parseInt body
+          request "GET", "/", (body) ->
+            test.ok newpid = parseInt body
+            test.ok pid isnt newpid
+            done -> fs.unlink always_restart, -> test.done()
+
+  "always_restart.txt present, handling a request, touch restart.txt, request": (test) ->
+    test.expect 3
+    touch always_restart = fixturePath("apps/pid/tmp/always_restart.txt"), ->
+      serveApp "apps/pid", (request, done) ->
+        request "GET", "/", (body) ->
+          test.ok pid = parseInt body
+          touch restart = fixturePath("apps/pid/tmp/restart.txt"), ->
+            request "GET", "/", (body) ->
+              test.ok newpid = parseInt body
+              test.ok pid isnt newpid
+              done -> fs.unlink always_restart, fs.unlink restart, -> test.done()
+
+  "handling the initial request when restart.txt and always_restart.txt is present": (test) ->
+    test.expect 3
+    touch always_restart = fixturePath("apps/pid/tmp/always_restart.txt"), ->
+      touch restart = fixturePath("apps/pid/tmp/restart.txt"), ->
+        serveApp "apps/pid", (request, done) ->
+          request "GET", "/", (body) ->
+            test.ok pid = parseInt body
+            request "GET", "/", (body) ->
+              test.ok newpid = parseInt body
+              test.ok pid isnt newpid
+              done -> fs.unlink restart, fs.unlink always_restart, -> test.done()
+
+  "always_restart.txt present, handling a request, request, request": (test) ->
+    test.expect 5
+    touch always_restart = fixturePath("apps/pid/tmp/always_restart.txt"), ->
+      serveApp "apps/pid", (request, done) ->
+        request "GET", "/", (body) ->
+          test.ok pid = parseInt body
+          request "GET", "/", (body) ->
+            test.ok newpid = parseInt body
+            test.ok pid isnt newpid
+            request "GET", "/", (body) ->
+              test.ok newerpid = parseInt body
+              test.ok newpid isnt newerpid
+              done -> fs.unlink always_restart, -> test.done()
+
   "custom environment": (test) ->
     test.expect 3
     serveApp "apps/env", (request, done) ->

@@ -86,7 +86,7 @@
       if [ $NEEDS_ROOT -eq 1 ]; then
         echo "*** Installing system configuration files as root..."
         sudo "$POW_BIN/pow" --install-system
-        sudo launchctl load /Library/LaunchDaemons/cx.pow.firewall.plist 2>/dev/null
+        sudo launchctl load -Fw /Library/LaunchDaemons/cx.pow.firewall.plist 2>/dev/null
       fi
 
 

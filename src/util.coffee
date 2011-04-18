@@ -49,14 +49,6 @@ exports.bufferLines = (stream, callback) ->
 
 # ---
 
-# Escape meaningful HTML characters in a string.
-exports.escapeHTML = (string) ->
-  string.toString()
-    .replace(/&/g,  "&amp;")
-    .replace(/</g,  "&lt;")
-    .replace(/>/g,  "&gt;")
-    .replace(/\"/g, "&quot;")
-
 # Asynchronously and recursively create a directory if it does not
 # already exist. Then invoke the given callback.
 exports.mkdirp = (dirname, callback) ->

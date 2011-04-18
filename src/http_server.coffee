@@ -11,7 +11,7 @@ sys             = require "sys"
 connect         = require "connect"
 RackApplication = require "./rack_application"
 
-{pause, escapeHTML} = require "./util"
+{pause} = require "./util"
 {dirname, join, exists} = require "path"
 
 # `HttpServer` is a subclass of

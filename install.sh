@@ -94,6 +94,6 @@
 
       echo "*** Starting the Pow server..."
       launchctl unload "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null || true
-      launchctl load "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null
+      launchctl load -Fw "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null
 
       echo "*** Installed"

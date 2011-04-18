@@ -38,7 +38,8 @@ module.exports = class RackApplication
   constructor: (@configuration, @root) ->
     @logger = @configuration.getLogger join "apps", basename @root
     @readyCallbacks = []
-    @quitCallbacks = []
+    @quitCallbacks  = []
+    @statCallbacks  = []
 
   # Queue `callback` to be invoked when the application becomes ready,
   # then start the initialization process. If the application's state
@@ -74,19 +75,18 @@ module.exports = class RackApplication
         @mtime = stats.mtime.getTime()
         callback lastMtime isnt @mtime
 
-  # Check for `tmp/always_restart.txt` in the application root and invoke the
-	# given callback with a boolean indicating whether or not
-	# this file exists. If it does, only restart if flagForAlwaysRestart is true
-	# to prevent endless loop during restart.
-  queryAlwaysRestartFile: (callback) ->
-    fs.stat join(@root, "tmp/always_restart.txt"), (err, stats) =>
-      if err
-        callback false
-      else
-        if @flagForAlwaysRestart
-          callback true
-        else
-          callback false
+  # Check to see if `tmp/always_restart.txt` is present in the
+  # application root, and set the pool's `runOnce` option
+  # accordingly. Invoke `callback` when the existence check has
+  # finished. (Multiple calls to this method are aggregated.)
+  setPoolRunOnceFlag: (callback) ->
+    unless @statCallbacks.length
+      exists join(@root, "tmp/always_restart.txt"), (alwaysRestart) =>
+        @pool.runOnce = alwaysRestart
+        statCallback() for statCallback in @statCallbacks
+        @statCallbacks = []
+
+    @statCallbacks.push callback
 
   # Collect environment variables from `.powrc` and `.powenv`, in that
   # order, if present. The idea is that `.powrc` files can be checked
@@ -204,18 +204,17 @@ module.exports = class RackApplication
     resume = pause req
     @ready (err) =>
       return next err if err
-      @restartIfNecessary =>
-        req.proxyMetaVariables =
-          SERVER_PORT: @configuration.dstPort.toString()
-        try
-          @pool.proxy req, res, (err) =>
-            @quit() if err
-            next err
-        finally
-          resume()
-          callback?()
-          @flagForAlwaysRestart = true # flag to restart after request
-
+      @setPoolRunOnceFlag =>
+        @restartIfNecessary =>
+          req.proxyMetaVariables =
+            SERVER_PORT: @configuration.dstPort.toString()
+          try
+            @pool.proxy req, res, (err) =>
+              @quit() if err
+              next err
+          finally
+            resume()
+            callback?()
 
   # Terminate the application, re-initialize it, and invoke the given
   # callback when the application's state becomes ready.
@@ -224,15 +223,10 @@ module.exports = class RackApplication
       @ready callback
 
   # Restart the application if `tmp/restart.txt` has been touched
-  # since the last call to this function, or if `tmp/always_restart.txt`
-	# is present.
+  # since the last call to this function.
   restartIfNecessary: (callback) ->
     @queryRestartFile (mtimeChanged) =>
       if mtimeChanged
         @restart callback
       else
-        @queryAlwaysRestartFile (fileExists) =>
-          if fileExists
-            @restart callback
-          else
-            callback()
+        callback()

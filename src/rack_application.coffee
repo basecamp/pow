@@ -38,7 +38,8 @@ module.exports = class RackApplication
   constructor: (@configuration, @root) ->
     @logger = @configuration.getLogger join "apps", basename @root
     @readyCallbacks = []
-    @quitCallbacks = []
+    @quitCallbacks  = []
+    @statCallbacks  = []
 
   # Queue `callback` to be invoked when the application becomes ready,
   # then start the initialization process. If the application's state
@@ -73,6 +74,19 @@ module.exports = class RackApplication
         lastMtime = @mtime
         @mtime = stats.mtime.getTime()
         callback lastMtime isnt @mtime
+
+  # Check to see if `tmp/always_restart.txt` is present in the
+  # application root, and set the pool's `runOnce` option
+  # accordingly. Invoke `callback` when the existence check has
+  # finished. (Multiple calls to this method are aggregated.)
+  setPoolRunOnceFlag: (callback) ->
+    unless @statCallbacks.length
+      exists join(@root, "tmp/always_restart.txt"), (alwaysRestart) =>
+        @pool.runOnce = alwaysRestart
+        statCallback() for statCallback in @statCallbacks
+        @statCallbacks = []
+
+    @statCallbacks.push callback
 
   # Collect environment variables from `.powrc` and `.powenv`, in that
   # order, if present. The idea is that `.powrc` files can be checked
@@ -190,16 +204,17 @@ module.exports = class RackApplication
     resume = pause req
     @ready (err) =>
       return next err if err
-      @restartIfNecessary =>
-        req.proxyMetaVariables =
-          SERVER_PORT: @configuration.dstPort.toString()
-        try
-          @pool.proxy req, res, (err) =>
-            @quit() if err
-            next err
-        finally
-          resume()
-          callback?()
+      @setPoolRunOnceFlag =>
+        @restartIfNecessary =>
+          req.proxyMetaVariables =
+            SERVER_PORT: @configuration.dstPort.toString()
+          try
+            @pool.proxy req, res, (err) =>
+              @quit() if err
+              next err
+          finally
+            resume()
+            callback?()
 
   # Terminate the application, re-initialize it, and invoke the given
   # callback when the application's state becomes ready.

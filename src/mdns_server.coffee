@@ -44,13 +44,13 @@ module.exports = class mDnsServer extends ndns.Server
     # ("default" used to be "#{address}")
     # Only one address can be published per interface due to multicasting.
     # Node also currently has no nice way to inspect interfaces, etc.
-    exec "route get default", (error, stdout, stderr) ->
+    exec "route get default", (error, stdout, stderr) =>
       interface = stdout.match(lookupAddressToContactInterfacePattern)?[1]
       if error or not interface
         @logger.warning "Couldn't query route for #{address}. route said: #{util.inspect stdout} and #{util.inspect stderr}"
         callback? true, null
       else
-        exec "ifconfig #{interface}", (error, stdout, stderr) ->
+        exec "ifconfig #{interface}", (error, stdout, stderr) =>
           myAddress = stdout.match(lookupAddressToContactAddressPattern)?[1]
           if error or not myAddress
             @logger.warning "Couldn't query address for #{interface}. ifconfig said: #{util.inspect stdout} and #{util.inspect stderr}"
@@ -63,8 +63,8 @@ module.exports = class mDnsServer extends ndns.Server
   # least).
   listen: (port, callback) ->
     @lookupHostname (error, hostname) =>
+      # listen to queries for A records matching *.hostname.local
       @pattern = /// (^|\.) #{hostname} \. #{@configuration.mDnsDomain} \.? ///i
-      @logger.debug "listening to queries for A records matching #{@pattern}"
       
       @logger.debug "multicasting on #{@configuration.mDnsAddress}"
       @setTTL 255
@@ -101,7 +101,7 @@ module.exports = class mDnsServer extends ndns.Server
         else
           res.addRR ndns.ns_s.an, q.name, ndns.ns_t.a, ndns.ns_c.in, 600, myAddress
           
-          res.sendTo this, @configuration.mDnsPort, @configuration.mDnsAddress, (error) ->
+          res.sendTo this, @configuration.mDnsPort, @configuration.mDnsAddress, (error) =>
             if error
               @logger.warning "couldn't send mdns response: #{util.inspect error}"
           

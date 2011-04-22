@@ -230,3 +230,6 @@ module.exports = class RackApplication
         @restart callback
       else
         callback()
+
+  isRunning: ->
+    @pool?.getAliveWorkerCount() > 0

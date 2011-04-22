@@ -31,6 +31,7 @@ buildTemplates = (callback) ->
     compile("installer/cx.pow.firewall.plist")
     compile("installer/cx.pow.powd.plist")
     compile("installer/resolver")
+    compile("pow_console/console.html")
   ], callback
 
 task 'docs', 'Generate annotated source code with Docco', ->

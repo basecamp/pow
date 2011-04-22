@@ -37,7 +37,7 @@
 
 # Find the tty so we can prompt for confirmation even if we're being piped from curl.
 
-      TTY="/dev/$( ps -p$$ | tail -1 | awk '{print$2}' )"
+      TTY="/dev/$( ps -p$$ -o tty | tail -1 | awk '{print$1}' )"
 
 
 # Make sure we really want to uninstall.

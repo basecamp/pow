@@ -53,6 +53,15 @@ set up the `ipfw` rule), if necessary. Then it boots the server.
   disabling the firewall rule or updating that server's configuration
   to listen on another port.
 
+### From Source
+
+To install pow from source, you will need `node >=0.4` and `npm >=1.0`.
+
+    $ git clone https://github.com/37signals/pow.git
+    $ cd pow
+    $ npm --global install
+    $ npm --global run-script pow restart
+
 ### Uninstalling Pow
 
 If you decide Pow's not for you, uninstallation is just as easy:

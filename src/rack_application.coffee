@@ -38,16 +38,28 @@ module.exports = class RackApplication
   constructor: (@configuration, @root) ->
     @logger = @configuration.getLogger join "apps", basename @root
     @readyCallbacks = []
+    @quitCallbacks  = []
+    @statCallbacks  = []
 
-  # Invoke `callback` if the application's state is ready. Otherwise,
-  # queue the callback to be invoked when the application becomes
-  # ready, then start the initialization process.
+  # Queue `callback` to be invoked when the application becomes ready,
+  # then start the initialization process. If the application's state
+  # is ready, the callback is invoked immediately.
   ready: (callback) ->
     if @state is "ready"
       callback()
     else
       @readyCallbacks.push callback
       @initialize()
+
+  # Tell the application to quit and queue `callback` to be invoked
+  # when all workers have exited. If the application has already quit,
+  # the callback is invoked immediately.
+  quit: (callback) ->
+    if @state
+      @quitCallbacks.push callback if callback
+      @terminate()
+    else
+      callback?()
 
   # Stat `tmp/restart.txt` in the application root and invoke the
   # given callback with a single argument indicating whether or not
@@ -63,12 +75,25 @@ module.exports = class RackApplication
         @mtime = stats.mtime.getTime()
         callback lastMtime isnt @mtime
 
+  # Check to see if `tmp/always_restart.txt` is present in the
+  # application root, and set the pool's `runOnce` option
+  # accordingly. Invoke `callback` when the existence check has
+  # finished. (Multiple calls to this method are aggregated.)
+  setPoolRunOnceFlag: (callback) ->
+    unless @statCallbacks.length
+      exists join(@root, "tmp/always_restart.txt"), (alwaysRestart) =>
+        @pool.runOnce = alwaysRestart
+        statCallback() for statCallback in @statCallbacks
+        @statCallbacks = []
+
+    @statCallbacks.push callback
+
   # Collect environment variables from `.powrc` and `.powenv`, in that
   # order, if present. The idea is that `.powrc` files can be checked
   # into a source code repository for global configuration, leaving
   # `.powenv` free for any necessary local overrides.
   loadScriptEnvironment: (env, callback) ->
-    async.reduce [".powrc", ".powenv"], env, (env, filename, callback) =>
+    async.reduce [".powrc", ".envrc", ".powenv"], env, (env, filename, callback) =>
       exists script = join(@root, filename), (scriptExists) ->
         if scriptExists
           sourceScriptEnv script, env, callback
@@ -104,9 +129,14 @@ module.exports = class RackApplication
           else callback null, env
 
   # Begin the initialization process if the application is in the
-  # uninitialized state.
+  # uninitialized state. (If the application is terminating, queue a
+  # call to `initialize` after all workers have exited.)
   initialize: ->
-    return if @state
+    if @state
+      if @state is "terminating"
+        @quit => @initialize()
+      return
+
     @state = "initializing"
 
     # Load the application's environment. If an error is raised or
@@ -146,6 +176,26 @@ module.exports = class RackApplication
       readyCallback err for readyCallback in @readyCallbacks
       @readyCallbacks = []
 
+  # Begin the termination process. (If the application is initializing,
+  # wait until it is ready before shutting down.)
+  terminate: ->
+    if @state is "initializing"
+      @ready => @terminate()
+
+    else if @state is "ready"
+      @state = "terminating"
+
+      # Instruct all workers to exit. After the processes have
+      # terminated, reset the application's state, then invoke and
+      # remove all queued callbacks.
+      @pool.quit =>
+        @state = null
+        @mtime = null
+        @pool = null
+
+        quitCallback() for quitCallback in @quitCallbacks
+        @quitCallbacks = []
+
   # Handle an incoming HTTP request. Wait until the application is in
   # the ready state, restart the workers if necessary, then pass the
   # request along to the Nack pool. If the Nack worker raises an
@@ -154,41 +204,22 @@ module.exports = class RackApplication
     resume = pause req
     @ready (err) =>
       return next err if err
-      @restartIfNecessary =>
-        req.proxyMetaVariables =
-          SERVER_PORT: @configuration.dstPort.toString()
-        try
-          @pool.proxy req, res, (err) =>
-            @reset() if err
-            next err
-        finally
-          resume()
-          callback?()
+      @setPoolRunOnceFlag =>
+        @restartIfNecessary =>
+          req.proxyMetaVariables =
+            SERVER_PORT: @configuration.dstPort.toString()
+          try
+            @pool.proxy req, res, (err) =>
+              @quit() if err
+              next err
+          finally
+            resume()
+            callback?()
 
-  # Reset the application's state if it's ready, and invoke the given
-  # callback when all its Nack workers have terminated.
-  reset: (callback) ->
-    if @state is "ready"
-      @quit callback
-      @pool = null
-      @mtime = null
-      @state = null
-    else
-      callback?()
-
-  # Terminate any active Nack workers and invoke the given callback
-  # when they exit.
-  quit: (callback) ->
-    if @state is "ready"
-      @pool.once "exit", callback if callback
-      @pool.quit()
-    else
-      process.nextTick callback if callback
-
-  # Reset the application, re-initialize it, and invoke the given
+  # Terminate the application, re-initialize it, and invoke the given
   # callback when the application's state becomes ready.
   restart: (callback) ->
-    @reset =>
+    @quit =>
       @ready callback
 
   # Restart the application if `tmp/restart.txt` has been touched

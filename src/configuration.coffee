@@ -118,6 +118,10 @@ module.exports = class Configuration
         for file in getFilenamesForHost host, domain
           if root = roots[file]
             return callback null, domain, root
+
+      if root = roots["default"]
+        return callback null, @domains[0], root
+
       callback null
 
   # Asynchronously build a mapping of entries in `hostRoot` to
@@ -143,15 +147,16 @@ module.exports = class Configuration
         return callback err if err
         async.forEach files, (file, next) =>
           root = path.join @hostRoot, file
+          name = file.toLowerCase()
           fs.lstat root, (err, stats) ->
             if stats?.isSymbolicLink()
               fs.realpath root, (err, resolvedPath) ->
                 if err then next()
                 else fs.lstat resolvedPath, (err, stats) ->
-                  roots[file] = resolvedPath if stats?.isDirectory()
+                  roots[name] = resolvedPath if stats?.isDirectory()
                   next()
             else if stats?.isDirectory()
-              roots[file] = root
+              roots[name] = root
               next()
             else
               next()
@@ -170,6 +175,7 @@ libraryPath = (args...) ->
 # "37s.basecamp", "basecamp"]`, and `basecamp.dev` will produce
 # `["basecamp"]`.
 getFilenamesForHost = (host, domain) ->
+  host = host.toLowerCase()
   if host.slice(-domain.length - 1) is ".#{domain}"
     parts  = host.slice(0, -domain.length - 1).split "."
     length = parts.length

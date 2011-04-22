@@ -1,4 +1,4 @@
-module.exports = class PowApplication
+module.exports = class PowConsole
   constructor: (@configuration, @httpServer) ->
     @debugLog = @configuration.getLogger "debug"
 

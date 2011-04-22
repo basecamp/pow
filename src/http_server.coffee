@@ -9,7 +9,7 @@
 fs              = require "fs"
 sys             = require "sys"
 connect         = require "connect"
-PowApplication  = require "./pow_application"
+PowConsole      = require "./pow_console"
 RackApplication = require "./rack_application"
 
 {pause} = require "./util"
@@ -34,7 +34,7 @@ module.exports = class HttpServer extends connect.HTTPServer
     super [
       o @logRequest
       o @annotateRequest
-      o @handlePowRequest
+      o @handlePowConsoleRequest
       o @findApplicationRoot
       o @handleStaticRequest
       o @findRackApplication
@@ -44,7 +44,7 @@ module.exports = class HttpServer extends connect.HTTPServer
 
     @staticHandlers = {}
     @rackApplications = {}
-    @powApplication = new PowApplication @configuration, this
+    @powConsole = new PowConsole @configuration, this
 
     @accessLog = @configuration.getLogger "access"
     @debugLog = @configuration.getLogger "debug"
@@ -75,10 +75,10 @@ module.exports = class HttpServer extends connect.HTTPServer
     @debugLog.debug "url = #{req.url}, req.pow = #{JSON.stringify req.pow}"
     next()
 
-  handlePowRequest: (req, res, next) =>
+  handlePowConsoleRequest: (req, res, next) =>
     if req.pow.hostWithoutDomain is "pow"
-      @powApplication.handle req, res, next
-      @debugLog.debug "sent request to @powApplication"
+      @powConsole.handle req, res, next
+      @debugLog.debug "sent request to @powConsole"
     else
       next()
 

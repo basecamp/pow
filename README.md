@@ -28,6 +28,14 @@ That's it! The name of the symlink (`myapp`) determines the hostname
 you use (`myapp.dev`) to access the application it points to
 (`~/Projects/myapp`).
 
+**Note:** Pow does not play nicely with Mac OS X's "Web Sharing" service.
+When using Pow, assets from the `~/Sites` folder can no longer be served.
+However, as noted below in the "Serving static files" section, you can still serve static assets by linking to a project's public folder. Try something
+like:
+
+    $ mkdir -p ~/.pow/site-name
+    $ ln -s ~/Sites/ ~/.pow/site-name/public
+
 ## Installation
 
 Pow requires Mac OS X version 10.6 or newer. To install or upgrade

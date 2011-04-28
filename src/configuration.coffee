@@ -162,15 +162,16 @@ module.exports = class Configuration
         return callback err if err
         async.forEach files, (file, next) =>
           root = path.join @hostRoot, file
+          name = file.toLowerCase()
           fs.lstat root, (err, stats) ->
             if stats?.isSymbolicLink()
               fs.realpath root, (err, resolvedPath) ->
                 if err then next()
                 else fs.lstat resolvedPath, (err, stats) ->
-                  roots[file] = resolvedPath if stats?.isDirectory()
+                  roots[name] = resolvedPath if stats?.isDirectory()
                   next()
             else if stats?.isDirectory()
-              roots[file] = root
+              roots[name] = root
               next()
             else
               next()
@@ -189,7 +190,8 @@ libraryPath = (args...) ->
 # "37s.basecamp", "basecamp"]`, and `basecamp.dev` will produce
 # `["basecamp"]`.
 getFilenamesForHost = (host, domain) ->
-  if host.slice(-domain.length - 1).toLowerCase() is ".#{domain}".toLowerCase()
+  host = host.toLowerCase()
+  if host.slice(-domain.length - 1) is ".#{domain}"
     parts  = host.slice(0, -domain.length - 1).split "."
     length = parts.length
     for i in [0...length]

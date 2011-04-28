@@ -9,11 +9,11 @@
 , "bin": { "pow": "./bin/pow" }
 , "main": "./lib/index.js"
 , "dependencies": {
-    "async": "0.1.7"
+    "async": "0.1.8"
   , "coffee-script": ">= 1.0.0"
   , "connect": ">= 1.0.3"
   , "log": ">= 1.1.1"
-  , "nack": ">= 0.10.0"
+  , "nack": ">= 0.12.0"
   , "ndns": ">= 0.1.2"
   }
 , "bundleDependencies" : [ "ndns" ]

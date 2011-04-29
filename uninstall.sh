@@ -25,7 +25,7 @@
       POW_VERSIONS_PATH="$POW_ROOT/Versions"
       POWD_PLIST_PATH="$HOME/Library/LaunchAgents/cx.pow.powd.plist"
       FIREWALL_PLIST_PATH="/Library/LaunchDaemons/cx.pow.firewall.plist"
-
+      POW_CONFIG_PATH="$HOME/.powconfig"
 
 # Fail fast if Pow isn't present.
 
@@ -87,8 +87,12 @@
       sudo rm -f "$FIREWALL_PLIST_PATH"
 
 # Remove /etc/resolver files that belong to us
+      if [[ -a "$POW_CONFIG_PATH" ]]; then
+        DNS_PORT=$(ruby -e'puts $<.read.scan(/POW_DNS_PORT=(\d+)/)' "$POW_CONFIG_PATH")
+      fi
 
-      DNS_PORT=20560
-      grep -Rl $DNS_PORT /etc/resolver/ | sudo xargs rm 2>/dev/null
+      [[ -z "$DNS_PORT" ]] && DNS_PORT=20560
+
+      grep -Rl $DNS_PORT /etc/resolver/ | sudo xargs rm
 
       echo "*** Uninstalled"

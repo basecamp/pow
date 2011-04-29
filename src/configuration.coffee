@@ -99,7 +99,8 @@ module.exports = class Configuration
     @rvmPath  = options.rvmPath  ? process.env['POW_RVM_PATH']  ? path.join process.env.HOME, ".rvm/scripts/rvm"
 
     # ---
-    @loggers  = {}
+    @loggers = {}
+    @domainPattern = compilePattern @domains
 
   # Retrieve a `Logger` instance with the given `name`.
   getLogger: (name) ->
@@ -183,3 +184,8 @@ getFilenamesForHost = (host, domain) ->
       parts.slice(i, length).join "."
   else
     []
+
+# Helper function for compiling a list of top-level domains into a
+# regular expression for matching purposes.
+compilePattern = (domains) ->
+  /// ( (^|\.) (#{domains.join("|")}) ) \.? $ ///

@@ -28,6 +28,7 @@ buildTemplates = (callback) ->
   async.parallel [
     compile("http_server/application_exception.html")
     compile("http_server/nonexistent_domain.html")
+    compile("http_server/welcome.html")
     compile("installer/cx.pow.firewall.plist")
     compile("installer/cx.pow.powd.plist")
     compile("installer/resolver")

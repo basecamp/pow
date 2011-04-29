@@ -38,6 +38,9 @@ module.exports = class HttpServer extends connect.HTTPServer
       o @findRackApplication
       o @handleApplicationRequest
       x @handleApplicationException
+      o @handleDomainNotFound
+      o @handleLocationNotFound
+      o @handleWelcome
     ]
 
     @staticHandlers = {}
@@ -61,7 +64,7 @@ module.exports = class HttpServer extends connect.HTTPServer
   # path, and application, if any. (Only the `pow.host` property is
   # set here.)
   annotateRequest: (req, res, next) ->
-    host = req.headers.host.replace /:.*/, ""
+    host = req.headers.host.replace /(\.$)|(\.?:.*)/, ""
     req.pow = {host}
     next()
 
@@ -75,17 +78,12 @@ module.exports = class HttpServer extends connect.HTTPServer
     resume = pause req
 
     @configuration.findApplicationRootForHost req.pow.host, (err, domain, root) =>
-      if err
-        next err
-        resume()
+      if req.pow.root = root
+        req.pow.domain = domain
+        req.pow.resume = resume
       else
-        if req.pow.root = root
-          req.pow.domain = domain
-          req.pow.resume = resume
-          next()
-        else
-          @handleNonexistentDomain req, res, next
-          resume()
+        resume()
+      next err
 
   # If this is a `GET` or `HEAD` request matching a file in the
   # application's `public/` directory, serve the file directly.
@@ -97,9 +95,7 @@ module.exports = class HttpServer extends connect.HTTPServer
       return next()
 
     handler = @staticHandlers[root] ?= connect.static join(root, "public")
-    handler req, res, ->
-      next()
-      req.pow.resume()
+    handler req, res, next
 
   # Check to see if the application root contains a `config.ru`
   # file. If it does, find the existing `RackApplication` instance for
@@ -138,15 +134,29 @@ module.exports = class HttpServer extends connect.HTTPServer
     res.writeHead status, "Content-Type": "text/html; charset=utf8", "X-Pow-Template": templateName
     res.end template context
 
+  # Show a friendly message when accessing a hostname that hasn't been
+  # set up with Pow yet.
+  handleDomainNotFound: (req, res, next) =>
+    return next() if req.pow.root
+
+    host = req.pow.host
+    return next() unless domain = host?.match(@configuration.domainPattern)?[1]
+
+    name = host.slice 0, host.length - domain.length
+    return next() unless name.length
+
+    @render res, 503, "nonexistent_domain", path: join @configuration.root, name
+
+  handleLocationNotFound: (req, res, next) =>
+    return next() unless req.pow.root
+    res.writeHead 404
+    res.end "404 Not Found"
+
+  handleWelcome: (req, res, next) =>
+    @render res, 200, "welcome", version: "0.3.0"
+
   # If there's an exception thrown while handling a request, show a
   # nicely formatted error page along with the full backtrace.
   handleApplicationException: (err, req, res, next) =>
     return next() unless root = req.pow.root
     @render res, 500, "application_exception", {err, root}
-
-  # Show a friendly message when accessing a hostname that hasn't been
-  # set up with Pow yet.
-  handleNonexistentDomain: (req, res, next) =>
-    host = req.pow.host
-    name = host.slice 0, host.length - @configuration.domains[0].length - 1
-    @render res, 503, "nonexistent_domain", path: join @configuration.root, name

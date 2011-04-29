@@ -75,8 +75,9 @@ module.exports = class mDnsServer extends ndns.Server
       @logger.debug "binding to port #{@configuration.mDnsPort}"
       @bind @configuration.mDnsPort
       
-      @logger.debug "adding mDNS domain to configuration"
-      @configuration.domains.push "#{hostname}.#{@configuration.mDnsDomain}"
+      mDnsHost = "#{hostname}.#{@configuration.mDnsDomain}".toLowerCase()
+      @logger.debug "adding mDNS domain #{util.inspect mDnsHost} to configuration"
+      @configuration.domains.push mDnsHost
       
       callback?()
 
@@ -88,8 +89,6 @@ module.exports = class mDnsServer extends ndns.Server
     q = req.question[0] ? {}
 
     if q.type is ndns.ns_t.a and q.class is ndns.ns_c.in and @pattern.test q.name
-      @logger.debug "request: question: #{util.inspect req.question}"
-      
       res.header = req.header
       res.question = req.question
       res.header.aa = 1
@@ -100,7 +99,6 @@ module.exports = class mDnsServer extends ndns.Server
           @logger.warning "couldn't find my address to talk to #{req.rinfo.address}"
         else
           res.addRR ndns.ns_s.an, q.name, ndns.ns_t.a, ndns.ns_c.in, 600, myAddress
-          
           res.sendTo this, @configuration.mDnsPort, @configuration.mDnsAddress, (error) =>
             if error
               @logger.warning "couldn't send mdns response: #{util.inspect error}"

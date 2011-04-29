@@ -22,7 +22,7 @@ directory. Let's say you're working on an app that lives in
 `http://myapp.dev/`. Setting it up is as easy as:
 
     $ cd ~/.pow
-    $ ln -s ~/Projects/myapp
+    $ ln -s ~/Projects/myapp myapp
 
 That's it! The name of the symlink (`myapp`) determines the hostname
 you use (`myapp.dev`) to access the application it points to

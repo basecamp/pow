@@ -86,4 +86,9 @@
       sudo launchctl unload "$FIREWALL_PLIST_PATH" 2>/dev/null || true
       sudo rm -f "$FIREWALL_PLIST_PATH"
 
+# Remove /etc/resolver files that belong to us
+
+      DNS_PORT=20560
+      grep -Rl $DNS_PORT /etc/resolver/ | sudo xargs rm 2>/dev/null
+
       echo "*** Uninstalled"

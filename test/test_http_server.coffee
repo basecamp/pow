@@ -46,7 +46,7 @@ module.exports = testCase
     serveRoot "apps", (request, done) ->
       request "GET", "/redirect", host: "nonexistent.dev", (body, response) ->
         test.same 503, response.statusCode
-        test.same "nonexistent_domain", response.headers["x-pow-template"]
+        test.same "application_not_found", response.headers["x-pow-template"]
         done -> test.done()
 
   "responds with a custom 500 when an app can't boot": (test) ->

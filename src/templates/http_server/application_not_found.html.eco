@@ -26,6 +26,6 @@
 </head>
 <body>
   <h1>This domain isn&rsquo;t set up yet.</h1>
-  <h2>Symlink your application to <code><%= @path %></code> first.</h2>
+  <h2>Symlink your application to <code>~/.pow/<%= @name %></code> first.</h2>
 </body>
 </html>

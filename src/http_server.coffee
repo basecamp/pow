@@ -25,6 +25,13 @@ module.exports = class HttpServer extends connect.HTTPServer
   o = (fn) -> (req, res, next)      -> fn req, res, next
   x = (fn) -> (err, req, res, next) -> fn err, req, res, next
 
+  # Helper to render `templateName` to the given `res` response with
+  # the given `status` code and `context` values.
+  render = (res, status, templateName, context = {}) ->
+    template = require "./templates/http_server/#{templateName}.html"
+    res.writeHead status, "Content-Type": "text/html; charset=utf8", "X-Pow-Template": templateName
+    res.end template context
+
   # Create an HTTP server for the given configuration. This sets up
   # the middleware stack, gets a `Logger` instace for the global
   # access log, and registers a handler to close any running
@@ -38,9 +45,10 @@ module.exports = class HttpServer extends connect.HTTPServer
       o @findRackApplication
       o @handleApplicationRequest
       x @handleApplicationException
-      o @handleDomainNotFound
+      o @handleFaviconRequest
+      o @handleApplicationNotFound
+      o @handleWelcomeRequest
       o @handleLocationNotFound
-      o @handleWelcome
     ]
 
     @staticHandlers = {}
@@ -72,8 +80,7 @@ module.exports = class HttpServer extends connect.HTTPServer
   # hostname to a Rack application using the server's
   # configuration. If an application is found, annotate the request
   # object with the application's root path so we can use it further
-  # down the stack. If no application is found, render an error page
-  # indicating that the hostname is not yet configured.
+  # down the stack.
   findApplicationRoot: (req, res, next) =>
     resume = pause req
 
@@ -121,22 +128,23 @@ module.exports = class HttpServer extends connect.HTTPServer
 
   # If the request object is annotated with an application, pass the
   # request off to the application's `handle` method.
-  handleApplicationRequest: (req, res, next) =>
+  handleApplicationRequest: (req, res, next) ->
     if application = req.pow.application
       application.handle req, res, next, req.pow.resume
     else
       next()
 
-  # Render `templateName` to the given `res` response with the given
-  # `status` code and `context` values.
-  render: (res, status, templateName, context = {}) ->
-    template = require "./templates/http_server/#{templateName}.html"
-    res.writeHead status, "Content-Type": "text/html; charset=utf8", "X-Pow-Template": templateName
-    res.end template context
+  # Serve an empty 200 response for any `/favicon.ico` requests that
+  # make it this far.
+  handleFaviconRequest: (req, res, next) ->
+    return next() unless req.url is "/favicon.ico"
+    res.writeHead 200
+    res.end()
 
   # Show a friendly message when accessing a hostname that hasn't been
-  # set up with Pow yet.
-  handleDomainNotFound: (req, res, next) =>
+  # set up with Pow yet (but only for hosts that the server is
+  # configured to handle).
+  handleApplicationNotFound: (req, res, next) =>
     return next() if req.pow.root
 
     host = req.pow.host
@@ -145,18 +153,24 @@ module.exports = class HttpServer extends connect.HTTPServer
     name = host.slice 0, host.length - domain.length
     return next() unless name.length
 
-    @render res, 503, "nonexistent_domain", path: join @configuration.root, name
+    render res, 503, "application_not_found", {name}
 
-  handleLocationNotFound: (req, res, next) =>
-    return next() unless req.pow.root
-    res.writeHead 404
-    res.end "404 Not Found"
+  # If the request is for `/` on an unsupported domain (like
+  # `http://localhost/` or `http://127.0.0.1/`), show a page
+  # confirming that Pow is installed and running, with instructions on
+  # how to set up an app.
+  handleWelcomeRequest: (req, res, next) ->
+    return next() if req.pow.root or req.url isnt "/"
+    render res, 200, "welcome", version: "0.3.0"
 
-  handleWelcome: (req, res, next) =>
-    @render res, 200, "welcome", version: "0.3.0"
+  # If the request ends up here, it's for a static site, but the
+  # requested file doesn't exist. Show a basic 404 message.
+  handleLocationNotFound: (req, res, next) ->
+    res.writeHead 404, "Content-Type": "text/html"
+    res.end "<!doctype html><html><body><h1>404 Not Found</h1>"
 
   # If there's an exception thrown while handling a request, show a
   # nicely formatted error page along with the full backtrace.
-  handleApplicationException: (err, req, res, next) =>
+  handleApplicationException: (err, req, res, next) ->
     return next() unless root = req.pow.root
-    @render res, 500, "application_exception", {err, root}
+    render res, 500, "application_exception", {err, root}

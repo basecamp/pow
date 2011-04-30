@@ -188,4 +188,4 @@ getFilenamesForHost = (host, domain) ->
 # Helper function for compiling a list of top-level domains into a
 # regular expression for matching purposes.
 compilePattern = (domains) ->
-  /// ( (^|\.) (#{domains.join("|")}) ) \.? $ ///
+  /// ( (^|\.) (#{domains.join("|")}) ) \.? $ ///i

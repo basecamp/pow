@@ -25,15 +25,18 @@
                E::: RE           RW           Y
                ERRR
                G       Knock Out Rails & Rack Apps Like A Superhero.
-                       Pow is a zero-config Rack server for Mac OS X.
-                       http://pow.cx/
 
-* [Pow Web Site](http://pow.cx/)
-* [User's Manual](http://pow.cx/manual)
-* [Annotated Source Code](http://pow.cx/docs/)
-* [2-Minute Screencast](http://get.pow.cx/media/screencast.mov)
 
-Current Version:  **0.2.2**
+## Pow is a zero-config Rack server for Mac OS X.
+
+[Pow Web Site](http://pow.cx/) -
+[User's Manual](http://pow.cx/manual) -
+[Annotated Source Code](http://pow.cx/docs/) -
+[2-Minute Screencast](http://get.pow.cx/media/screencast.mov)
+
+-----
+
+Current Version: **0.2.2**
 
 To install or upgrade Pow, open a terminal and run this command:
 
@@ -48,4 +51,5 @@ That's it! Your app will be up and running at `http://myapp.dev/`.
 See the [user's manual](http://pow.cx/manual) for more information.
 
 -----
-Copyright &copy; 2011 Sam Stephenson, 37signals
+
+&copy; 2011 Sam Stephenson, 37signals

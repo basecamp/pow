@@ -141,8 +141,14 @@ module.exports = testCase
     ], test.done
 
   "request to unsupported domain shows the welcome page": (test) ->
-    test.expect 8
+    test.expect 10
     async.series [
+      (proceed) ->
+        serveRoot "apps", (request, done) ->
+          request "GET", "/", {}, (body, response) ->
+            test.same 200, response.statusCode
+            test.same "welcome", response.headers["x-pow-template"]
+            done proceed
       (proceed) ->
         serveRoot "apps", (request, done) ->
           request "GET", "/", host: "dev", (body, response) ->
@@ -168,3 +174,11 @@ module.exports = testCase
             test.same "welcome", response.headers["x-pow-template"]
             done proceed
     ], test.done
+
+  "request without host header serves the default app": (test) ->
+    test.expect 2
+    serveRoot "configuration-with-default", (request, done) ->
+      request "GET", "/", {}, (body, response) ->
+        test.same 200, response.statusCode
+        test.same "Hello", body
+        done -> test.done()

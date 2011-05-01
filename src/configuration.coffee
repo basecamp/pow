@@ -112,7 +112,7 @@ module.exports = class Configuration
   # If no match is found, `callback` is called without any arguments.
   # If an error is raised, `callback` is called with the error as its
   # first argument.
-  findApplicationRootForHost: (host, callback) ->
+  findApplicationRootForHost: (host = "", callback) ->
     @gatherApplicationRoots (err, roots) =>
       return callback err if err
       for domain in @domains

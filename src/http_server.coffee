@@ -72,7 +72,7 @@ module.exports = class HttpServer extends connect.HTTPServer
   # path, and application, if any. (Only the `pow.host` property is
   # set here.)
   annotateRequest: (req, res, next) ->
-    host = req.headers.host.replace /(\.$)|(\.?:.*)/, ""
+    host = req.headers.host?.replace /(\.$)|(\.?:.*)/, ""
     req.pow = {host}
     next()
 

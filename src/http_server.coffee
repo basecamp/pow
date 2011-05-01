@@ -27,12 +27,20 @@ module.exports = class HttpServer extends connect.HTTPServer
   o = (fn) -> (req, res, next)      -> fn req, res, next
   x = (fn) -> (err, req, res, next) -> fn err, req, res, next
 
+  # Helper that loads the named template, creates a new context from
+  # the given context with itself and an optional `yield` block, and
+  # passes that to the template for rendering.
+  renderTemplate = (templateName, renderContext, yield) ->
+    template = require "./templates/http_server/#{templateName}.html"
+    context = {renderTemplate, yield}
+    context[key] = value for key, value of renderContext
+    template context
+
   # Helper to render `templateName` to the given `res` response with
   # the given `status` code and `context` values.
-  render = (res, status, templateName, context = {}) ->
-    template = require "./templates/http_server/#{templateName}.html"
+  renderResponse = (res, status, templateName, context = {}) ->
     res.writeHead status, "Content-Type": "text/html; charset=utf8", "X-Pow-Template": templateName
-    res.end template context
+    res.end renderTemplate templateName, context
 
   # Create an HTTP server for the given configuration. This sets up
   # the middleware stack, gets a `Logger` instace for the global
@@ -156,7 +164,7 @@ module.exports = class HttpServer extends connect.HTTPServer
     name = host.slice 0, host.length - domain.length
     return next() unless name.length
 
-    render res, 503, "application_not_found", {name, host}
+    renderResponse res, 503, "application_not_found", {name, host}
 
   # If the request is for `/` on an unsupported domain (like
   # `http://localhost/` or `http://127.0.0.1/`), show a page
@@ -166,7 +174,7 @@ module.exports = class HttpServer extends connect.HTTPServer
     return next() if req.pow.root or req.url isnt "/"
     {domains} = @configuration
     domain = if "dev" in domains then "dev" else domains[0]
-    render res, 200, "welcome", {version, domain}
+    renderResponse res, 200, "welcome", {version, domain}
 
   # If the request is for an app that looks like a Rails 2 app but
   # doesn't have a `config.ru` file, show a more helpful message.
@@ -174,7 +182,7 @@ module.exports = class HttpServer extends connect.HTTPServer
     return next() unless root = req.pow.root
     exists join(root, "config/environment.rb"), (looksLikeRailsApp) ->
       return next() unless looksLikeRailsApp
-      render res, 503, "rackup_file_missing"
+      renderResponse res, 503, "rackup_file_missing"
 
   # If the request ends up here, it's for a static site, but the
   # requested file doesn't exist. Show a basic 404 message.
@@ -186,4 +194,4 @@ module.exports = class HttpServer extends connect.HTTPServer
   # nicely formatted error page along with the full backtrace.
   handleApplicationException: (err, req, res, next) ->
     return next() unless root = req.pow.root
-    render res, 500, "application_exception", {err, root}
+    renderResponse res, 500, "application_exception", {err, root}

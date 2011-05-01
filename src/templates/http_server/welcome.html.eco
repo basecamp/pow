@@ -1,79 +1,10 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Pow is installed</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: #e0e0d8;
-      line-height: 18px;
-    }
-    div.page {
-      margin: 72px auto;
-      background: #fff;
-      border-radius: 18px;
-      -webkit-box-shadow: 0px 2px 7px #999;
-      -moz-box-shadow: 0px 2px 7px #999;
-      padding: 36px 90px;
-      width: 480px;
-      position: relative;
-    }
-    h1, h2, p, li {
-      font-family: Helvetica, sans-serif;
-      font-size: 13px;
-    }
-    h1 {
-      line-height: 45px;
-      font-size: 36px;
-      color: #060;
-      margin: 0;
-    }
-    h1:before {
-      content: "✓";
-      font-size: 66px;
-      line-height: 42px;
-      color: #090;
-      position: absolute;
-      right: 576px;
-    }
-    h2 {
-      line-height: 27px;
-      font-size: 18px;
-      font-weight: normal;
-      margin: 0;
-    }
-    a, pre span {
-      color: #776;
-    }
-    h2, p, pre {
-      color: #222;
-    }
-    ul {
-      padding: 0;
-    }
-    li {
-      list-style-type: none;
-    }
-  </style>
-</head>
-<body>
-  <div class="page">
-    <h1>Pow is installed</h1>
-    <h2>You&rsquo;re running version <%= @version %>.</h2>
-    <section>
-      <p>Set up a Rack application by symlinking it into your <code>~/.pow</code> directory. The name of the symlink determines the hostname you&rsquo;ll use to access the application.</p>
-      <pre><span>$</span> cd ~/.pow
+<%- @renderTemplate "layout", title: "Pow is installed", => %>
+  <h1 class="ok">Pow is installed</h1>
+  <h2>You&rsquo;re running version <%= @version %>.</h2>
+  <section>
+    <p>Set up a Rack application by symlinking it into your <code>~/.pow</code> directory. The name of the symlink determines the hostname you&rsquo;ll use to access the application.</p>
+    <pre><span>$</span> cd ~/.pow
 <span>$</span> ln -s /path/to/myapp
 <span>$</span> open http://myapp.<%= @domain %>/</pre>
-    </section>
-    <ul>
-      <li><a href="http://pow.cx/manual">Pow User&rsquo;s Manual</a></li>
-      <li><a href="https://github.com/37signals/pow/wiki/Troubleshooting">Troubleshooting</a></li>
-      <li><a href="https://github.com/37signals/pow/wiki/FAQ">Frequently Asked Questions</a></li>
-      <li><a href="https://github.com/37signals/pow/issues">Issue Tracker</a></li>
-    </ul>
-  </div>
-</body>
-</html>
+  </section>
+<% end %>

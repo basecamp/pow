@@ -182,3 +182,20 @@ module.exports = testCase
         test.same 200, response.statusCode
         test.same "Hello", body
         done -> test.done()
+
+  "serves /favicon.ico for the welcome page and static sites": (test) ->
+    test.expect 4
+    async.series [
+      (proceed) ->
+        serveRoot "apps", (request, done) ->
+          request "GET", "/favicon.ico", host: "static.dev", (body, response) ->
+            test.same 200, response.statusCode
+            test.same "", body
+            done proceed
+      (proceed) ->
+        serveRoot "apps", (request, done) ->
+          request "GET", "/favicon.ico", host: "localhost", (body, response) ->
+            test.same 200, response.statusCode
+            test.same "", body
+            done proceed
+    ], test.done

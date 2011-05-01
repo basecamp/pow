@@ -28,6 +28,7 @@ buildTemplates = (callback) ->
   async.parallel [
     compile("http_server/application_exception.html")
     compile("http_server/application_not_found.html")
+    compile("http_server/rackup_file_missing.html")
     compile("http_server/welcome.html")
     compile("installer/cx.pow.firewall.plist")
     compile("installer/cx.pow.powd.plist")

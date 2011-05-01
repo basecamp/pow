@@ -50,6 +50,7 @@ module.exports = class HttpServer extends connect.HTTPServer
       o @handleFaviconRequest
       o @handleApplicationNotFound
       o @handleWelcomeRequest
+      o @handleRailsAppWithoutRackupFile
       o @handleLocationNotFound
     ]
 
@@ -164,6 +165,14 @@ module.exports = class HttpServer extends connect.HTTPServer
   handleWelcomeRequest: (req, res, next) ->
     return next() if req.pow.root or req.url isnt "/"
     render res, 200, "welcome", {version}
+
+  # If the request is for an app that looks like a Rails 2 app but
+  # doesn't have a `config.ru` file, show a more helpful message.
+  handleRailsAppWithoutRackupFile: (req, res, next) ->
+    return next() unless root = req.pow.root
+    exists join(root, "config/environment.rb"), (looksLikeRailsApp) ->
+      return next() unless looksLikeRailsApp
+      render res, 503, "rackup_file_missing"
 
   # If the request ends up here, it's for a static site, but the
   # requested file doesn't exist. Show a basic 404 message.

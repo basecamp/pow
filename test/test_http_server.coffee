@@ -118,21 +118,53 @@ module.exports = testCase
         done -> test.done()
 
   "hostnames are case-insensitive": (test) ->
-    test.expect 3
+    test.expect 6
     async.series [
       (proceed) ->
         serveRoot "apps", (request, done) ->
           request "GET", "/", host: "Capital.dev", (body, response) ->
             test.same 200, response.statusCode
+            test.ok !response.headers["x-pow-template"]
             done proceed
       (proceed) ->
         serveRoot "apps", (request, done) ->
           request "GET", "/", host: "capital.dev", (body, response) ->
             test.same 200, response.statusCode
+            test.ok !response.headers["x-pow-template"]
             done proceed
       (proceed) ->
         serveRoot "apps", (request, done) ->
           request "GET", "/", host: "CAPITAL.DEV", (body, response) ->
             test.same 200, response.statusCode
+            test.ok !response.headers["x-pow-template"]
+            done proceed
+    ], test.done
+
+  "request to unsupported domain shows the welcome page": (test) ->
+    test.expect 8
+    async.series [
+      (proceed) ->
+        serveRoot "apps", (request, done) ->
+          request "GET", "/", host: "dev", (body, response) ->
+            test.same 200, response.statusCode
+            test.same "welcome", response.headers["x-pow-template"]
+            done proceed
+      (proceed) ->
+        serveRoot "apps", (request, done) ->
+          request "GET", "/", host: "dev.", (body, response) ->
+            test.same 200, response.statusCode
+            test.same "welcome", response.headers["x-pow-template"]
+            done proceed
+      (proceed) ->
+        serveRoot "apps", (request, done) ->
+          request "GET", "/", host: "127.0.0.1", (body, response) ->
+            test.same 200, response.statusCode
+            test.same "welcome", response.headers["x-pow-template"]
+            done proceed
+      (proceed) ->
+        serveRoot "apps", (request, done) ->
+          request "GET", "/", host: "localhost", (body, response) ->
+            test.same 200, response.statusCode
+            test.same "welcome", response.headers["x-pow-template"]
             done proceed
     ], test.done

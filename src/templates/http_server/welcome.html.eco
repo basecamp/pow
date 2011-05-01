@@ -66,7 +66,7 @@
       <p>Set up a Rack application by symlinking it into your <code>~/.pow</code> directory. The name of the symlink determines the hostname you&rsquo;ll use to access the application.</p>
       <pre><span>$</span> cd ~/.pow
 <span>$</span> ln -s /path/to/myapp
-<span>$</span> open http://myapp.dev/</pre>
+<span>$</span> open http://myapp.<%= @domain %>/</pre>
     </section>
     <ul>
       <li><a href="http://pow.cx/manual">Pow User&rsquo;s Manual</a></li>

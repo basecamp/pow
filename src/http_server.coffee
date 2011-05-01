@@ -156,7 +156,7 @@ module.exports = class HttpServer extends connect.HTTPServer
     name = host.slice 0, host.length - domain.length
     return next() unless name.length
 
-    render res, 503, "application_not_found", {name}
+    render res, 503, "application_not_found", {name, host}
 
   # If the request is for `/` on an unsupported domain (like
   # `http://localhost/` or `http://127.0.0.1/`), show a page

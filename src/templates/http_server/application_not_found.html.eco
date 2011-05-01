@@ -1,31 +1,79 @@
 <!doctype html>
 <html>
 <head>
-  <title>Pow: No Such Application</title>
+  <meta charset="utf-8">
+  <title>Application not found</title>
   <style>
     body {
       margin: 0;
       padding: 0;
+      background: #e0e0d8;
+      line-height: 18px;
     }
-    h1, h2 {
-      margin: 0;
-      padding: 15px 30px;
+    div.page {
+      margin: 72px auto;
+      background: #fff;
+      border-radius: 18px;
+      -webkit-box-shadow: 0px 2px 7px #999;
+      -moz-box-shadow: 0px 2px 7px #999;
+      padding: 36px 90px;
+      width: 480px;
+      position: relative;
+    }
+    h1, h2, p, li {
       font-family: Helvetica, sans-serif;
+      font-size: 13px;
     }
     h1 {
+      line-height: 45px;
       font-size: 36px;
-      background: #eeedea;
-      color: #000;
-      border-bottom: 1px solid #999090;
+      color: #600;
+      margin: 0;
+    }
+    h1:before {
+      content: "✗";
+      font-size: 66px;
+      line-height: 42px;
+      color: #900;
+      position: absolute;
+      right: 576px;
     }
     h2 {
+      line-height: 27px;
       font-size: 18px;
       font-weight: normal;
+      margin: 0;
+    }
+    a, pre span {
+      color: #776;
+    }
+    h2, p, pre {
+      color: #222;
+    }
+    ul {
+      padding: 0;
+    }
+    li {
+      list-style-type: none;
     }
   </style>
 </head>
 <body>
-  <h1>This domain isn&rsquo;t set up yet.</h1>
-  <h2>Symlink your application to <code>~/.pow/<%= @name %></code> first.</h2>
+  <div class="page">
+    <h1>Application not found</h1>
+    <h2>Symlink your app to <code>~/.pow/<%= @name %></code> first.</h2>
+    <section>
+      <p>When you access <code>http://<%= @host %>/</code>, Pow looks for a Rack application at <code>~/.pow/<%= @name %></code>. To run your app at this domain:</p>
+      <pre><span>$</span> cd ~/.pow
+<span>$</span> ln -s /path/to/myapp <%= @name %>
+<span>$</span> open http://<%= @host %>/</code>
+    </section>
+    <ul>
+      <li><a href="http://pow.cx/manual">Pow User&rsquo;s Manual</a></li>
+      <li><a href="https://github.com/37signals/pow/wiki/Troubleshooting">Troubleshooting</a></li>
+      <li><a href="https://github.com/37signals/pow/wiki/FAQ">Frequently Asked Questions</a></li>
+      <li><a href="https://github.com/37signals/pow/issues">Issue Tracker</a></li>
+    </ul>
+  </div>
 </body>
 </html>

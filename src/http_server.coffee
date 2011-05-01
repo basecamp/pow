@@ -14,6 +14,8 @@ RackApplication = require "./rack_application"
 {pause} = require "./util"
 {dirname, join, exists} = require "path"
 
+{version} = JSON.parse fs.readFileSync __dirname + "/../package.json", "utf8"
+
 # `HttpServer` is a subclass of
 # [Connect](http://senchalabs.github.com/connect/)'s `HTTPServer` with
 # a custom set of middleware and a reference to a Pow `Configuration`.
@@ -161,7 +163,7 @@ module.exports = class HttpServer extends connect.HTTPServer
   # how to set up an app.
   handleWelcomeRequest: (req, res, next) ->
     return next() if req.pow.root or req.url isnt "/"
-    render res, 200, "welcome", version: "0.3.0"
+    render res, 200, "welcome", {version}
 
   # If the request ends up here, it's for a static site, but the
   # requested file doesn't exist. Show a basic 404 message.

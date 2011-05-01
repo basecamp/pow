@@ -60,8 +60,8 @@
 </head>
 <body>
   <div class="page">
-    <h1>Pow is installed.</h1>
-    <h2>You&rsquo;re running version <%= @version %></h2>
+    <h1>Pow is installed</h1>
+    <h2>You&rsquo;re running version <%= @version %>.</h2>
     <section>
       <p>Set up a Rack application by symlinking it into your <code>~/.pow</code> directory. The name of the symlink determines the hostname you&rsquo;ll use to access the application.</p>
       <pre><span>$</span> cd ~/.pow

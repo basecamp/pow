@@ -12,6 +12,7 @@
     }
     div.page {
       margin: 72px auto;
+      margin: 36px auto;
       background: #fff;
       border-radius: 18px;
       -webkit-box-shadow: 0px 2px 7px #999;
@@ -19,6 +20,9 @@
       padding: 36px 90px;
       width: 480px;
       position: relative;
+    }
+    .big div.page {
+      width: 720px;
     }
     h1, h2, p, li {
       font-family: Helvetica, sans-serif;
@@ -34,6 +38,9 @@
       line-height: 42px;
       position: absolute;
       right: 576px;
+    }
+    .big h1:before {
+      right: 819px;
     }
     h1.ok {
       color: #060;
@@ -61,6 +68,30 @@
     h2, p, pre {
       color: #222;
     }
+    pre {
+      white-space: pre-wrap;
+      font-size: 13px;
+    }
+    pre, code {
+      font-family: Menlo, Monaco, monospace;
+    }
+    p code {
+      font-size: 12px;
+    }
+    pre.breakout {
+      border-top: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+      background: #fafcf4;
+      margin-left: -90px;
+      margin-right: -90px;
+      padding: 8px 0 8px 90px;
+    }
+    pre.small_text {
+      font-size: 10px;
+    }
+    pre.small_text strong {
+      font-size: 13px;
+    }
     ul {
       padding: 0;
     }
@@ -69,7 +100,7 @@
     }
   </style>
 </head>
-<body>
+<body class="<%= @class %>">
   <div class="page">
     <%= @yield() %>
     <ul>

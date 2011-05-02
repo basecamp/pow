@@ -115,3 +115,6 @@
       launchctl load -Fw "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null
 
       echo "*** Installed"
+      echo
+      echo "For troubleshooting instructions, please see the Pow wiki:"
+      echo "https://github.com/37signals/pow/wiki/Troubleshooting"

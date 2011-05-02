@@ -1,16 +1,34 @@
 #!/bin/sh
+#                       W
+#                      R RW        W.
+#                    RW::::RW    DR::R
+#         :RRRRRWWWWRt:::::::RRR::::::E        jR
+#          R.::::::::::::::::::::::::::Ri  jiR:::R
+#           R:::::::.RERRRRWWRERR,::::::Efi:::::::R             GjRRR Rj
+#            R::::::.R             R:::::::::::::;G    RRj    WWR    RjRRRRj
+#            Rt::::WR      RRWR     R::::::::::::::::fWR::R;  WRW    RW    R
+#        WWWWRR:::EWR     E::W     WRRW:::EWRRR::::::::: RRED WR    RRW   RR
+#        'R:::::::RRR            RR     DWW   R::::::::RW   LRRR    WR    R
+#          RL:::::WRR       GRWRR        RR   R::WRiGRWW    RRR    RRR   R
+#            Ri:::WWD    RWRRRWW   WWR   LR   R W    RR    RRRR    RR    R
+#   RRRWWWWRE;,:::WW     R:::RW   RR:W   RR   ERE    RR    RRR    RRR    R
+#    RR:::::::::::RR    tR:::WR   Wf:R   RW    R     R     RRR    RR    R
+#      WR::::::::tRR    WR::RW   ER.R   RRR       R       RRRR    RR    R
+#         WE:::::RR     R:::RR   :RW   E RR      RW;     GRRR    RR    R
+#         R.::::,WR     R:::GRW       E::RR     WiWW     RRWR   LRRWWRR
+#       WR::::::RRRRWRG::::::RREWDWRj::::RW  ,WR::WR    iRWWWWWRWW    R
+#     LR:::::::::::::::::::::::::::::::::EWRR::::::RRRDi:::W    RR   R
+#    R:::::::::::::::::::::::::::::::::::::::::::::::::::tRW   RRRWWWW
+#  RRRRRRRRRRR::::::::::::::::::::::::::::::::::::,:::DE RRWRWW,
+#            R::::::::::::: RW::::::::R::::::::::RRWRRR
+#            R::::::::::WR.  ;R::::;R  RWi:::::ER
+#            R::::::.RR       Ri:iR       RR:,R
+#            E::: RE           RW           Y
+#            ERRR
+#            G       Zero-configuration Rack server for Mac OS X
+#                    http://pow.cx/
 #
-#     8b,dPPYba,    ,adPPYba,   8b      db      d8
-#     88P'    "8a  a8"     "8a  `8b    d88b    d8'
-#     88       d8  8b       d8   `8b  d8'`8b  d8'
-#     88b,   ,a8"  "8a,   ,a8"    `8bd8'  `8bd8'
-#     88`YbbdP"'    `"YbbdP"'       YP      YP
-#     88
-#     88    Zero-configuration Rack server
-#           for Mac OS X -- http://pow.cx/
-#
-#
-#     You're reading the uinstallation script for Pow.
+#     This is the uninstallation script for Pow.
 #     See the full annotated source: http://pow.cx/docs/
 #
 #     Uninstall Pow by running this command:

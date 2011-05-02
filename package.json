@@ -23,9 +23,9 @@
   }
 , "engines" : { "node" : ">=0.4.1" }
 , "scripts": {
-    "install": "node node_modules/coffee-script/bin/cake install"
-,   "test": "node node_modules/coffee-script/bin/cake test"
-,   "start": "node node_modules/coffee-script/bin/cake start"
-,   "stop": "node node_modules/coffee-script/bin/cake stop"
+    "install": "cake install"
+,   "test": "cake test"
+,   "start": "cake start"
+,   "stop": "cake stop"
   }
 }

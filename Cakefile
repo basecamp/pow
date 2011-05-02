@@ -26,8 +26,8 @@ buildTemplates = (callback) ->
         else fs.writeFile "lib/templates/#{name}.js", eco.compile(data), callback
 
   async.parallel [
-    compile("http_server/application_exception.html")
     compile("http_server/application_not_found.html")
+    compile("http_server/error_starting_application.html")
     compile("http_server/layout.html")
     compile("http_server/rackup_file_missing.html")
     compile("http_server/welcome.html")

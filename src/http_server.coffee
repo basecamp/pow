@@ -54,7 +54,7 @@ module.exports = class HttpServer extends connect.HTTPServer
       o @handleStaticRequest
       o @findRackApplication
       o @handleApplicationRequest
-      x @handleApplicationException
+      x @handleErrorStartingApplication
       o @handleFaviconRequest
       o @handleApplicationNotFound
       o @handleWelcomeRequest
@@ -192,6 +192,6 @@ module.exports = class HttpServer extends connect.HTTPServer
 
   # If there's an exception thrown while handling a request, show a
   # nicely formatted error page along with the full backtrace.
-  handleApplicationException: (err, req, res, next) ->
+  handleErrorStartingApplication: (err, req, res, next) ->
     return next() unless root = req.pow.root
-    renderResponse res, 500, "application_exception", {err, root}
+    renderResponse res, 500, "error_starting_application", {err, root}

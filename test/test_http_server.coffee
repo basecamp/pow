@@ -54,7 +54,7 @@ module.exports = testCase
     serveRoot "apps", (request, done) ->
       request "GET", "/", host: "error.dev", (body, response) ->
         test.same 500, response.statusCode
-        test.same "application_exception", response.headers["x-pow-template"]
+        test.same "error_starting_application", response.headers["x-pow-template"]
         done -> test.done()
 
   "recovering from a boot error": (test) ->

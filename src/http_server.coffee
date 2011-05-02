@@ -194,4 +194,13 @@ module.exports = class HttpServer extends connect.HTTPServer
   # nicely formatted error page along with the full backtrace.
   handleErrorStartingApplication: (err, req, res, next) ->
     return next() unless root = req.pow.root
-    renderResponse res, 500, "error_starting_application", {err, root}
+
+    stackLines = err.stack.split "\n"
+    if stackLines.length > 10
+      stack = stackLines.slice 0, 5
+      rest = stackLines.slice 5
+    else
+      stack = stackLines
+
+    renderResponse res, 500, "error_starting_application",
+      {err, root, stack, rest}

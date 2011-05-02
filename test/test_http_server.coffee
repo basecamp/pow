@@ -109,6 +109,14 @@ module.exports = testCase
             done proceed
     ], test.done
 
+  "passes urls with .. through to the application": (test) ->
+    test.expect 2
+    serveRoot "apps", (request, done) ->
+      request "GET", "/..", host: "hello.dev", (body, response) ->
+        test.same 200, response.statusCode
+        test.same "..", body
+        done -> test.done()
+
   "post request": (test) ->
     test.expect 2
     serveRoot "apps", (request, done) ->

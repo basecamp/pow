@@ -112,6 +112,9 @@ module.exports = class HttpServer extends connect.HTTPServer
     unless root = req.pow.root
       return next()
 
+    if req.url.match /\.\./
+      return next()
+
     handler = @staticHandlers[root] ?= connect.static join(root, "public")
     handler req, res, next
 

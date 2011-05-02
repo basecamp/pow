@@ -28,7 +28,9 @@ That's it! The name of the symlink (`myapp`) determines the hostname
 you use (`myapp.dev`) to access the application it points to
 (`~/Projects/myapp`).
 
-## Installation
+-----
+
+## Installation ##
 
 Pow requires Mac OS X version 10.6 or newer. To install or upgrade
 Pow, just open a terminal and run this command:
@@ -53,7 +55,7 @@ set up the `ipfw` rule), if necessary. Then it boots the server.
   disabling the firewall rule or updating that server's configuration
   to listen on another port.
 
-### From Source
+### From Source ###
 
 To install pow from source, you will need `node >=0.4` and `npm >=1.0`.
 
@@ -62,7 +64,7 @@ To install pow from source, you will need `node >=0.4` and `npm >=1.0`.
     $ npm --global install
     $ npm --global run-script pow restart
 
-### Uninstalling Pow
+### Uninstalling Pow ###
 
 If you decide Pow's not for you, uninstallation is just as easy:
 
@@ -70,7 +72,7 @@ If you decide Pow's not for you, uninstallation is just as easy:
 
 ([Review the uninstall script](http://get.pow.cx/uninstall.sh).)
 
-## Managing Applications
+## Managing Applications ##
 
 Pow deals exclusively with Rack applications. For the purposes of this
 document, a _Rack application_ is a directory with a `config.ru`
@@ -83,7 +85,7 @@ time it's accessed, and will keep up to two workers running for each
 application. Workers are automatically terminated after 15 minutes of
 inactivity.
 
-### Using virtual hosts and the .dev domain
+### Using virtual hosts and the .dev domain ###
 
 A _virtual host_ specifies a mapping between a hostname and an
 application. To install a virtual host, symlink a Rack application
@@ -95,7 +97,7 @@ symlink named `myapp` will be accessible at `http://myapp.dev/`.
   to `~/Library/Application Support/Pow/Hosts`, the actual location
   from which virtual host symlinks are read.
 
-#### Subdomains
+#### Subdomains ####
 
 Once a virtual host is installed, it's also automatically accessible
 from all subdomains of the named host. For example, the `myapp`
@@ -105,14 +107,14 @@ override this behavior to, say, point `www.myapp.dev` to a different
 application &mdash; just create another virtual host symlink named
 `www.myapp` for the application you want.
 
-#### Multiple virtual hosts
+#### Multiple virtual hosts ####
 
 You might want to serve the same application from multiple hostnames.
 In Pow, an application may have more than one virtual host. Multiple
 symlinks that point to the same application will share the same worker
 processes.
 
-### Customizing environment variables
+### Customizing environment variables ###
 
 Pow lets you customize the environment in which worker processes
 run. Before an application boots, Pow attempts to execute two scripts
@@ -125,7 +127,7 @@ particular application, you could modify `RUBYLIB` in `.powrc`:
 
     export RUBYLIB="app:lib:$RUBYLIB"
 
-#### Choosing the right environment script
+#### Choosing the right environment script ####
 
 Pow supports two separate environment scripts with the intention that
 one may be checked into your source control repository, leaving the
@@ -133,7 +135,7 @@ other free for any local overrides. If this sounds like something you
 need, you'll want to keep `.powrc` under version control, since it's
 loaded first.
 
-### Working with different versions of Ruby
+### Working with different versions of Ruby ###
 
 Pow offers full support for running multiple applications under
 different versions of Ruby with
@@ -149,13 +151,13 @@ use this `.rvmrc` file:
 If an application has an `.rvmrc` file but rvm isn't installed, Pow
 will show an error message without booting the app.
 
-### Serving static files
+### Serving static files ###
 
 Pow automatically serves static files in the `public` directory of
 your application. It's possible to serve a completely static site
 without a `config.ru` file as long as it has a `public` directory.
 
-### Restarting applications
+### Restarting applications ###
 
 You can tell Pow to restart an application the next time it's
 accessed. Simply save a file named `restart.txt` in the `tmp`
@@ -179,7 +181,7 @@ Process." (You can click "Inspect" on a worker process and choose
 "Open Files and Ports" to determine which application the process is
 serving.)
 
-### Viewing log files
+### Viewing log files ###
 
 Pow stores log files in the `~/Library/Logs/Pow` directory so they can
 be viewed easily with OS X's Console application. Each incoming
@@ -191,7 +193,7 @@ matching the name of the application.
 **Note**: Rails logger output does not appear in Pow's logs. You'll
   want to `tail -f log/development.log` to see those.
 
-## Configuring Pow
+## Configuring Pow ##
 
 Pow is designed so that most people will never need to configure
 it. Sometimes you can't avoid having to adjust a setting or two,
@@ -214,7 +216,7 @@ full list of settings that you can change.
   finding the `pow` process in OS X's Activity Monitor and clicking
   "Quit Process".
 
-## Contributing
+## Contributing ##
 
 Pow is written in [Node.js](http://nodejs.org/) with
 [CoffeeScript](http://jashkenas.github.com/coffee-script/). You can
@@ -237,7 +239,7 @@ Run the test suite:
 
     $ cake test
 
-## License
+## License ##
 
 (The MIT License)
 

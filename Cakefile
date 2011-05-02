@@ -1,5 +1,3 @@
-require.paths.unshift "#{__dirname}/node_modules"
-
 async         = require 'async'
 fs            = require 'fs'
 {print}       = require 'sys'

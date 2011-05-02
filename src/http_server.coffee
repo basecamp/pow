@@ -195,7 +195,16 @@ module.exports = class HttpServer extends connect.HTTPServer
   handleErrorStartingApplication: (err, req, res, next) ->
     return next() unless root = req.pow.root
 
-    stackLines = err.stack.split "\n"
+    # Replace `$HOME` with `~` in backtrace lines.
+    home = process.env.HOME
+    stackLines = for line in err.stack.split "\n"
+      if line.slice(0, home.length) is home
+        "~" + line.slice home.length
+      else
+        line
+
+    # Split the backtrace lines into the first five lines and all
+    # remaining lines, if there are more than 10 lines total.
     if stackLines.length > 10
       stack = stackLines.slice 0, 5
       rest = stackLines.slice 5

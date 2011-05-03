@@ -214,6 +214,18 @@ full list of settings that you can change.
   finding the `pow` process in OS X's Activity Monitor and clicking
   "Quit Process".
 
+**Note**: If you change the value of POW_DOMAINS, you must reinstall
+  Pow using `curl gx.get.pow | sh`. This is because the relevant files
+  in `/etc/resolver/` are created at install time.
+
+**WARNING**: Adding top level domains like ".com" to POW_DOMAINS
+  can be hazardous to your health! In the (likely) event that at some
+  point you lock yourself out of these domains, you will be unable to
+  reach important domains like github.com (where you can find the
+  source code), S3 (where the pow install.sh/uninstall.sh are hosted).
+  Do not panic! Delete the files pow has created in `/etc/resolver/` and
+  DNS activity will return to normal.
+
 ## Contributing
 
 Pow is written in [Node.js](http://nodejs.org/) with

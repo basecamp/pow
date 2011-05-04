@@ -50,6 +50,7 @@ module.exports = class HttpServer extends connect.HTTPServer
     super [
       o @logRequest
       o @annotateRequest
+      o @handlePowRequest
       o @findApplicationRoot
       o @handleStaticRequest
       o @findRackApplication
@@ -64,6 +65,7 @@ module.exports = class HttpServer extends connect.HTTPServer
 
     @staticHandlers = {}
     @rackApplications = {}
+    @requestCount = 0
 
     @accessLog = @configuration.getLogger "access"
 
@@ -71,11 +73,19 @@ module.exports = class HttpServer extends connect.HTTPServer
       for root, application of @rackApplications
         application.quit()
 
+  # Gets an object describing the server's current status that can be
+  # passed to `JSON.stringify`.
+  toJSON: ->
+    pid: process.pid
+    version: version
+    requestCount: @requestCount
+
   # The first middleware in the stack logs each incoming request's
   # source address, method, hostname, and path to the access log
   # (`~/Library/Logs/Pow/access.log` by default).
   logRequest: (req, res, next) =>
     @accessLog.info "[#{req.socket.remoteAddress}] #{req.method} #{req.headers.host} #{req.url}"
+    @requestCount++
     next()
 
   # Annotate the request object with a `pow` property whose value is
@@ -86,6 +96,25 @@ module.exports = class HttpServer extends connect.HTTPServer
     host = req.headers.host?.replace /(\.$)|(\.?:.*)/, ""
     req.pow = {host}
     next()
+
+  # Serve requests for status information at `http://pow/config.json`
+  # and `http://pow/status.json`. The former returns a JSON
+  # representation of the server `Configuration` instance; the latter
+  # includes information about the current server version, number of
+  # requests handled, and process ID. Third-party utilities may use
+  # these endpoints to inspect a running Pow server.
+  handlePowRequest: (req, res, next) =>
+    return next() unless req.pow.host is "pow"
+
+    switch req.url
+      when "/config.json"
+        res.writeHead 200
+        res.end JSON.stringify @configuration
+      when "/status.json"
+        res.writeHead 200
+        res.end JSON.stringify this
+      else
+        @handleLocationNotFound req, res, next
 
   # After the request has been annotated, attempt to match its
   # hostname to a Rack application using the server's

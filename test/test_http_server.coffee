@@ -215,3 +215,19 @@ module.exports = testCase
         test.same 503, response.statusCode
         test.same "rackup_file_missing", response.headers["x-pow-template"]
         done -> test.done()
+
+  "http://pow/config.json": (test) ->
+    test.expect 2
+    serveRoot "apps", (request, done, server) ->
+      request "GET", "/config.json", host: "pow", (body, response) ->
+        test.same 200, response.statusCode
+        test.same server.configuration.toJSON(), JSON.parse body
+        done -> test.done()
+
+  "http://pow/status.json": (test) ->
+    test.expect 2
+    serveRoot "apps", (request, done, server) ->
+      request "GET", "/status.json", host: "pow", (body, response) ->
+        test.same 200, response.statusCode
+        test.same server.toJSON(), JSON.parse body
+        done -> test.done()

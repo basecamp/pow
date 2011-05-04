@@ -47,6 +47,12 @@ module.exports = class Configuration
 
         callback null, new Configuration
 
+  # A list of option names accessible on `Configuration` instances.
+  @optionNames: [
+    "bin", "dstPort", "httpPort", "dnsPort", "timeout",
+    "workers", "domains", "hostRoot", "logRoot", "rvmPath"
+  ]
+
   # Pass in any options you'd like to override when creating a
   # `Configuration` instance. Valid options and their defaults:
   constructor: (options = {}) ->
@@ -101,6 +107,13 @@ module.exports = class Configuration
     # ---
     @loggers = {}
     @domainPattern = compilePattern @domains
+
+  # Gets an object of the `Configuration` instance's options that can
+  # be passed to `JSON.stringify`.
+  toJSON: ->
+    result = {}
+    result[key] = @[key] for key in @constructor.optionNames
+    result
 
   # Retrieve a `Logger` instance with the given `name`.
   getLogger: (name) ->

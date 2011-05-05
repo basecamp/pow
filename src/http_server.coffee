@@ -191,7 +191,8 @@ module.exports = class HttpServer extends connect.HTTPServer
     return next() if req.pow.root
 
     host = req.pow.host
-    return next() unless domain = host?.match(@configuration.domainPattern)?[1]
+    pattern = @configuration.httpDomainPattern
+    return next() unless domain = host?.match(pattern)?[1]
 
     name = host.slice 0, host.length - domain.length
     return next() unless name.length

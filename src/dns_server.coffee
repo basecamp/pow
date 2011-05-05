@@ -27,7 +27,7 @@ module.exports = class DnsServer extends ndns.Server
   # configuration, we respond with `127.0.0.1`. Otherwise, we respond
   # with `NXDOMAIN`.
   handleRequest: (req, res) =>
-    pattern = @configuration.domainPattern
+    pattern = @configuration.dnsDomainPattern
     res.header = req.header
     res.question = req.question
     res.header.aa = 1

@@ -52,7 +52,7 @@ module.exports = testCase
     ], test.done
 
   "findApplicationRootForHost with alternate domain": (test) ->
-    configuration = createConfiguration hostRoot: fixturePath("configuration"), domain: "dev.local"
+    configuration = createConfiguration hostRoot: fixturePath("configuration"), domains: ["dev.local"]
     test.expect 3
     configuration.findApplicationRootForHost "directory.dev.local", (err, domain, root) ->
       test.same "dev.local", domain

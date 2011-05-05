@@ -72,10 +72,10 @@ module.exports = class Configuration
     # queries. Defaults to `20560`.
     @dnsPort  = options.dnsPort  ? process.env['POW_DNS_PORT']  ? 20560
 
-    # `timeout`: how long (in milliseconds) to leave inactive Rack
+    # `timeout`: how long (in seconds) to leave inactive Rack
     # applications running before they're killed. Defaults to 15
-    # minutes.
-    @timeout  = options.timeout  ? process.env['POW_TIMEOUT']   ? 15 * 60 * 1000
+    # minutes (900 seconds).
+    @timeout  = options.timeout  ? process.env['POW_TIMEOUT']   ? 15 * 60
 
     # `workers`: the maximum number of worker processes to spawn for
     # any given application. Defaults to `2`.

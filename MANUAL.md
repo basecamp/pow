@@ -202,9 +202,10 @@ home directory if it's present. You can use this script to set
 environment variables that will override Pow's default settings.
 
 For example, this `~/.powconfig` file tells Pow to kill idle
-applications after 5 minutes (300,000 ms) and spawn 3 workers per app:
+applications after 5 minutes (300 seconds) and spawn 3 workers per
+app:
 
-    export POW_TIMEOUT=300000
+    export POW_TIMEOUT=300
     export POW_WORKERS=3
 
 See the [Configuration class

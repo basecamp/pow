@@ -42,7 +42,7 @@
 
       set -e
       POW_ROOT="$HOME/Library/Application Support/Pow"
-      POW_BIN="$POW_ROOT/Current/bin"
+      POW_BIN="$POW_ROOT/Current/bin/pow"
       [[ -z "$VERSION" ]] && VERSION=0.3.0-beta1
 
 
@@ -91,30 +91,88 @@
 # Install local configuration files.
 
       echo "*** Installing local configuration files..."
-      "$POW_BIN/pow" --install-local
+      "$POW_BIN" --install-local
 
 
 # Check to see whether we need root privileges.
 
-      "$POW_BIN/pow" --install-system --dry-run >/dev/null && NEEDS_ROOT=0 || NEEDS_ROOT=1
+      "$POW_BIN" --install-system --dry-run >/dev/null && NEEDS_ROOT=0 || NEEDS_ROOT=1
 
 
 # Install system configuration files, if necessary. (Avoid sudo otherwise.)
 
       if [ $NEEDS_ROOT -eq 1 ]; then
         echo "*** Installing system configuration files as root..."
-        sudo "$POW_BIN/pow" --install-system
+        sudo "$POW_BIN" --install-system
         sudo launchctl load -Fw /Library/LaunchDaemons/cx.pow.firewall.plist 2>/dev/null
       fi
 
 
-# Start (or restart) powd.
+# Start (or restart) Pow.
 
       echo "*** Starting the Pow server..."
       launchctl unload "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null || true
       launchctl load -Fw "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null
 
+
+      function print_troubleshooting_instructions() {
+        echo
+        echo "For troubleshooting instructions, please see the Pow wiki:"
+        echo "https://github.com/37signals/pow/wiki/Troubleshooting"
+      }
+
+
+# Check to see if the server is running properly.
+
+      CONFIG=$("$POW_BIN" --print-config 2>/dev/null || true)
+      if [[ -n "$CONFIG" ]]; then
+        eval "$CONFIG"
+        echo "*** Performing self-test..."
+
+        # Try to see if the server is running at all.
+        function check_status() {
+          curl -sH host:pow localhost/status.json | grep -c "$VERSION" >/dev/null
+        }
+
+        # Try to connect to Pow via each configured domain. If a
+        # domain is inaccessible, try to force a reload of OS X's
+        # network configuration.
+        function check_domains() {
+          for domain in ${POW_DOMAINS//,/$IFS}; do
+            echo | nc ${domain}. $POW_DST_PORT 2>/dev/null
+          done
+        }
+
+        # Use networksetup(8) to create a temporary network location,
+        # switch to it, then switch back to the original location and
+        # delete the temporary location. This forces reloading of the
+        # system network configuration.
+        function reload_network_configuration() {
+          echo "*** Reloading system network configuration..."
+          local location=$(networksetup -getcurrentlocation)
+          networksetup -createlocation "pow$$" >/dev/null 2>&1
+          networksetup -switchtolocation "pow$$" >/dev/null 2>&1
+          networksetup -switchtolocation "$location" >/dev/null 2>&1
+          networksetup -deletelocation "pow$$" >/dev/null 2>&1
+        }
+
+        check_status || (
+          echo "!!! Couldn't find a running Pow server"
+          print_troubleshooting_instructions
+          exit 1
+        )
+
+        check_domains || (
+          (reload_network_configuration && check_domains) || (
+            echo "!!! Couldn't resolve configured domains"
+            print_troubleshooting_instructions
+            exit 1
+          )
+        )
+      fi
+
+
+# All done!
+
       echo "*** Installed"
-      echo
-      echo "For troubleshooting instructions, please see the Pow wiki:"
-      echo "https://github.com/37signals/pow/wiki/Troubleshooting"
+      print_troubleshooting_instructions

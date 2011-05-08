@@ -12,7 +12,7 @@ process.title = "pow"
 # Print valid command-line arguments and exit with a non-zero exit
 # code if invalid arguments are passed to the `pow` binary.
 usage = ->
-  console.error "usage: pow [--install-local | --install-system [--dry-run]]"
+  console.error "usage: pow [--print-config | --install-local | --install-system [--dry-run]]"
   process.exit -1
 
 # Start by loading the user configuration from `~/.powconfig`, if it
@@ -21,13 +21,17 @@ usage = ->
 Configuration.getUserConfiguration (err, configuration) ->
   throw err if err
 
+  printConfig = false
   createInstaller = null
   dryRun = false
 
   for arg in process.argv.slice(2)
+    # Set a flag if --print-config is requested.
+    if arg is "--print-config"
+      printConfig = true
     # Cache the factory method for creating a local or system
     # installer if necessary.
-    if arg is "--install-local"
+    else if arg is "--install-local"
       createInstaller = Installer.getLocalInstaller
     else if arg is "--install-system"
       createInstaller = Installer.getSystemInstaller
@@ -41,8 +45,23 @@ Configuration.getUserConfiguration (err, configuration) ->
   # Abort if a dry run is requested without installing anything.
   if dryRun and not createInstaller
     usage()
+
+  # Print out the current configuration in a format that can be
+  # evaluated by a shell script (`eval $(pow --print-config)`).
+  else if printConfig
+    underscore = (string) ->
+      string.replace /(.)([A-Z])/g, (match, left, right) ->
+        left + "_" + right.toLowerCase()
+
+    shellEscape = (string) ->
+      "'" + string.toString().replace(/'/g, "'\\''") + "'" #'
+
+    for key, value of configuration.toJSON()
+      sys.puts "POW_" + underscore(key).toUpperCase() +
+        "=" + shellEscape(value)
+
+  # Create the installer, passing in our loaded configuration.
   else if createInstaller
-    # Create the installer, passing in our loaded configuration.
     installer = createInstaller configuration
     # If a dry run was requested, check to see whether any files need
     # to be installed with root privileges. If yes, exit with a status
@@ -58,7 +77,8 @@ Configuration.getUserConfiguration (err, configuration) ->
     else
       installer.install (err) ->
         throw err if err
+
+  # Start up the Pow daemon if no arguments were passed.
   else
-    # Start up the Pow daemon if no arguments were passed.
     daemon = new Daemon configuration
     daemon.start()

@@ -57,7 +57,7 @@ set up the `ipfw` rule), if necessary. Then it boots the server.
 
 ### From Source ###
 
-To install pow from source, you will need `node >=0.4` and `npm >=1.0`.
+To install Pow from source, you'll need Node 0.4 and npm 1.0:
 
     $ git clone https://github.com/37signals/pow.git
     $ cd pow
@@ -90,7 +90,7 @@ time it's accessed, and will keep up to two workers running for each
 application. Workers are automatically terminated after 15 minutes of
 inactivity.
 
-### Using virtual hosts and the .dev domain ###
+### Using Virtual Hosts and the .dev Domain ###
 
 A _virtual host_ specifies a mapping between a hostname and an
 application. To install a virtual host, symlink a Rack application
@@ -112,14 +112,14 @@ override this behavior to, say, point `www.myapp.dev` to a different
 application &mdash; just create another virtual host symlink named
 `www.myapp` for the application you want.
 
-#### Multiple virtual hosts ####
+#### Multiple Virtual Hosts ####
 
 You might want to serve the same application from multiple hostnames.
 In Pow, an application may have more than one virtual host. Multiple
 symlinks that point to the same application will share the same worker
 processes.
 
-### Customizing environment variables ###
+### Customizing Environment Variables ###
 
 Pow lets you customize the environment in which worker processes
 run. Before an application boots, Pow attempts to execute two scripts
@@ -132,7 +132,7 @@ particular application, you could modify `RUBYLIB` in `.powrc`:
 
     export RUBYLIB="app:lib:$RUBYLIB"
 
-#### Choosing the right environment script ####
+#### Choosing the Right Environment Script ####
 
 Pow supports two separate environment scripts with the intention that
 one may be checked into your source control repository, leaving the
@@ -140,7 +140,7 @@ other free for any local overrides. If this sounds like something you
 need, you'll want to keep `.powrc` under version control, since it's
 loaded first.
 
-### Working with different versions of Ruby ###
+### Working With Different Versions of Ruby ###
 
 Pow offers full support for running multiple applications under
 different versions of Ruby with
@@ -156,13 +156,13 @@ use this `.rvmrc` file:
 If an application has an `.rvmrc` file but rvm isn't installed, Pow
 will show an error message without booting the app.
 
-### Serving static files ###
+### Serving Static Files ###
 
 Pow automatically serves static files in the `public` directory of
 your application. It's possible to serve a completely static site
 without a `config.ru` file as long as it has a `public` directory.
 
-### Restarting applications ###
+### Restarting Applications ###
 
 You can tell Pow to restart an application the next time it's
 accessed. Simply save a file named `restart.txt` in the `tmp`
@@ -186,7 +186,7 @@ Process." (You can click "Inspect" on a worker process and choose
 "Open Files and Ports" to determine which application the process is
 serving.)
 
-### Viewing log files ###
+### Viewing Log Files ###
 
 Pow stores log files in the `~/Library/Logs/Pow` directory so they can
 be viewed easily with OS X's Console application. Each incoming
@@ -222,17 +222,17 @@ full list of settings that you can change.
   finding the `pow` process in OS X's Activity Monitor and clicking
   "Quit Process".
 
-**Note**: If you change the value of POW_DOMAINS, you must reinstall
+**Note**: If you change the value of `POW_DOMAINS`, you must reinstall
   Pow using `curl gx.get.pow | sh`. This is because the relevant files
   in `/etc/resolver/` are created at install time.
 
-**WARNING**: Adding top level domains like ".com" to POW_DOMAINS
+**WARNING**: Adding top level domains like ".com" to `POW_DOMAINS`
   can be hazardous to your health! In the (likely) event that at some
   point you lock yourself out of these domains, you will be unable to
   reach important domains like github.com (where you can find the
-  source code), S3 (where the pow install.sh/uninstall.sh are hosted).
-  Do not panic! Delete the files Pow has created in `/etc/resolver/` and
-  DNS activity will return to normal.
+  source code) and S3 (where Pow's installation and uninstallation
+  scripts are hosted). Do not panic! Delete the files Pow has created
+  in `/etc/resolver/` and DNS activity will return to normal.
 
 ## Contributing ##
 

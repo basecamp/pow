@@ -115,10 +115,14 @@
       launchctl load -Fw "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null
 
 
+# Show a message about where to go for help.
+
       function print_troubleshooting_instructions() {
         echo
         echo "For troubleshooting instructions, please see the Pow wiki:"
         echo "https://github.com/37signals/pow/wiki/Troubleshooting"
+        echo
+        echo "To uninstall Pow, \`curl get.pow.cx/uninstall.sh | sh\`"
       }
 
 

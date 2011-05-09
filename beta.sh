@@ -128,27 +128,31 @@
 
 # Check to see if the server is running properly.
 
+      # If this version of Pow supports the --print-config option,
+      # source the configuration and use it to run a self-test.
       CONFIG=$("$POW_BIN" --print-config 2>/dev/null || true)
+
       if [[ -n "$CONFIG" ]]; then
         eval "$CONFIG"
         echo "*** Performing self-test..."
 
-        # Try to see if the server is running at all.
+        # Check to see if the server is running at all.
         function check_status() {
-          curl -sH host:pow localhost/status.json | grep -c "$VERSION" >/dev/null
+          sleep 1
+          curl -sH host:pow localhost:$POW_HTTP_PORT/status.json | grep -c "$VERSION" >/dev/null
         }
 
-        # Try to connect to Pow via each configured domain. If a
+        # Attempt to connect to Pow via each configured domain. If a
         # domain is inaccessible, try to force a reload of OS X's
         # network configuration.
         function check_domains() {
           for domain in ${POW_DOMAINS//,/$IFS}; do
-            echo | nc ${domain}. $POW_DST_PORT 2>/dev/null
+            echo | nc ${domain}. $POW_DST_PORT 2>/dev/null || return 1
           done
         }
 
         # Use networksetup(8) to create a temporary network location,
-        # switch to it, then switch back to the original location and
+        # switch to it, switch back to the original location, then
         # delete the temporary location. This forces reloading of the
         # system network configuration.
         function reload_network_configuration() {
@@ -160,19 +164,23 @@
           networksetup -deletelocation "pow$$" >/dev/null 2>&1
         }
 
-        check_status || (
-          echo "!!! Couldn't find a running Pow server"
+        # Try twice to connect to Pow. Bail if it doesn't work.
+        check_status || check_status || {
+          echo "!!! Couldn't find a running Pow server on port $POW_HTTP_PORT"
           print_troubleshooting_instructions
           exit 1
-        )
+        }
 
-        check_domains || (
-          (reload_network_configuration && check_domains) || (
-            echo "!!! Couldn't resolve configured domains"
+        # Try resolving and connecting to each configured domain. If
+        # it doesn't work, reload the network configuration and try
+        # again. Bail if it fails the second time.
+        check_domains || {
+          { reload_network_configuration && check_domains; } || {
+            echo "!!! Couldn't resolve configured domains ($POW_DOMAINS)"
             print_troubleshooting_instructions
             exit 1
-          )
-        )
+          }
+        }
       fi
 
 

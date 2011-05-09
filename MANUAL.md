@@ -64,6 +64,11 @@ To install pow from source, you will need `node >=0.4` and `npm >=1.0`.
     $ npm --global install
     $ npm --global run-script pow restart
 
+For detailed instructions on installing Pow from source, including
+instructions on how to install Node and npm, see the
+[Installation](https://github.com/37signals/pow/wiki/Installation)
+wiki page.
+
 ### Uninstalling Pow ###
 
 If you decide Pow's not for you, uninstallation is just as easy:

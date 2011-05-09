@@ -139,7 +139,7 @@
         # Check to see if the server is running at all.
         function check_status() {
           sleep 1
-          curl -sH host:pow localhost:$POW_HTTP_PORT/status.json | grep -c "$VERSION" >/dev/null
+          curl -sH host:pow "localhost:$POW_HTTP_PORT/status.json" | grep -c "$VERSION" >/dev/null
         }
 
         # Attempt to connect to Pow via each configured domain. If a
@@ -147,7 +147,7 @@
         # network configuration.
         function check_domains() {
           for domain in ${POW_DOMAINS//,/$IFS}; do
-            echo | nc ${domain}. $POW_DST_PORT 2>/dev/null || return 1
+            echo | nc "${domain}." "$POW_DST_PORT" 2>/dev/null || return 1
           done
         }
 

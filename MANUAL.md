@@ -149,7 +149,8 @@ different versions of Ruby with
 file to your application's root directory and you're good to go.
 
 For example, to instruct Pow to run an application with Ruby 1.9.2,
-use this `.rvmrc` file:
+use this `.rvmrc` file (assuming you've already installed 1.9.2 with
+`rvm install 1.9.2`):
 
     rvm 1.9.2
 

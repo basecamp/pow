@@ -199,6 +199,20 @@ Process." (You can click "Inspect" on a worker process and choose
 "Open Files and Ports" to determine which application the process is
 serving.)
 
+#### Restarting Before Every Request ####
+
+It can be useful during development to reload your application with
+each request, and frameworks like Rails will handle such reloading for
+you. For pure Rack apps, or when using frameworks like Sinatra that
+don't manage code reloading, Pow can help.
+
+If the `tmp/always_restart.txt` file is present in your application's
+root, Pow will automatically reload the application before each request.
+
+**Note:** `tmp/always_restart.txt` will only reload the application,
+   _not_ its environment scripts. To reload `.powrc`, `.powenv`, or
+   `.rvmrc`, you must touch `tmp/restart.txt` first.
+
 ### Viewing Log Files ###
 
 Pow stores log files in the `~/Library/Logs/Pow` directory so they can

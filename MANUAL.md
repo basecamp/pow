@@ -348,27 +348,32 @@ looks like.
 
 ## Version History ##
 
-* **0.3.0** (May 10, 2011): The installation script now performs a
-    self-test and attempts to reload the system network configuration
-    if DNS resolution fails. Configuration files are installed as mode
-    `0644`, and `launchctl load` is invoked with the `-Fw` flags.  The
-    uninstallation script now works with older versions of iTerm and
-    removes installed files from `/etc/resolver`. Pow can be
-    configured to serve requests for unknown virtual hosts by using
-    creating a special catch-all symlink named `default` in `~/.pow`.
-    If the `tmp/always_restart.txt` file is present in an application,
+* **0.3.0** (May 10, 2011): 
+  * The installation script now performs a self-test and attempts to
+    reload the system network configuration if DNS resolution fails.
+  * Configuration files are installed as mode `0644`, and
+    `launchctl load` is invoked with the `-Fw` flags.
+  * The uninstallation script now works with older versions of iTerm
+    and removes installed files from `/etc/resolver`.
+  * Pow can be configured to serve requests for unknown virtual hosts
+    by creating a special catch-all symlink named `default` in
+    `~/.pow`.
+  * If the `tmp/always_restart.txt` file is present in an application,
     Pow will restart it before every request (useful with bare Rack
     apps or frameworks like Sinatra that don't manage code
-    reloading). `POW_TIMEOUT` is now specified in seconds instead of
-    milliseconds, and a new `POW_EXT_DOMAINS` option defines a list of
-    top-level domains that Pow will handle (but not serve DNS requests
-    for). Requests without a `Host:` header no longer raise an
-    exception, and URLs with `..` are now properly passed through to
-    the Rack application. Error messages have been redesigned to
-    include links to the manual and wiki. A more helpful error message
-    has been added for Rails 2.3 apps without a `config.ru` file. You
-    can print the full Pow configuration in shell format with `pow
-    --print-config`, and third-party apps can request information
+    reloading). 
+  * `POW_TIMEOUT` is now specified in seconds instead of milliseconds,
+    and a new `POW_EXT_DOMAINS` option defines a list of top-level
+    domains that Pow will handle (but not serve DNS requests for).
+  * Requests without a `Host:` header no longer raise an exception,
+    and URLs with `..` are now properly passed through to the Rack
+    application. 
+  * Error messages have been redesigned to include links to the
+    manual and wiki.
+  * A more helpful error message has been added for Rails 2.3 apps
+    without a `config.ru` file. 
+  * You can print the full Pow configuration in shell format with
+    `pow --print-config`, and third-party apps can request information
     about the running Pow server via the `http://pow/config.json` and
     `http://pow/status.json` endpoints.
 

@@ -315,20 +315,19 @@ read the [annotated source code](http://pow.cx/docs/) to learn about
 how it works internally. Please report bugs on the [GitHub issue
 tracker](https://github.com/37signals/pow/issues).
 
-If you're interested in contributing to Pow, first start by cloning a
-copy of the Git repository:
+If you're interested in contributing to Pow, first start by
+[installing Pow from
+source](https://github.com/37signals/pow/wiki/Installation).
 
-    $ git clone https://github.com/37signals/pow.git
-
-Install the required JavaScript dependencies with
-[npm](http://npmjs.org/) (you'll need version 1.0 or higher):
-
-    $ cd pow
-    $ npm install --dev
-
-Run the test suite:
+Make your changes and use `cake` to run the test suite:
 
     $ cake test
+
+Then submit a pull request on GitHub. Your patch is more likely to be
+merged if it's well-documented and well-tested. Read through the
+[closed issues](https://github.com/37signals/pow/issues?state=closed)
+to get a feel for what's already been proposed and what a good patch
+looks like.
 
 ## Version History ##
 

@@ -209,7 +209,7 @@ don't manage code reloading, Pow can help.
 If the `tmp/always_restart.txt` file is present in your application's
 root, Pow will automatically reload the application before each request.
 
-**Note:** `tmp/always_restart.txt` will only reload the application,
+**Note**: `tmp/always_restart.txt` will only reload the application,
    _not_ its environment scripts. To reload `.powrc`, `.powenv`, or
    `.rvmrc`, you must touch `tmp/restart.txt` first.
 
@@ -228,9 +228,11 @@ matching the name of the application.
 ## Configuring Pow ##
 
 Pow is designed so that most people will never need to configure
-it. Sometimes you can't avoid having to adjust a setting or two,
-though. When Pow boots, it executes the `.powconfig` script in your
-home directory if it's present. You can use this script to set
+it. Sometimes, though, you can't avoid having to adjust a setting or
+two.
+
+When Pow boots, it executes the `.powconfig` script in your
+home directory if it's present. You can use this script to export
 environment variables that will override Pow's default settings.
 
 For example, this `~/.powconfig` file tells Pow to kill idle

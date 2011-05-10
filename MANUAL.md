@@ -251,17 +251,37 @@ full list of settings that you can change.
   finding the `pow` process in OS X's Activity Monitor and clicking
   "Quit Process".
 
+### Configuring Top-Level Domains ###
+
+The `POW_DOMAINS` environment variable specifies a comma-separated
+list of top-level domains for which Pow will serve DNS queries and
+HTTP requests. The default value for this list is a single domain,
+`dev`, meaning Pow will configure your system to resolve `*.dev` to
+127.0.0.1 and serve apps in `~/.pow` under the `.dev` domain.
+
+You can add additional domains to `POW_DOMAINS`:
+
+    export POW_DOMAINS=dev,test
+
+If you want Pow to serve apps under additional top-level domains, but
+not serve DNS queries for those domains, use the `POW_EXT_DOMAINS`
+variable. Entries in `POW_EXT_DOMAINS` will not be configured with the
+system resolver, so you must make sure they point to your computer by
+other means.
+
 **Note**: If you change the value of `POW_DOMAINS`, you must reinstall
   Pow using `curl get.pow.cx | sh`. This is because the relevant files in
   `/etc/resolver/` are created at install time.
 
-**WARNING**: Adding top level domains like ".com" to `POW_DOMAINS`
-  can be hazardous to your health! In the (likely) event that at some
+**WARNING**: Adding top-level domains like ".com" to `POW_DOMAINS` can
+  be hazardous to your health! In the (likely) event that at some
   point you lock yourself out of these domains, you will be unable to
-  reach important domains like github.com (where you can find the
-  source code) and S3 (where Pow's installation and uninstallation
+  reach important remote addresses like github.com (where you can find
+  the source code) and S3 (where Pow's installation and uninstallation
   scripts are hosted). Do not panic! Delete the files Pow has created
-  in `/etc/resolver/` and DNS activity will return to normal.
+  in `/etc/resolver/` and DNS activity will return to normal. (You can
+  safely use `POW_EXT_DOMAINS` for these domains instead.)
+
 
 ## Contributing ##
 

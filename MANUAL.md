@@ -55,7 +55,7 @@ set up the `ipfw` rule), if necessary. Then it boots the server.
   disabling the firewall rule or updating that server's configuration
   to listen on another port.
 
-### From Source ###
+### Installing From Source ###
 
 To install Pow from source, you'll need Node 0.4 and npm 1.0:
 
@@ -197,7 +197,7 @@ process are captured and logged to the `apps` directory in a file
 matching the name of the application.
 
 **Note**: Rails logger output does not appear in Pow's logs. You'll
-  want to `tail -f log/development.log` to see those.
+  want to `tail -f log/development.log` to see those entries.
 
 ## Configuring Pow ##
 

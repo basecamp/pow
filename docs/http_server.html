@@ -4,178 +4,179 @@
 (20559 by default) for HTTP requests. (An <code>ipfw</code> rule forwards
 incoming requests on port 80 to your Pow instance.) Requests work
 their way through a middleware stack and are served to your browser
-as static assets, Rack requests, or error pages.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">fs              = </span><span class="nx">require</span> <span class="s2">&quot;fs&quot;</span>
-<span class="nv">sys             = </span><span class="nx">require</span> <span class="s2">&quot;sys&quot;</span>
-<span class="nv">connect         = </span><span class="nx">require</span> <span class="s2">&quot;connect&quot;</span>
-<span class="nv">RackApplication = </span><span class="nx">require</span> <span class="s2">&quot;./rack_application&quot;</span>
+as static assets, Rack requests, or error pages.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">fs</span>              <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;fs&quot;</span>
+<span class="nx">sys</span>             <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;sys&quot;</span>
+<span class="nx">connect</span>         <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;connect&quot;</span>
+<span class="nx">RackApplication</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;./rack_application&quot;</span>
 
-<span class="p">{</span><span class="nx">pause</span><span class="p">,</span> <span class="nx">escapeHTML</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;./util&quot;</span>
-<span class="p">{</span><span class="nx">dirname</span><span class="p">,</span> <span class="nx">join</span><span class="p">,</span> <span class="nx">exists</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;path&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p><code>HttpServer</code> is a subclass of
+<span class="p">{</span><span class="nx">pause</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;./util&quot;</span>
+<span class="p">{</span><span class="nx">dirname</span><span class="p">,</span> <span class="nx">join</span><span class="p">,</span> <span class="nx">exists</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;path&quot;</span>
+
+<span class="p">{</span><span class="nx">version</span><span class="p">}</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">readFileSync</span> <span class="nx">__dirname</span> <span class="o">+</span> <span class="s2">&quot;/../package.json&quot;</span><span class="p">,</span> <span class="s2">&quot;utf8&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p><code>HttpServer</code> is a subclass of
 <a href="http://senchalabs.github.com/connect/">Connect</a>'s <code>HTTPServer</code> with
-a custom set of middleware and a reference to a Pow <code>Configuration</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">module.exports = </span><span class="k">class</span> <span class="nx">HttpServer</span> <span class="k">extends</span> <span class="nx">connect</span><span class="p">.</span><span class="nx">HTTPServer</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>Connect depends on Function.prototype.length to determine
+a custom set of middleware and a reference to a Pow <code>Configuration</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="k">class</span> <span class="nx">HttpServer</span> <span class="k">extends</span> <span class="nx">connect</span><span class="p">.</span><span class="nx">HTTPServer</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>Connect depends on Function.prototype.length to determine
 whether a given middleware is an error handler. These wrappers
-provide compatibility with bound instance methods.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">o = </span><span class="nf">(fn) -&gt;</span> <span class="nf">(req, res, next)      -&gt;</span> <span class="nx">fn</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span>
-  <span class="nv">x = </span><span class="nf">(fn) -&gt;</span> <span class="nf">(err, req, res, next) -&gt;</span> <span class="nx">fn</span> <span class="nx">err</span><span class="p">,</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Create an HTTP server for the given configuration. This sets up
+provide compatibility with bound instance methods.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nx">o</span> <span class="o">=</span> <span class="p">(</span><span class="nx">fn</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span>      <span class="o">-&gt;</span> <span class="nx">fn</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span>
+  <span class="nx">x</span> <span class="o">=</span> <span class="p">(</span><span class="nx">fn</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nx">fn</span> <span class="nx">err</span><span class="p">,</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Helper that loads the named template, creates a new context from
+the given context with itself and an optional <code>yield</code> block, and
+passes that to the template for rendering.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nx">renderTemplate</span> <span class="o">=</span> <span class="p">(</span><span class="nx">templateName</span><span class="p">,</span> <span class="nx">renderContext</span><span class="p">,</span> <span class="nx">yield</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="nx">template</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;./templates/http_server/#{templateName}.html&quot;</span>
+    <span class="nx">context</span> <span class="o">=</span> <span class="p">{</span><span class="nx">renderTemplate</span><span class="p">,</span> <span class="nx">yield</span><span class="p">}</span>
+    <span class="nx">context</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">value</span> <span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span> <span class="k">of</span> <span class="nx">renderContext</span>
+    <span class="nx">template</span> <span class="nx">context</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Helper to render <code>templateName</code> to the given <code>res</code> response with
+the given <code>status</code> code and <code>context</code> values.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nx">renderResponse</span> <span class="o">=</span> <span class="p">(</span><span class="nx">res</span><span class="p">,</span> <span class="nx">status</span><span class="p">,</span> <span class="nx">templateName</span><span class="p">,</span> <span class="nx">context</span> <span class="o">=</span> <span class="p">{})</span> <span class="o">-&gt;</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span> <span class="nx">status</span><span class="p">,</span> <span class="s2">&quot;Content-Type&quot;</span><span class="o">:</span> <span class="s2">&quot;text/html; charset=utf8&quot;</span><span class="p">,</span> <span class="s2">&quot;X-Pow-Template&quot;</span><span class="o">:</span> <span class="nx">templateName</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">end</span> <span class="nx">renderTemplate</span> <span class="nx">templateName</span><span class="p">,</span> <span class="nx">context</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Create an HTTP server for the given configuration. This sets up
 the middleware stack, gets a <code>Logger</code> instace for the global
 access log, and registers a handler to close any running
-applications when the server shuts down.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">constructor: </span><span class="nf">(@configuration) -&gt;</span>
+applications when the server shuts down.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">constructor: </span><span class="p">(</span><span class="nx">@configuration</span><span class="p">)</span> <span class="o">-&gt;</span>
     <span class="k">super</span> <span class="p">[</span>
       <span class="nx">o</span> <span class="nx">@logRequest</span>
       <span class="nx">o</span> <span class="nx">@annotateRequest</span>
+      <span class="nx">o</span> <span class="nx">@handlePowRequest</span>
       <span class="nx">o</span> <span class="nx">@findApplicationRoot</span>
       <span class="nx">o</span> <span class="nx">@handleStaticRequest</span>
       <span class="nx">o</span> <span class="nx">@findRackApplication</span>
       <span class="nx">o</span> <span class="nx">@handleApplicationRequest</span>
-      <span class="nx">x</span> <span class="nx">@handleApplicationException</span>
+      <span class="nx">x</span> <span class="nx">@handleErrorStartingApplication</span>
+      <span class="nx">o</span> <span class="nx">@handleFaviconRequest</span>
+      <span class="nx">o</span> <span class="nx">@handleApplicationNotFound</span>
+      <span class="nx">o</span> <span class="nx">@handleWelcomeRequest</span>
+      <span class="nx">o</span> <span class="nx">@handleRailsAppWithoutRackupFile</span>
+      <span class="nx">o</span> <span class="nx">@handleLocationNotFound</span>
     <span class="p">]</span>
 
-    <span class="vi">@staticHandlers = </span><span class="p">{}</span>
-    <span class="vi">@rackApplications = </span><span class="p">{}</span>
+    <span class="nx">@staticHandlers</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="nx">@rackApplications</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="nx">@requestCount</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="vi">@accessLog = </span><span class="nx">@configuration</span><span class="p">.</span><span class="nx">getLogger</span> <span class="s2">&quot;access&quot;</span>
+    <span class="nx">@accessLog</span> <span class="o">=</span> <span class="nx">@configuration</span><span class="p">.</span><span class="nx">getLogger</span> <span class="s2">&quot;access&quot;</span>
 
     <span class="nx">@on</span> <span class="s2">&quot;close&quot;</span><span class="p">,</span> <span class="o">=&gt;</span>
       <span class="k">for</span> <span class="nx">root</span><span class="p">,</span> <span class="nx">application</span> <span class="k">of</span> <span class="nx">@rackApplications</span>
-        <span class="nx">application</span><span class="p">.</span><span class="nx">quit</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>The first middleware in the stack logs each incoming request's
+        <span class="nx">application</span><span class="p">.</span><span class="nx">quit</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Gets an object describing the server's current status that can be
+passed to <code>JSON.stringify</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">toJSON: </span><span class="o">-&gt;</span>
+    <span class="nv">pid: </span><span class="nx">process</span><span class="p">.</span><span class="nx">pid</span>
+    <span class="nv">version: </span><span class="nx">version</span>
+    <span class="nv">requestCount: </span><span class="nx">@requestCount</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>The first middleware in the stack logs each incoming request's
 source address, method, hostname, and path to the access log
 (<code>~/Library/Logs/Pow/access.log</code> by default).</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">logRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
     <span class="nx">@accessLog</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;[#{req.socket.remoteAddress}] #{req.method} #{req.headers.host} #{req.url}&quot;</span>
-    <span class="nx">next</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Annotate the request object with a <code>pow</code> property whose value is
+    <span class="nx">@requestCount</span><span class="o">++</span>
+    <span class="nx">next</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>Annotate the request object with a <code>pow</code> property whose value is
 an object that will hold the request's normalized hostname, root
 path, and application, if any. (Only the <code>pow.host</code> property is
-set here.)</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">annotateRequest: </span><span class="nf">(req, res, next) -&gt;</span>
-    <span class="nv">host = </span><span class="nx">req</span><span class="p">.</span><span class="nx">headers</span><span class="p">.</span><span class="nx">host</span><span class="p">.</span><span class="nx">replace</span> <span class="sr">/:.*/</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
-    <span class="nv">req.pow = </span><span class="p">{</span><span class="nx">host</span><span class="p">}</span>
-    <span class="nx">next</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>After the request has been annotated, attempt to match its
+set here.)</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">annotateRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="nx">host</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">headers</span><span class="p">.</span><span class="nx">host</span><span class="o">?</span><span class="p">.</span><span class="nx">replace</span> <span class="sr">/(\.$)|(\.?:.*)/</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
+    <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span> <span class="o">=</span> <span class="p">{</span><span class="nx">host</span><span class="p">}</span>
+    <span class="nx">next</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>Serve requests for status information at <code>http://pow/config.json</code>
+and <code>http://pow/status.json</code>. The former returns a JSON
+representation of the server <code>Configuration</code> instance; the latter
+includes information about the current server version, number of
+requests handled, and process ID. Third-party utilities may use
+these endpoints to inspect a running Pow server.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handlePowRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">host</span> <span class="o">is</span> <span class="s2">&quot;pow&quot;</span>
+
+    <span class="k">switch</span> <span class="nx">req</span><span class="p">.</span><span class="nx">url</span>
+      <span class="k">when</span> <span class="s2">&quot;/config.json&quot;</span>
+        <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span> <span class="mi">200</span>
+        <span class="nx">res</span><span class="p">.</span><span class="nx">end</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span> <span class="nx">@configuration</span>
+      <span class="k">when</span> <span class="s2">&quot;/status.json&quot;</span>
+        <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span> <span class="mi">200</span>
+        <span class="nx">res</span><span class="p">.</span><span class="nx">end</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span> <span class="k">this</span>
+      <span class="k">else</span>
+        <span class="nx">@handleLocationNotFound</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>After the request has been annotated, attempt to match its
 hostname to a Rack application using the server's
 configuration. If an application is found, annotate the request
 object with the application's root path so we can use it further
-down the stack. If no application is found, render an error page
-indicating that the hostname is not yet configured.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">findApplicationRoot: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="nv">resume = </span><span class="nx">pause</span> <span class="nx">req</span>
+down the stack.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">findApplicationRoot: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="nx">resume</span> <span class="o">=</span> <span class="nx">pause</span> <span class="nx">req</span>
 
     <span class="nx">@configuration</span><span class="p">.</span><span class="nx">findApplicationRootForHost</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">host</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">domain</span><span class="p">,</span> <span class="nx">root</span><span class="p">)</span> <span class="o">=&gt;</span>
-      <span class="k">if</span> <span class="nx">err</span>
-        <span class="nx">next</span> <span class="nx">err</span>
-        <span class="nx">resume</span><span class="p">()</span>
+      <span class="k">if</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span> <span class="o">=</span> <span class="nx">root</span>
+        <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">domain</span> <span class="o">=</span> <span class="nx">domain</span>
+        <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">resume</span> <span class="o">=</span> <span class="nx">resume</span>
       <span class="k">else</span>
-        <span class="k">if</span> <span class="nv">req.pow.root = </span><span class="nx">root</span>
-          <span class="nv">req.pow.domain = </span><span class="nx">domain</span>
-          <span class="nv">req.pow.resume = </span><span class="nx">resume</span>
-          <span class="nx">next</span><span class="p">()</span>
-        <span class="k">else</span>
-          <span class="nx">@handleNonexistentDomain</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span>
-          <span class="nx">resume</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>If this is a <code>GET</code> or <code>HEAD</code> request matching a file in the
+        <span class="nx">resume</span><span class="p">()</span>
+      <span class="nx">next</span> <span class="nx">err</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>If this is a <code>GET</code> or <code>HEAD</code> request matching a file in the
 application's <code>public/</code> directory, serve the file directly.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleStaticRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
     <span class="nx">unless</span> <span class="nx">req</span><span class="p">.</span><span class="nx">method</span> <span class="k">in</span> <span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;HEAD&quot;</span><span class="p">]</span>
       <span class="k">return</span> <span class="nx">next</span><span class="p">()</span>
 
-    <span class="nx">unless</span> <span class="nv">root = </span><span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span>
+    <span class="nx">unless</span> <span class="nx">root</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span>
       <span class="k">return</span> <span class="nx">next</span><span class="p">()</span>
 
-    <span class="nv">handler = </span><span class="nx">@staticHandlers</span><span class="p">[</span><span class="nx">root</span><span class="p">]</span> <span class="o">?=</span> <span class="nx">connect</span><span class="p">.</span><span class="nx">static</span> <span class="nx">join</span><span class="p">(</span><span class="nx">root</span><span class="p">,</span> <span class="s2">&quot;public&quot;</span><span class="p">)</span>
-    <span class="nx">handler</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="o">-&gt;</span>
-      <span class="nx">next</span><span class="p">()</span>
-      <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">resume</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>Check to see if the application root contains a <code>config.ru</code>
+    <span class="k">if</span> <span class="nx">req</span><span class="p">.</span><span class="nx">url</span><span class="p">.</span><span class="nx">match</span> <span class="sr">/\.\./</span>
+      <span class="k">return</span> <span class="nx">next</span><span class="p">()</span>
+
+    <span class="nx">handler</span> <span class="o">=</span> <span class="nx">@staticHandlers</span><span class="p">[</span><span class="nx">root</span><span class="p">]</span> <span class="o">?=</span> <span class="nx">connect</span><span class="p">.</span><span class="nx">static</span> <span class="nx">join</span><span class="p">(</span><span class="nx">root</span><span class="p">,</span> <span class="s2">&quot;public&quot;</span><span class="p">)</span>
+    <span class="nx">handler</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>Check to see if the application root contains a <code>config.ru</code>
 file. If it does, find the existing <code>RackApplication</code> instance for
 the root, or create and cache a new one. Then annotate the request
 object with the application so it can be handled by
 <code>handleApplicationRequest</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">findRackApplication: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nv">root = </span><span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span>
+    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">root</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span>
 
     <span class="nx">exists</span> <span class="nx">join</span><span class="p">(</span><span class="nx">root</span><span class="p">,</span> <span class="s2">&quot;config.ru&quot;</span><span class="p">),</span> <span class="p">(</span><span class="nx">rackConfigExists</span><span class="p">)</span> <span class="o">=&gt;</span>
       <span class="k">if</span> <span class="nx">rackConfigExists</span>
-        <span class="nv">req.pow.application = </span><span class="nx">@rackApplications</span><span class="p">[</span><span class="nx">root</span><span class="p">]</span> <span class="o">?=</span>
-          <span class="k">new</span> <span class="nx">RackApplication</span> <span class="nx">@configuration</span><span class="p">,</span> <span class="nx">root</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>If <code>config.ru</code> isn't present but there's an existing
+        <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">application</span> <span class="o">=</span> <span class="nx">@rackApplications</span><span class="p">[</span><span class="nx">root</span><span class="p">]</span> <span class="o">?=</span>
+          <span class="k">new</span> <span class="nx">RackApplication</span> <span class="nx">@configuration</span><span class="p">,</span> <span class="nx">root</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>If <code>config.ru</code> isn't present but there's an existing
 <code>RackApplication</code> for the root, terminate the application and
-remove it from the cache.</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">else</span> <span class="k">if</span> <span class="nv">application = </span><span class="nx">@rackApplications</span><span class="p">[</span><span class="nx">root</span><span class="p">]</span>
+remove it from the cache.</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">else</span> <span class="k">if</span> <span class="nx">application</span> <span class="o">=</span> <span class="nx">@rackApplications</span><span class="p">[</span><span class="nx">root</span><span class="p">]</span>
         <span class="k">delete</span> <span class="nx">@rackApplications</span><span class="p">[</span><span class="nx">root</span><span class="p">]</span>
         <span class="nx">application</span><span class="p">.</span><span class="nx">quit</span><span class="p">()</span>
 
-      <span class="nx">next</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>If the request object is annotated with an application, pass the
-request off to the application's <code>handle</code> method.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleApplicationRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="k">if</span> <span class="nv">application = </span><span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">application</span>
+      <span class="nx">next</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <p>If the request object is annotated with an application, pass the
+request off to the application's <code>handle</code> method.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleApplicationRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="k">if</span> <span class="nx">application</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">application</span>
       <span class="nx">application</span><span class="p">.</span><span class="nx">handle</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">,</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">resume</span>
     <span class="k">else</span>
-      <span class="nx">next</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>If there's an exception thrown while handling a request, show a
-nicely formatted error page along with the full backtrace.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleApplicationException: </span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span>
+      <span class="nx">next</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <p>Serve an empty 200 response for any <code>/favicon.ico</code> requests that
+make it this far.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleFaviconRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">req</span><span class="p">.</span><span class="nx">url</span> <span class="o">is</span> <span class="s2">&quot;/favicon.ico&quot;</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span> <span class="mi">200</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">end</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>Show a friendly message when accessing a hostname that hasn't been
+set up with Pow yet (but only for hosts that the server is
+configured to handle).</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleApplicationNotFound: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="k">if</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span>
 
-    <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span> <span class="mi">500</span><span class="p">,</span> <span class="s2">&quot;Content-Type&quot;</span><span class="o">:</span> <span class="s2">&quot;text/html; charset=utf8&quot;</span><span class="p">,</span> <span class="s2">&quot;X-Pow-Handler&quot;</span><span class="o">:</span> <span class="s2">&quot;ApplicationException&quot;</span>
-    <span class="nx">res</span><span class="p">.</span><span class="nx">end</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">      &lt;!doctype html&gt;</span>
-<span class="s2">      &lt;html&gt;</span>
-<span class="s2">      &lt;head&gt;</span>
-<span class="s2">        &lt;title&gt;Pow: Error Starting Application&lt;/title&gt;</span>
-<span class="s2">        &lt;style&gt;</span>
-<span class="s2">          body {</span>
-<span class="s2">            margin: 0;</span>
-<span class="s2">            padding: 0;</span>
-<span class="s2">          }</span>
-<span class="s2">          h1, h2, pre {</span>
-<span class="s2">            margin: 0;</span>
-<span class="s2">            padding: 15px 30px;</span>
-<span class="s2">          }</span>
-<span class="s2">          h1, h2 {</span>
-<span class="s2">            font-family: Helvetica, sans-serif;</span>
-<span class="s2">          }</span>
-<span class="s2">          h1 {</span>
-<span class="s2">            font-size: 36px;</span>
-<span class="s2">            background: #eeedea;</span>
-<span class="s2">            color: #c00;</span>
-<span class="s2">            border-bottom: 1px solid #999090;</span>
-<span class="s2">          }</span>
-<span class="s2">          h2 {</span>
-<span class="s2">            font-size: 18px;</span>
-<span class="s2">            font-weight: normal;</span>
-<span class="s2">          }</span>
-<span class="s2">        &lt;/style&gt;</span>
-<span class="s2">      &lt;/head&gt;</span>
-<span class="s2">      &lt;body&gt;</span>
-<span class="s2">        &lt;h1&gt;Pow can&amp;rsquo;t start your application.&lt;/h1&gt;</span>
-<span class="s2">        &lt;h2&gt;&lt;code&gt;#{escapeHTML req.pow.root}&lt;/code&gt; raised an exception during boot.&lt;/h2&gt;</span>
-<span class="s2">        &lt;pre&gt;&lt;strong&gt;#{escapeHTML err}&lt;/strong&gt;#{escapeHTML &quot;</span><span class="err">\</span><span class="nx">n</span><span class="s2">&quot; + err.stack}&lt;/pre&gt;</span>
-<span class="s2">      &lt;/body&gt;</span>
-<span class="s2">      &lt;/html&gt;</span>
-<span class="s2">    &quot;&quot;&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>Show a friendly message when accessing a hostname that hasn't been
-set up with Pow yet.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleNonexistentDomain: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="nv">host = </span><span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">host</span>
-    <span class="nv">name = </span><span class="nx">host</span><span class="p">.</span><span class="nx">slice</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">host</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="nx">@configuration</span><span class="p">.</span><span class="nx">domains</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="nv">path = </span><span class="nx">join</span> <span class="nx">@configuration</span><span class="p">.</span><span class="nx">root</span><span class="p">,</span> <span class="nx">name</span>
+    <span class="nx">host</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">host</span>
+    <span class="nx">pattern</span> <span class="o">=</span> <span class="nx">@configuration</span><span class="p">.</span><span class="nx">httpDomainPattern</span>
+    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">domain</span> <span class="o">=</span> <span class="nx">host</span><span class="o">?</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">pattern</span><span class="p">)</span><span class="o">?</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
-    <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span> <span class="mi">503</span><span class="p">,</span> <span class="s2">&quot;Content-Type&quot;</span><span class="o">:</span> <span class="s2">&quot;text/html; charset=utf8&quot;</span><span class="p">,</span> <span class="s2">&quot;X-Pow-Handler&quot;</span><span class="o">:</span> <span class="s2">&quot;NonexistentDomain&quot;</span>
-    <span class="nx">res</span><span class="p">.</span><span class="nx">end</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">      &lt;!doctype html&gt;</span>
-<span class="s2">      &lt;html&gt;</span>
-<span class="s2">      &lt;head&gt;</span>
-<span class="s2">        &lt;title&gt;Pow: No Such Application&lt;/title&gt;</span>
-<span class="s2">        &lt;style&gt;</span>
-<span class="s2">          body {</span>
-<span class="s2">            margin: 0;</span>
-<span class="s2">            padding: 0;</span>
-<span class="s2">          }</span>
-<span class="s2">          h1, h2 {</span>
-<span class="s2">            margin: 0;</span>
-<span class="s2">            padding: 15px 30px;</span>
-<span class="s2">            font-family: Helvetica, sans-serif;</span>
-<span class="s2">          }</span>
-<span class="s2">          h1 {</span>
-<span class="s2">            font-size: 36px;</span>
-<span class="s2">            background: #eeedea;</span>
-<span class="s2">            color: #000;</span>
-<span class="s2">            border-bottom: 1px solid #999090;</span>
-<span class="s2">          }</span>
-<span class="s2">          h2 {</span>
-<span class="s2">            font-size: 18px;</span>
-<span class="s2">            font-weight: normal;</span>
-<span class="s2">          }</span>
-<span class="s2">        &lt;/style&gt;</span>
-<span class="s2">      &lt;/head&gt;</span>
-<span class="s2">      &lt;body&gt;</span>
-<span class="s2">        &lt;h1&gt;This domain isn&amp;rsquo;t set up yet.&lt;/h1&gt;</span>
-<span class="s2">        &lt;h2&gt;Symlink your application to &lt;code&gt;#{escapeHTML path}&lt;/code&gt; first.&lt;/h2&gt;</span>
-<span class="s2">      &lt;/body&gt;</span>
-<span class="s2">      &lt;/html&gt;</span>
-<span class="s2">    &quot;&quot;&quot;</span>
+    <span class="nx">name</span> <span class="o">=</span> <span class="nx">host</span><span class="p">.</span><span class="nx">slice</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">host</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="nx">domain</span><span class="p">.</span><span class="nx">length</span>
+    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">name</span><span class="p">.</span><span class="nx">length</span>
+
+    <span class="nx">renderResponse</span> <span class="nx">res</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="s2">&quot;application_not_found&quot;</span><span class="p">,</span> <span class="p">{</span><span class="nx">name</span><span class="p">,</span> <span class="nx">host</span><span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <p>If the request is for <code>/</code> on an unsupported domain (like
+<code>http://localhost/</code> or <code>http://127.0.0.1/</code>), show a page
+confirming that Pow is installed and running, with instructions on
+how to set up an app.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleWelcomeRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="k">if</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span> <span class="o">or</span> <span class="nx">req</span><span class="p">.</span><span class="nx">url</span> <span class="o">isnt</span> <span class="s2">&quot;/&quot;</span>
+    <span class="p">{</span><span class="nx">domains</span><span class="p">}</span> <span class="o">=</span> <span class="nx">@configuration</span>
+    <span class="nx">domain</span> <span class="o">=</span> <span class="k">if</span> <span class="s2">&quot;dev&quot;</span> <span class="k">in</span> <span class="nx">domains</span> <span class="k">then</span> <span class="s2">&quot;dev&quot;</span> <span class="k">else</span> <span class="nx">domains</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="nx">renderResponse</span> <span class="nx">res</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="s2">&quot;welcome&quot;</span><span class="p">,</span> <span class="p">{</span><span class="nx">version</span><span class="p">,</span> <span class="nx">domain</span><span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <p>If the request is for an app that looks like a Rails 2 app but
+doesn't have a <code>config.ru</code> file, show a more helpful message.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleRailsAppWithoutRackupFile: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">root</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span>
+    <span class="nx">exists</span> <span class="nx">join</span><span class="p">(</span><span class="nx">root</span><span class="p">,</span> <span class="s2">&quot;config/environment.rb&quot;</span><span class="p">),</span> <span class="p">(</span><span class="nx">looksLikeRailsApp</span><span class="p">)</span> <span class="o">-&gt;</span>
+      <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">looksLikeRailsApp</span>
+      <span class="nx">renderResponse</span> <span class="nx">res</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="s2">&quot;rackup_file_missing&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-20">&#182;</a>               </div>               <p>If the request ends up here, it's for a static site, but the
+requested file doesn't exist. Show a basic 404 message.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleLocationNotFound: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span> <span class="mi">404</span><span class="p">,</span> <span class="s2">&quot;Content-Type&quot;</span><span class="o">:</span> <span class="s2">&quot;text/html&quot;</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">end</span> <span class="s2">&quot;&lt;!doctype html&gt;&lt;html&gt;&lt;body&gt;&lt;h1&gt;404 Not Found&lt;/h1&gt;&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-21">&#182;</a>               </div>               <p>If there's an exception thrown while handling a request, show a
+nicely formatted error page along with the full backtrace.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleErrorStartingApplication: </span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">root</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span></pre></div>             </td>           </tr>                               <tr id="section-22">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-22">&#182;</a>               </div>               <p>Replace <code>$HOME</code> with <code>~</code> in backtrace lines.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">home</span> <span class="o">=</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">HOME</span>
+    <span class="nx">stackLines</span> <span class="o">=</span> <span class="k">for</span> <span class="nx">line</span> <span class="k">in</span> <span class="nx">err</span><span class="p">.</span><span class="nx">stack</span><span class="p">.</span><span class="nx">split</span> <span class="s2">&quot;\n&quot;</span>
+      <span class="k">if</span> <span class="nx">line</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">home</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="o">is</span> <span class="nx">home</span>
+        <span class="s2">&quot;~&quot;</span> <span class="o">+</span> <span class="nx">line</span><span class="p">.</span><span class="nx">slice</span> <span class="nx">home</span><span class="p">.</span><span class="nx">length</span>
+      <span class="k">else</span>
+        <span class="nx">line</span></pre></div>             </td>           </tr>                               <tr id="section-23">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-23">&#182;</a>               </div>               <p>Split the backtrace lines into the first five lines and all
+remaining lines, if there are more than 10 lines total.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">if</span> <span class="nx">stackLines</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">10</span>
+      <span class="nx">stack</span> <span class="o">=</span> <span class="nx">stackLines</span><span class="p">.</span><span class="nx">slice</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span>
+      <span class="nx">rest</span> <span class="o">=</span> <span class="nx">stackLines</span><span class="p">.</span><span class="nx">slice</span> <span class="mi">5</span>
+    <span class="k">else</span>
+      <span class="nx">stack</span> <span class="o">=</span> <span class="nx">stackLines</span>
+
+    <span class="nx">renderResponse</span> <span class="nx">res</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="s2">&quot;error_starting_application&quot;</span><span class="p">,</span>
+      <span class="p">{</span><span class="nx">err</span><span class="p">,</span> <span class="nx">root</span><span class="p">,</span> <span class="nx">stack</span><span class="p">,</span> <span class="nx">rest</span><span class="p">}</span>
 
 </pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

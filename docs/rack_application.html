@@ -22,85 +22,109 @@ app with a specific version of Ruby.</p>
 touching the <code>tmp/restart.txt</code> file in the application root), or
 until the application has not served requests for the length of time
 specified in the configuration's <code>timeout</code> option (15 minutes by
-default).</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">async = </span><span class="nx">require</span> <span class="s2">&quot;async&quot;</span>
-<span class="nv">fs    = </span><span class="nx">require</span> <span class="s2">&quot;fs&quot;</span>
-<span class="nv">nack  = </span><span class="nx">require</span> <span class="s2">&quot;nack&quot;</span>
+default).</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">async</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;async&quot;</span>
+<span class="nx">fs</span>    <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;fs&quot;</span>
+<span class="nx">nack</span>  <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;nack&quot;</span>
 
 <span class="p">{</span><span class="nx">bufferLines</span><span class="p">,</span> <span class="nx">pause</span><span class="p">,</span> <span class="nx">sourceScriptEnv</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;./util&quot;</span>
 <span class="p">{</span><span class="nx">join</span><span class="p">,</span> <span class="nx">exists</span><span class="p">,</span> <span class="nx">basename</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;path&quot;</span>
 
-<span class="nv">module.exports = </span><span class="k">class</span> <span class="nx">RackApplication</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>Create a <code>RackApplication</code> for the given configuration and
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="k">class</span> <span class="nx">RackApplication</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>Create a <code>RackApplication</code> for the given configuration and
 root path. The application begins life in the uninitialized
-state.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">constructor: </span><span class="nf">(@configuration, @root) -&gt;</span>
-    <span class="vi">@logger = </span><span class="nx">@configuration</span><span class="p">.</span><span class="nx">getLogger</span> <span class="nx">join</span> <span class="s2">&quot;apps&quot;</span><span class="p">,</span> <span class="nx">basename</span> <span class="nx">@root</span>
-    <span class="vi">@readyCallbacks = </span><span class="p">[]</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>Invoke <code>callback</code> if the application's state is ready. Otherwise,
-queue the callback to be invoked when the application becomes
-ready, then start the initialization process.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">ready: </span><span class="nf">(callback) -&gt;</span>
+state.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">constructor: </span><span class="p">(</span><span class="nx">@configuration</span><span class="p">,</span> <span class="nx">@root</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="nx">@logger</span> <span class="o">=</span> <span class="nx">@configuration</span><span class="p">.</span><span class="nx">getLogger</span> <span class="nx">join</span> <span class="s2">&quot;apps&quot;</span><span class="p">,</span> <span class="nx">basename</span> <span class="nx">@root</span>
+    <span class="nx">@readyCallbacks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="nx">@quitCallbacks</span>  <span class="o">=</span> <span class="p">[]</span>
+    <span class="nx">@statCallbacks</span>  <span class="o">=</span> <span class="p">[]</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>Queue <code>callback</code> to be invoked when the application becomes ready,
+then start the initialization process. If the application's state
+is ready, the callback is invoked immediately.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">ready: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
     <span class="k">if</span> <span class="nx">@state</span> <span class="o">is</span> <span class="s2">&quot;ready&quot;</span>
       <span class="nx">callback</span><span class="p">()</span>
     <span class="k">else</span>
       <span class="nx">@readyCallbacks</span><span class="p">.</span><span class="nx">push</span> <span class="nx">callback</span>
-      <span class="nx">@initialize</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Stat <code>tmp/restart.txt</code> in the application root and invoke the
+      <span class="nx">@initialize</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Tell the application to quit and queue <code>callback</code> to be invoked
+when all workers have exited. If the application has already quit,
+the callback is invoked immediately.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">quit: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="k">if</span> <span class="nx">@state</span>
+      <span class="nx">@quitCallbacks</span><span class="p">.</span><span class="nx">push</span> <span class="nx">callback</span> <span class="k">if</span> <span class="nx">callback</span>
+      <span class="nx">@terminate</span><span class="p">()</span>
+    <span class="k">else</span>
+      <span class="nx">callback</span><span class="o">?</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Stat <code>tmp/restart.txt</code> in the application root and invoke the
 given callback with a single argument indicating whether or not
 the file has been touched since the last call to
-<code>queryRestartFile</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">queryRestartFile: </span><span class="nf">(callback) -&gt;</span>
+<code>queryRestartFile</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">queryRestartFile: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
     <span class="nx">fs</span><span class="p">.</span><span class="nx">stat</span> <span class="nx">join</span><span class="p">(</span><span class="nx">@root</span><span class="p">,</span> <span class="s2">&quot;tmp/restart.txt&quot;</span><span class="p">),</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">stats</span><span class="p">)</span> <span class="o">=&gt;</span>
       <span class="k">if</span> <span class="nx">err</span>
-        <span class="vi">@mtime = </span><span class="kc">null</span>
+        <span class="nx">@mtime</span> <span class="o">=</span> <span class="kc">null</span>
         <span class="nx">callback</span> <span class="kc">false</span>
       <span class="k">else</span>
-        <span class="nv">lastMtime = </span><span class="nx">@mtime</span>
-        <span class="vi">@mtime = </span><span class="nx">stats</span><span class="p">.</span><span class="nx">mtime</span><span class="p">.</span><span class="nx">getTime</span><span class="p">()</span>
-        <span class="nx">callback</span> <span class="nx">lastMtime</span> <span class="o">isnt</span> <span class="nx">@mtime</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Collect environment variables from <code>.powrc</code> and <code>.powenv</code>, in that
+        <span class="nx">lastMtime</span> <span class="o">=</span> <span class="nx">@mtime</span>
+        <span class="nx">@mtime</span> <span class="o">=</span> <span class="nx">stats</span><span class="p">.</span><span class="nx">mtime</span><span class="p">.</span><span class="nx">getTime</span><span class="p">()</span>
+        <span class="nx">callback</span> <span class="nx">lastMtime</span> <span class="o">isnt</span> <span class="nx">@mtime</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Check to see if <code>tmp/always_restart.txt</code> is present in the
+application root, and set the pool's <code>runOnce</code> option
+accordingly. Invoke <code>callback</code> when the existence check has
+finished. (Multiple calls to this method are aggregated.)</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">setPoolRunOnceFlag: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="nx">unless</span> <span class="nx">@statCallbacks</span><span class="p">.</span><span class="nx">length</span>
+      <span class="nx">exists</span> <span class="nx">join</span><span class="p">(</span><span class="nx">@root</span><span class="p">,</span> <span class="s2">&quot;tmp/always_restart.txt&quot;</span><span class="p">),</span> <span class="p">(</span><span class="nx">alwaysRestart</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@pool</span><span class="p">.</span><span class="nx">runOnce</span> <span class="o">=</span> <span class="nx">alwaysRestart</span>
+        <span class="nx">statCallback</span><span class="p">()</span> <span class="k">for</span> <span class="nx">statCallback</span> <span class="k">in</span> <span class="nx">@statCallbacks</span>
+        <span class="nx">@statCallbacks</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="nx">@statCallbacks</span><span class="p">.</span><span class="nx">push</span> <span class="nx">callback</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Collect environment variables from <code>.powrc</code> and <code>.powenv</code>, in that
 order, if present. The idea is that <code>.powrc</code> files can be checked
 into a source code repository for global configuration, leaving
-<code>.powenv</code> free for any necessary local overrides.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">loadScriptEnvironment: </span><span class="nf">(env, callback) -&gt;</span>
-    <span class="nx">async</span><span class="p">.</span><span class="nx">reduce</span> <span class="p">[</span><span class="s2">&quot;.powrc&quot;</span><span class="p">,</span> <span class="s2">&quot;.powenv&quot;</span><span class="p">],</span> <span class="nx">env</span><span class="p">,</span> <span class="p">(</span><span class="nx">env</span><span class="p">,</span> <span class="nx">filename</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
-      <span class="nx">exists</span> <span class="nv">script = </span><span class="nx">join</span><span class="p">(</span><span class="nx">@root</span><span class="p">,</span> <span class="nx">filename</span><span class="p">),</span> <span class="nf">(scriptExists) -&gt;</span>
+<code>.powenv</code> free for any necessary local overrides.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">loadScriptEnvironment: </span><span class="p">(</span><span class="nx">env</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="nx">async</span><span class="p">.</span><span class="nx">reduce</span> <span class="p">[</span><span class="s2">&quot;.powrc&quot;</span><span class="p">,</span> <span class="s2">&quot;.envrc&quot;</span><span class="p">,</span> <span class="s2">&quot;.powenv&quot;</span><span class="p">],</span> <span class="nx">env</span><span class="p">,</span> <span class="p">(</span><span class="nx">env</span><span class="p">,</span> <span class="nx">filename</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="nx">exists</span> <span class="nx">script</span> <span class="o">=</span> <span class="nx">join</span><span class="p">(</span><span class="nx">@root</span><span class="p">,</span> <span class="nx">filename</span><span class="p">),</span> <span class="p">(</span><span class="nx">scriptExists</span><span class="p">)</span> <span class="o">-&gt;</span>
         <span class="k">if</span> <span class="nx">scriptExists</span>
           <span class="nx">sourceScriptEnv</span> <span class="nx">script</span><span class="p">,</span> <span class="nx">env</span><span class="p">,</span> <span class="nx">callback</span>
         <span class="k">else</span>
           <span class="nx">callback</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">env</span>
-    <span class="p">,</span> <span class="nx">callback</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>If <code>.rvmrc</code> and <code>$HOME/.rvm/scripts/rvm</code> are present, load rvm,
+    <span class="p">,</span> <span class="nx">callback</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>If <code>.rvmrc</code> and <code>$HOME/.rvm/scripts/rvm</code> are present, load rvm,
 source <code>.rvmrc</code>, and invoke <code>callback</code> with the resulting
 environment variables. If <code>.rvmrc</code> is present but rvm is not
-installed, invoke <code>callback</code> with an informative error message.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">loadRvmEnvironment: </span><span class="nf">(env, callback) -&gt;</span>
-    <span class="nx">exists</span> <span class="nv">script = </span><span class="nx">join</span><span class="p">(</span><span class="nx">@root</span><span class="p">,</span> <span class="s2">&quot;.rvmrc&quot;</span><span class="p">),</span> <span class="p">(</span><span class="nx">rvmrcExists</span><span class="p">)</span> <span class="o">=&gt;</span>
+installed, invoke <code>callback</code> with an informative error message.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">loadRvmEnvironment: </span><span class="p">(</span><span class="nx">env</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="nx">exists</span> <span class="nx">script</span> <span class="o">=</span> <span class="nx">join</span><span class="p">(</span><span class="nx">@root</span><span class="p">,</span> <span class="s2">&quot;.rvmrc&quot;</span><span class="p">),</span> <span class="p">(</span><span class="nx">rvmrcExists</span><span class="p">)</span> <span class="o">=&gt;</span>
       <span class="k">if</span> <span class="nx">rvmrcExists</span>
-        <span class="nx">exists</span> <span class="nv">rvm = </span><span class="nx">@configuration</span><span class="p">.</span><span class="nx">rvmPath</span><span class="p">,</span> <span class="nf">(rvmExists) -&gt;</span>
+        <span class="nx">exists</span> <span class="nx">rvm</span> <span class="o">=</span> <span class="nx">@configuration</span><span class="p">.</span><span class="nx">rvmPath</span><span class="p">,</span> <span class="p">(</span><span class="nx">rvmExists</span><span class="p">)</span> <span class="o">-&gt;</span>
           <span class="k">if</span> <span class="nx">rvmExists</span>
-            <span class="nv">before = </span><span class="s2">&quot;source &#39;#{rvm}&#39; &gt; /dev/null&quot;</span>
+            <span class="nx">before</span> <span class="o">=</span> <span class="s2">&quot;source &#39;#{rvm}&#39; &gt; /dev/null&quot;</span>
             <span class="nx">sourceScriptEnv</span> <span class="nx">script</span><span class="p">,</span> <span class="nx">env</span><span class="p">,</span> <span class="p">{</span><span class="nx">before</span><span class="p">},</span> <span class="nx">callback</span>
           <span class="k">else</span>
             <span class="nx">callback</span> <span class="nb">Error</span> <span class="s2">&quot;.rvmrc present but rvm (#{rvm}) not found&quot;</span>
       <span class="k">else</span>
-        <span class="nx">callback</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">env</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Stat <code>tmp/restart.txt</code> to cache its mtime, then load the
+        <span class="nx">callback</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">env</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>Stat <code>tmp/restart.txt</code> to cache its mtime, then load the
 application's full environment from <code>.powrc</code>, <code>.powenv</code>, and
-<code>.rvmrc</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">loadEnvironment: </span><span class="nf">(callback) -&gt;</span>
+<code>.rvmrc</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">loadEnvironment: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
     <span class="nx">@queryRestartFile</span> <span class="o">=&gt;</span>
       <span class="nx">@loadScriptEnvironment</span> <span class="kc">null</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">env</span><span class="p">)</span> <span class="o">=&gt;</span>
         <span class="k">if</span> <span class="nx">err</span> <span class="k">then</span> <span class="nx">callback</span> <span class="nx">err</span>
         <span class="k">else</span> <span class="nx">@loadRvmEnvironment</span> <span class="nx">env</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">env</span><span class="p">)</span> <span class="o">=&gt;</span>
           <span class="k">if</span> <span class="nx">err</span> <span class="k">then</span> <span class="nx">callback</span> <span class="nx">err</span>
-          <span class="k">else</span> <span class="nx">callback</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">env</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Begin the initialization process if the application is in the
-uninitialized state.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">initialize: </span><span class="o">-&gt;</span>
-    <span class="k">return</span> <span class="k">if</span> <span class="nx">@state</span>
-    <span class="vi">@state = </span><span class="s2">&quot;initializing&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>Load the application's environment. If an error is raised or
+          <span class="k">else</span> <span class="nx">callback</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">env</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>Begin the initialization process if the application is in the
+uninitialized state. (If the application is terminating, queue a
+call to <code>initialize</code> after all workers have exited.)</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">initialize: </span><span class="o">-&gt;</span>
+    <span class="k">if</span> <span class="nx">@state</span>
+      <span class="k">if</span> <span class="nx">@state</span> <span class="o">is</span> <span class="s2">&quot;terminating&quot;</span>
+        <span class="nx">@quit</span> <span class="o">=&gt;</span> <span class="nx">@initialize</span><span class="p">()</span>
+      <span class="k">return</span>
+
+    <span class="nx">@state</span> <span class="o">=</span> <span class="s2">&quot;initializing&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>Load the application's environment. If an error is raised or
 either of the environment scripts exits with a non-zero status,
 reset the application's state and log the error.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">@loadEnvironment</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">env</span><span class="p">)</span> <span class="o">=&gt;</span>
       <span class="k">if</span> <span class="nx">err</span>
-        <span class="vi">@state = </span><span class="kc">null</span>
+        <span class="nx">@state</span> <span class="o">=</span> <span class="kc">null</span>
         <span class="nx">@logger</span><span class="p">.</span><span class="nx">error</span> <span class="nx">err</span><span class="p">.</span><span class="nx">message</span>
         <span class="nx">@logger</span><span class="p">.</span><span class="nx">error</span> <span class="s2">&quot;stdout: #{err.stdout}&quot;</span>
-        <span class="nx">@logger</span><span class="p">.</span><span class="nx">error</span> <span class="s2">&quot;stderr: #{err.stderr}&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>Set the application's state to ready. Then create the Nack
+        <span class="nx">@logger</span><span class="p">.</span><span class="nx">error</span> <span class="s2">&quot;stderr: #{err.stderr}&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>Set the application's state to ready. Then create the Nack
 pool instance using the <code>workers</code> and <code>timeout</code> options from
 the application's configuration.</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">else</span>
-        <span class="vi">@state = </span><span class="s2">&quot;ready&quot;</span>
+        <span class="nx">@state</span> <span class="o">=</span> <span class="s2">&quot;ready&quot;</span>
 
-        <span class="vi">@pool = </span><span class="nx">nack</span><span class="p">.</span><span class="nx">createPool</span> <span class="nx">join</span><span class="p">(</span><span class="nx">@root</span><span class="p">,</span> <span class="s2">&quot;config.ru&quot;</span><span class="p">),</span>
+        <span class="nx">@pool</span> <span class="o">=</span> <span class="nx">nack</span><span class="p">.</span><span class="nx">createPool</span> <span class="nx">join</span><span class="p">(</span><span class="nx">@root</span><span class="p">,</span> <span class="s2">&quot;config.ru&quot;</span><span class="p">),</span>
           <span class="nv">env: </span> <span class="nx">env</span>
           <span class="nv">size: </span><span class="nx">@configuration</span><span class="p">.</span><span class="nx">workers</span>
-          <span class="nv">idle: </span><span class="nx">@configuration</span><span class="p">.</span><span class="nx">timeout</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>Log the workers' stderr and stdout, and log each worker's
+          <span class="nv">idle: </span><span class="nx">@configuration</span><span class="p">.</span><span class="nx">timeout</span> <span class="o">*</span> <span class="mi">1000</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>Log the workers' stderr and stdout, and log each worker's
 PID as it spawns and exits.</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">bufferLines</span> <span class="nx">@pool</span><span class="p">.</span><span class="nx">stdout</span><span class="p">,</span> <span class="p">(</span><span class="nx">line</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">@logger</span><span class="p">.</span><span class="nx">info</span> <span class="nx">line</span>
         <span class="nx">bufferLines</span> <span class="nx">@pool</span><span class="p">.</span><span class="nx">stderr</span><span class="p">,</span> <span class="p">(</span><span class="nx">line</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">@logger</span><span class="p">.</span><span class="nx">warning</span> <span class="nx">line</span>
 
@@ -108,43 +132,44 @@ PID as it spawns and exits.</p>             </td>             <td class="code"> 
           <span class="nx">@logger</span><span class="p">.</span><span class="nx">debug</span> <span class="s2">&quot;nack worker #{process.child.pid} spawned&quot;</span>
 
         <span class="nx">@pool</span><span class="p">.</span><span class="kc">on</span> <span class="s2">&quot;worker:exit&quot;</span><span class="p">,</span> <span class="p">(</span><span class="nx">process</span><span class="p">)</span> <span class="o">=&gt;</span>
-          <span class="nx">@logger</span><span class="p">.</span><span class="nx">debug</span> <span class="s2">&quot;nack worker exited&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>Invoke and remove all queued callbacks, passing along the
+          <span class="nx">@logger</span><span class="p">.</span><span class="nx">debug</span> <span class="s2">&quot;nack worker exited&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>Invoke and remove all queued callbacks, passing along the
 error, if any.</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nx">readyCallback</span> <span class="nx">err</span> <span class="k">for</span> <span class="nx">readyCallback</span> <span class="k">in</span> <span class="nx">@readyCallbacks</span>
-      <span class="vi">@readyCallbacks = </span><span class="p">[]</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>Handle an incoming HTTP request. Wait until the application is in
+      <span class="nx">@readyCallbacks</span> <span class="o">=</span> <span class="p">[]</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <p>Begin the termination process. (If the application is initializing,
+wait until it is ready before shutting down.)</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">terminate: </span><span class="o">-&gt;</span>
+    <span class="k">if</span> <span class="nx">@state</span> <span class="o">is</span> <span class="s2">&quot;initializing&quot;</span>
+      <span class="nx">@ready</span> <span class="o">=&gt;</span> <span class="nx">@terminate</span><span class="p">()</span>
+
+    <span class="k">else</span> <span class="k">if</span> <span class="nx">@state</span> <span class="o">is</span> <span class="s2">&quot;ready&quot;</span>
+      <span class="nx">@state</span> <span class="o">=</span> <span class="s2">&quot;terminating&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <p>Instruct all workers to exit. After the processes have
+terminated, reset the application's state, then invoke and
+remove all queued callbacks.</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nx">@pool</span><span class="p">.</span><span class="nx">quit</span> <span class="o">=&gt;</span>
+        <span class="nx">@state</span> <span class="o">=</span> <span class="kc">null</span>
+        <span class="nx">@mtime</span> <span class="o">=</span> <span class="kc">null</span>
+        <span class="nx">@pool</span> <span class="o">=</span> <span class="kc">null</span>
+
+        <span class="nx">quitCallback</span><span class="p">()</span> <span class="k">for</span> <span class="nx">quitCallback</span> <span class="k">in</span> <span class="nx">@quitCallbacks</span>
+        <span class="nx">@quitCallbacks</span> <span class="o">=</span> <span class="p">[]</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>Handle an incoming HTTP request. Wait until the application is in
 the ready state, restart the workers if necessary, then pass the
 request along to the Nack pool. If the Nack worker raises an
-exception handling the request, reset the application.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handle: </span><span class="nf">(req, res, next, callback) -&gt;</span>
-    <span class="nv">resume = </span><span class="nx">pause</span> <span class="nx">req</span>
+exception handling the request, reset the application.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handle: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="nx">resume</span> <span class="o">=</span> <span class="nx">pause</span> <span class="nx">req</span>
     <span class="nx">@ready</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="o">=&gt;</span>
       <span class="k">return</span> <span class="nx">next</span> <span class="nx">err</span> <span class="k">if</span> <span class="nx">err</span>
-      <span class="nx">@restartIfNecessary</span> <span class="o">=&gt;</span>
-        <span class="nv">req.proxyMetaVariables =</span>
-          <span class="nv">SERVER_PORT: </span><span class="nx">@configuration</span><span class="p">.</span><span class="nx">dstPort</span><span class="p">.</span><span class="nx">toString</span><span class="p">()</span>
-        <span class="k">try</span>
-          <span class="nx">@pool</span><span class="p">.</span><span class="nx">proxy</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="o">=&gt;</span>
-            <span class="nx">@reset</span><span class="p">()</span> <span class="k">if</span> <span class="nx">err</span>
-            <span class="nx">next</span> <span class="nx">err</span>
-        <span class="k">finally</span>
-          <span class="nx">resume</span><span class="p">()</span>
-          <span class="nx">callback</span><span class="o">?</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>Reset the application's state if it's ready, and invoke the given
-callback when all its Nack workers have terminated.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">reset: </span><span class="nf">(callback) -&gt;</span>
-    <span class="k">if</span> <span class="nx">@state</span> <span class="o">is</span> <span class="s2">&quot;ready&quot;</span>
-      <span class="nx">@quit</span> <span class="nx">callback</span>
-      <span class="vi">@pool = </span><span class="kc">null</span>
-      <span class="vi">@mtime = </span><span class="kc">null</span>
-      <span class="vi">@state = </span><span class="kc">null</span>
-    <span class="k">else</span>
-      <span class="nx">callback</span><span class="o">?</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <p>Terminate any active Nack workers and invoke the given callback
-when they exit.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">quit: </span><span class="nf">(callback) -&gt;</span>
-    <span class="k">if</span> <span class="nx">@state</span> <span class="o">is</span> <span class="s2">&quot;ready&quot;</span>
-      <span class="nx">@pool</span><span class="p">.</span><span class="nx">once</span> <span class="s2">&quot;exit&quot;</span><span class="p">,</span> <span class="nx">callback</span> <span class="k">if</span> <span class="nx">callback</span>
-      <span class="nx">@pool</span><span class="p">.</span><span class="nx">quit</span><span class="p">()</span>
-    <span class="k">else</span>
-      <span class="nx">process</span><span class="p">.</span><span class="nx">nextTick</span> <span class="nx">callback</span> <span class="k">if</span> <span class="nx">callback</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <p>Reset the application, re-initialize it, and invoke the given
-callback when the application's state becomes ready.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">restart: </span><span class="nf">(callback) -&gt;</span>
-    <span class="nx">@reset</span> <span class="o">=&gt;</span>
-      <span class="nx">@ready</span> <span class="nx">callback</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>Restart the application if <code>tmp/restart.txt</code> has been touched
-since the last call to this function.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">restartIfNecessary: </span><span class="nf">(callback) -&gt;</span>
+      <span class="nx">@setPoolRunOnceFlag</span> <span class="o">=&gt;</span>
+        <span class="nx">@restartIfNecessary</span> <span class="o">=&gt;</span>
+          <span class="nx">req</span><span class="p">.</span><span class="nx">proxyMetaVariables</span> <span class="o">=</span>
+            <span class="nv">SERVER_PORT: </span><span class="nx">@configuration</span><span class="p">.</span><span class="nx">dstPort</span><span class="p">.</span><span class="nx">toString</span><span class="p">()</span>
+          <span class="k">try</span>
+            <span class="nx">@pool</span><span class="p">.</span><span class="nx">proxy</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="o">=&gt;</span>
+              <span class="nx">@quit</span><span class="p">()</span> <span class="k">if</span> <span class="nx">err</span>
+              <span class="nx">next</span> <span class="nx">err</span>
+          <span class="k">finally</span>
+            <span class="nx">resume</span><span class="p">()</span>
+            <span class="nx">callback</span><span class="o">?</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <p>Terminate the application, re-initialize it, and invoke the given
+callback when the application's state becomes ready.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">restart: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="nx">@quit</span> <span class="o">=&gt;</span>
+      <span class="nx">@ready</span> <span class="nx">callback</span></pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <p>Restart the application if <code>tmp/restart.txt</code> has been touched
+since the last call to this function.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">restartIfNecessary: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">-&gt;</span>
     <span class="nx">@queryRestartFile</span> <span class="p">(</span><span class="nx">mtimeChanged</span><span class="p">)</span> <span class="o">=&gt;</span>
       <span class="k">if</span> <span class="nx">mtimeChanged</span>
         <span class="nx">@restart</span> <span class="nx">callback</span>

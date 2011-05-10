@@ -10,7 +10,7 @@
   <div class="container">
     <p class="back">&larr; <a href="/">Back to the main page</a></p>
 
-<!--begin--><h1>Pow: Zero-configuration Rack server for Mac OS X</h1>
+<!--begin--><h1>Pow User's Manual</h1>
 
 <p><strong>Pow is a zero-configuration Rack server for Mac OS X.</strong> It makes
 developing Rails and Rack applications as frictionless as
@@ -40,7 +40,46 @@ $ ln -s ~/Projects/myapp
 you use (<code>myapp.dev</code>) to access the application it points to
 (<code>~/Projects/myapp</code>).</p>
 
-<h2>Installation</h2>
+<hr />
+
+<ul>
+<li><a href="#section_1">1 Installation</a>
+<ul>
+<li><a href="#section_1.1">1.1 Installing From Source</a></li>
+<li><a href="#section_1.2">1.2 Uninstalling Pow</a></li>
+</ul></li>
+<li><a href="#section_2">2 Managing Applications</a>
+<ul>
+<li><a href="#section_2.1">2.1 Using Virtual Hosts and the .dev Domain</a>
+<ul>
+<li><a href="#section_2.1.1">2.1.1 Subdomains</a></li>
+<li><a href="#section_2.1.2">2.1.2 Multiple Virtual Hosts</a></li>
+<li><a href="#section_2.1.3">2.1.3 The Default Virtual Host</a></li>
+</ul></li>
+<li><a href="#section_2.2">2.2 Customizing Environment Variables</a>
+<ul>
+<li><a href="#section_2.2.1">2.2.1 Choosing the Right Environment Script</a></li>
+</ul></li>
+<li><a href="#section_2.3">2.3 Working With Different Versions of Ruby</a></li>
+<li><a href="#section_2.4">2.4 Serving Static Files</a></li>
+<li><a href="#section_2.5">2.5 Restarting Applications</a>
+<ul>
+<li><a href="#section_2.5.1">2.5.1 Restarting Before Every Request</a></li>
+</ul></li>
+<li><a href="#section_2.6">2.6 Viewing Log Files</a></li>
+</ul></li>
+<li><a href="#section_3">3 Configuring Pow</a>
+<ul>
+<li><a href="#section_3.1">3.1 Configuring Top-Level Domains</a></li>
+<li><a href="#section_3.2">3.2 Reading the Current Configuration</a></li>
+</ul></li>
+<li><a href="#section_4">4 Third-Party Tools</a></li>
+<li><a href="#section_5">5 Contributing</a></li>
+<li><a href="#section_6">6 Version History</a></li>
+<li><a href="#section_7">7 License</a></li>
+</ul>
+
+<h2><a name="section_1">1</a> Installation</h2>
 
 <p>Pow requires Mac OS X version 10.6 or newer. To install or upgrade
 Pow, just open a terminal and run this command:</p>
@@ -66,7 +105,22 @@ set up the <code>ipfw</code> rule), if necessary. Then it boots the server.</p>
   disabling the firewall rule or updating that server's configuration
   to listen on another port.</p>
 
-<h3>Uninstalling Pow</h3>
+<h3><a name="section_1.1">1.1</a> Installing From Source</h3>
+
+<p>To install Pow from source, you'll need Node 0.4 and npm 1.0:</p>
+
+<pre><code>$ git clone https://github.com/37signals/pow.git
+$ cd pow
+$ npm --global install
+$ npm --global run-script pow restart
+</code></pre>
+
+<p>For detailed instructions on installing Pow from source, including
+instructions on how to install Node and npm, see the
+<a href="https://github.com/37signals/pow/wiki/Installation">Installation</a>
+wiki page.</p>
+
+<h3><a name="section_1.2">1.2</a> Uninstalling Pow</h3>
 
 <p>If you decide Pow's not for you, uninstallation is just as easy:</p>
 
@@ -75,7 +129,7 @@ set up the <code>ipfw</code> rule), if necessary. Then it boots the server.</p>
 
 <p>(<a href="http://get.pow.cx/uninstall.sh">Review the uninstall script</a>.)</p>
 
-<h2>Managing Applications</h2>
+<h2><a name="section_2">2</a> Managing Applications</h2>
 
 <p>Pow deals exclusively with Rack applications. For the purposes of this
 document, a <em>Rack application</em> is a directory with a <code>config.ru</code>
@@ -88,7 +142,7 @@ time it's accessed, and will keep up to two workers running for each
 application. Workers are automatically terminated after 15 minutes of
 inactivity.</p>
 
-<h3>Using virtual hosts and the .dev domain</h3>
+<h3><a name="section_2.1">2.1</a> Using Virtual Hosts and the .dev Domain</h3>
 
 <p>A <em>virtual host</em> specifies a mapping between a hostname and an
 application. To install a virtual host, symlink a Rack application
@@ -100,7 +154,7 @@ symlink named <code>myapp</code> will be accessible at <code>http://myapp.dev/</
   to <code>~/Library/Application Support/Pow/Hosts</code>, the actual location
   from which virtual host symlinks are read.</p>
 
-<h4>Subdomains</h4>
+<h4><a name="section_2.1.1">2.1.1</a> Subdomains</h4>
 
 <p>Once a virtual host is installed, it's also automatically accessible
 from all subdomains of the named host. For example, the <code>myapp</code>
@@ -110,14 +164,26 @@ override this behavior to, say, point <code>www.myapp.dev</code> to a different
 application &mdash; just create another virtual host symlink named
 <code>www.myapp</code> for the application you want.</p>
 
-<h4>Multiple virtual hosts</h4>
+<h4><a name="section_2.1.2">2.1.2</a> Multiple Virtual Hosts</h4>
 
 <p>You might want to serve the same application from multiple hostnames.
 In Pow, an application may have more than one virtual host. Multiple
 symlinks that point to the same application will share the same worker
 processes.</p>
 
-<h3>Customizing environment variables</h3>
+<h4><a name="section_2.1.3">2.1.3</a> The Default Virtual Host</h4>
+
+<p>If you attempt to access a domain that Pow doesn't understand, like
+<code>http://localhost/</code>, you'll see a page letting you know that Pow is
+installed and working correctly, with instructions on how to set up an
+application.</p>
+
+<p>You can override this behavior to serve all requests for unhandled
+domains with a particular Rack application. Create a symlink in
+<code>~/.pow</code> named <code>default</code> and point it to the application of your
+choice.</p>
+
+<h3><a name="section_2.2">2.2</a> Customizing Environment Variables</h3>
 
 <p>Pow lets you customize the environment in which worker processes
 run. Before an application boots, Pow attempts to execute two scripts
@@ -131,7 +197,7 @@ particular application, you could modify <code>RUBYLIB</code> in <code>.powrc</c
 <pre><code>export RUBYLIB="app:lib:$RUBYLIB"
 </code></pre>
 
-<h4>Choosing the right environment script</h4>
+<h4><a name="section_2.2.1">2.2.1</a> Choosing the Right Environment Script</h4>
 
 <p>Pow supports two separate environment scripts with the intention that
 one may be checked into your source control repository, leaving the
@@ -139,7 +205,7 @@ other free for any local overrides. If this sounds like something you
 need, you'll want to keep <code>.powrc</code> under version control, since it's
 loaded first.</p>
 
-<h3>Working with different versions of Ruby</h3>
+<h3><a name="section_2.3">2.3</a> Working With Different Versions of Ruby</h3>
 
 <p>Pow offers full support for running multiple applications under
 different versions of Ruby with
@@ -148,7 +214,8 @@ different versions of Ruby with
 file to your application's root directory and you're good to go.</p>
 
 <p>For example, to instruct Pow to run an application with Ruby 1.9.2,
-use this <code>.rvmrc</code> file:</p>
+use this <code>.rvmrc</code> file (assuming you've already installed 1.9.2 with
+<code>rvm install 1.9.2</code>):</p>
 
 <pre><code>rvm 1.9.2
 </code></pre>
@@ -156,13 +223,13 @@ use this <code>.rvmrc</code> file:</p>
 <p>If an application has an <code>.rvmrc</code> file but rvm isn't installed, Pow
 will show an error message without booting the app.</p>
 
-<h3>Serving static files</h3>
+<h3><a name="section_2.4">2.4</a> Serving Static Files</h3>
 
 <p>Pow automatically serves static files in the <code>public</code> directory of
 your application. It's possible to serve a completely static site
 without a <code>config.ru</code> file as long as it has a <code>public</code> directory.</p>
 
-<h3>Restarting applications</h3>
+<h3><a name="section_2.5">2.5</a> Restarting Applications</h3>
 
 <p>You can tell Pow to restart an application the next time it's
 accessed. Simply save a file named <code>restart.txt</code> in the <code>tmp</code>
@@ -187,7 +254,21 @@ Process." (You can click "Inspect" on a worker process and choose
 "Open Files and Ports" to determine which application the process is
 serving.)</p>
 
-<h3>Viewing log files</h3>
+<h4><a name="section_2.5.1">2.5.1</a> Restarting Before Every Request</h4>
+
+<p>It can be useful during development to reload your application with
+each request, and frameworks like Rails will handle such reloading for
+you. For pure Rack apps, or when using frameworks like Sinatra that
+don't manage code reloading, Pow can help.</p>
+
+<p>If the <code>tmp/always_restart.txt</code> file is present in your application's
+root, Pow will automatically reload the application before each request.</p>
+
+<p><strong>Note</strong>: <code>tmp/always_restart.txt</code> will only reload the application,
+   <em>not</em> its environment scripts. To reload <code>.powrc</code>, <code>.powenv</code>, or
+   <code>.rvmrc</code>, you must touch <code>tmp/restart.txt</code> first.</p>
+
+<h3><a name="section_2.6">2.6</a> Viewing Log Files</h3>
 
 <p>Pow stores log files in the <code>~/Library/Logs/Pow</code> directory so they can
 be viewed easily with OS X's Console application. Each incoming
@@ -197,20 +278,23 @@ process are captured and logged to the <code>apps</code> directory in a file
 matching the name of the application.</p>
 
 <p><strong>Note</strong>: Rails logger output does not appear in Pow's logs. You'll
-  want to <code>tail -f log/development.log</code> to see those.</p>
+  want to <code>tail -f log/development.log</code> to see those entries.</p>
 
-<h2>Configuring Pow</h2>
+<h2><a name="section_3">3</a> Configuring Pow</h2>
 
 <p>Pow is designed so that most people will never need to configure
-it. Sometimes you can't avoid having to adjust a setting or two,
-though. When Pow boots, it executes the <code>.powconfig</code> script in your
-home directory if it's present. You can use this script to set
+it. Sometimes, though, you can't avoid having to adjust a setting or
+two.</p>
+
+<p>When Pow boots, it executes the <code>.powconfig</code> script in your
+home directory if it's present. You can use this script to export
 environment variables that will override Pow's default settings.</p>
 
 <p>For example, this <code>~/.powconfig</code> file tells Pow to kill idle
-applications after 5 minutes (300,000 ms) and spawn 3 workers per app:</p>
+applications after 5 minutes (300 seconds) and spawn 3 workers per
+app:</p>
 
-<pre><code>export POW_TIMEOUT=300000
+<pre><code>export POW_TIMEOUT=300
 export POW_WORKERS=3
 </code></pre>
 
@@ -223,7 +307,87 @@ full list of settings that you can change.</p>
   finding the <code>pow</code> process in OS X's Activity Monitor and clicking
   "Quit Process".</p>
 
-<h2>Contributing</h2>
+<h3><a name="section_3.1">3.1</a> Configuring Top-Level Domains</h3>
+
+<p>The <code>POW_DOMAINS</code> environment variable specifies a comma-separated
+list of top-level domains for which Pow will serve DNS queries and
+HTTP requests. The default value for this list is a single domain,
+<code>dev</code>, meaning Pow will configure your system to resolve <code>*.dev</code> to
+127.0.0.1 and serve apps in <code>~/.pow</code> under the <code>.dev</code> domain.</p>
+
+<p>You can add additional domains to <code>POW_DOMAINS</code>:</p>
+
+<pre><code>export POW_DOMAINS=dev,test
+</code></pre>
+
+<p>If you want Pow to serve apps under additional top-level domains, but
+not serve DNS queries for those domains, use the <code>POW_EXT_DOMAINS</code>
+variable. Entries in <code>POW_EXT_DOMAINS</code> will not be configured with the
+system resolver, so you must make sure they point to your computer by
+other means.</p>
+
+<p><strong>Note</strong>: If you change the value of <code>POW_DOMAINS</code>, you must reinstall
+  Pow using <code>curl get.pow.cx | sh</code>. This is because the relevant files in
+  <code>/etc/resolver/</code> are created at install time.</p>
+
+<p><strong>WARNING</strong>: Adding top-level domains like ".com" to <code>POW_DOMAINS</code> can
+  be hazardous to your health! In the (likely) event that at some
+  point you lock yourself out of these domains, you will be unable to
+  reach important remote addresses like github.com (where you can find
+  the source code) and S3 (where Pow's installation and uninstallation
+  scripts are hosted). Do not panic! Delete the files Pow has created
+  in <code>/etc/resolver/</code> and DNS activity will return to normal. (You can
+  safely use <code>POW_EXT_DOMAINS</code> for these domains instead.)</p>
+
+<h3><a name="section_3.2">3.2</a> Reading the Current Configuration</h3>
+
+<p>If you are writing software that interfaces with Pow, you can inspect
+the running server's status and configuration via HTTP. To access this
+information, open a connection to <code>localhost</code> and issue a <code>GET</code>
+request with the header <code>Host: pow</code>. The available endponts are:</p>
+
+<ul>
+<li><code>/status.json</code>: A JSON-encoded object containing the current Pow
+server's process ID, version string, and the number of requests it's
+handled since it started.</li>
+<li><code>/config.json</code>: A JSON-encoded object representing the running
+server's <a href="http://pow.cx/docs/configuration.html">configuration</a>.</li>
+</ul>
+
+<p>Example of requesting an endpoint with <code>curl</code>:</p>
+
+<pre><code>$ curl -H host:pow localhost/status.json
+</code></pre>
+
+<p>Alternatively, if you know the path to the Pow binary, you can
+generate an <code>eval</code>-safe version of the local configuration by invoking
+Pow with the <code>--print-config</code> option (useful for shell scripts):</p>
+
+<pre><code>$ eval $(~/Library/Application\ Support/Pow/Current/bin/pow \
+    --print-config)
+$ echo $POW_TIMEOUT
+900
+</code></pre>
+
+<h2><a name="section_4">4</a> Third-Party Tools</h2>
+
+<ul>
+<li><p><a href="https://github.com/Rodreegez/powder">Powder</a> is "syntactic sugar
+for Pow." Install the gem (<code>gem install powder</code>) and you'll get a
+<code>powder</code> command-line utility that makes it easier to add
+applications, tail your log files, and restart Pow. See the <a href="https://github.com/Rodreegez/powder#readme">Powder
+readme</a> for more
+examples of what it can do.</p></li>
+<li><p><a href="http://showoff.io/">Showoff</a> is "the easiest way to share localhost
+over the web." It creates a tunnel between your computer and the
+Showoff server, then gives you a publicly accessible URL so others
+can see the app or site you're working on. Showoff supports Pow's
+virtual hosts &mdash; install the gem via <code>gem install showoff-io</code>,
+then run <code>show dev.</code> (with the trailing dot). Your Pow apps will be
+accessible at <code>http://yourappname.yourname.showoff.io/</code>.</p></li>
+</ul>
+
+<h2><a name="section_5">5</a> Contributing</h2>
 
 <p>Pow is written in <a href="http://nodejs.org/">Node.js</a> with
 <a href="http://jashkenas.github.com/coffee-script/">CoffeeScript</a>. You can
@@ -231,25 +395,51 @@ read the <a href="http://pow.cx/docs/">annotated source code</a> to learn about
 how it works internally. Please report bugs on the <a href="https://github.com/37signals/pow/issues">GitHub issue
 tracker</a>.</p>
 
-<p>If you're interested in contributing to Pow, first start by cloning a
-copy of the Git repository:</p>
+<p>If you're interested in contributing to Pow, first start by
+<a href="https://github.com/37signals/pow/wiki/Installation">installing Pow from
+source</a>.</p>
 
-<pre><code>$ git clone https://github.com/37signals/pow.git
-</code></pre>
-
-<p>Install the required JavaScript dependencies with
-<a href="http://npmjs.org/">npm</a> (you'll need version 1.0 or higher):</p>
-
-<pre><code>$ cd pow
-$ npm install --dev
-</code></pre>
-
-<p>Run the test suite:</p>
+<p>Make your changes and use <code>cake</code> to run the test suite:</p>
 
 <pre><code>$ cake test
 </code></pre>
 
-<h2>License</h2>
+<p>Then submit a pull request on GitHub. Your patch is more likely to be
+merged if it's well-documented and well-tested. Read through the
+<a href="https://github.com/37signals/pow/issues?state=closed">closed issues</a>
+to get a feel for what's already been proposed and what a good patch
+looks like.</p>
+
+<h2><a name="section_6">6</a> Version History</h2>
+
+<ul>
+<li><p><strong>0.3.0</strong> (May 10, 2011): The installation script now performs a
+self-test and attempts to reload the system network configuration
+if DNS resolution fails. Configuration files are installed as mode
+<code>0644</code>, and <code>launchctl load</code> is invoked with the <code>-Fw</code> flags.  The
+uninstallation script now works with older versions of iTerm and
+removes installed files from <code>/etc/resolver</code>. Pow can be
+configured to serve requests for unknown virtual hosts by using
+creating a special catch-all symlink named <code>default</code> in <code>~/.pow</code>.
+If the <code>tmp/always_restart.txt</code> file is present in an application,
+Pow will restart it before every request (useful with bare Rack
+apps or frameworks like Sinatra that don't manage code
+reloading). <code>POW_TIMEOUT</code> is now specified in seconds instead of
+milliseconds, and a new <code>POW_EXT_DOMAINS</code> option defines a list of
+top-level domains that Pow will handle (but not serve DNS requests
+for). Requests without a <code>Host:</code> header no longer raise an
+exception, and URLs with <code>..</code> are now properly passed through to
+the Rack application. Error messages have been redesigned to
+include links to the manual and wiki. A more helpful error message
+has been added for Rails 2.3 apps without a <code>config.ru</code> file. You
+can print the full Pow configuration in shell format with <code>pow
+--print-config</code>, and third-party apps can request information
+about the running Pow server via the <code>http://pow/config.json</code> and
+<code>http://pow/status.json</code> endpoints.</p></li>
+<li><p><strong>0.2.2</strong> (April 7, 2011): Initial public release.</p></li>
+</ul>
+
+<h2><a name="section_7">7</a> License</h2>
 
 <p>(The MIT License)</p>
 

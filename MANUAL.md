@@ -224,8 +224,8 @@ full list of settings that you can change.
   "Quit Process".
 
 **Note**: If you change the value of `POW_DOMAINS`, you must reinstall
-  Pow using `curl gx.get.pow | sh`. This is because the relevant files
-  in `/etc/resolver/` are created at install time.
+  Pow using `curl get.pow.cx | sh`. This is because the relevant files in
+  `/etc/resolver/` are created at install time.
 
 **WARNING**: Adding top level domains like ".com" to `POW_DOMAINS`
   can be hazardous to your health! In the (likely) event that at some

@@ -348,7 +348,7 @@ looks like.
 
 ## Version History ##
 
-* **0.3.0** (unreleased): The installation script now performs a
+* **0.3.0** (May 10, 2011): The installation script now performs a
     self-test and attempts to reload the system network configuration
     if DNS resolution fails. Configuration files are installed as mode
     `0644`, and `launchctl load` is invoked with the `-Fw` flags.  The

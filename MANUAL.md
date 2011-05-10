@@ -282,6 +282,30 @@ other means.
   in `/etc/resolver/` and DNS activity will return to normal. (You can
   safely use `POW_EXT_DOMAINS` for these domains instead.)
 
+### Reading the Current Configuration ###
+
+If you are writing software that interfaces with Pow, you can inspect
+the running server's status and configuration via HTTP. To access this
+information, open a connection to `localhost` and issue a `GET`
+request with the header `Host: pow`. The available endponts are:
+
+* `/status.json`: A JSON-encoded object containing the current Pow
+  server's process ID, version string, and the number of requests it's
+  handled since it started.
+* `/config.json`: A JSON-encoded object representing the running
+  server's [configuration](http://pow.cx/docs/configuration.html).
+
+Example of requesting an endpoint with `curl`:
+
+    $ curl -H host:pow localhost/status.json
+
+Alternatively, if you know the path to the Pow binary, you can
+generate an `eval`-safe version of the local configuration by invoking
+Pow with the `--print-config` option (useful for shell scripts):
+
+    $ eval $(~/Library/Application\ Support/Pow/Current/bin/pow --print-config)
+    $ echo $POW_TIMEOUT
+    900
 
 ## Contributing ##
 

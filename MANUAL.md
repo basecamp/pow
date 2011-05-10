@@ -122,7 +122,7 @@ processes.
 #### The Default Virtual Host ####
 
 If you attempt to access a domain that Pow doesn't understand, like
-http://localhost/, you'll see a page letting you know that Pow is
+`http://localhost/`, you'll see a page letting you know that Pow is
 installed and working correctly, with instructions on how to set up an
 application.
 
@@ -306,6 +306,23 @@ Pow with the `--print-config` option (useful for shell scripts):
     $ eval $(~/Library/Application\ Support/Pow/Current/bin/pow --print-config)
     $ echo $POW_TIMEOUT
     900
+
+## Third-Party Tools ##
+
+* [Powder](https://github.com/Rodreegez/powder) is "syntactic sugar
+  for Pow." Install the gem (`gem install powder`) and you'll get a
+  `powder` command-line utility that makes it easier to add
+  applications, tail your log files, and restart Pow. See the [Powder
+  readme](https://github.com/Rodreegez/powder#readme) for more
+  examples of what it can do.
+
+* [Showoff](http://showoff.io/) is "the easiest way to share localhost
+  over the web." It creates a tunnel between your computer and the
+  Showoff server, then gives you a publicly accessible URL so others
+  can see the app or site you're working on. Showoff supports Pow's
+  virtual hosts &mdash; install the gem via `gem install showoff-io`,
+  then run `show dev.` (with the trailing dot). Your Pow apps will be
+  accessible at `http://yourappname.yourname.showoff.io/`.
 
 ## Contributing ##
 

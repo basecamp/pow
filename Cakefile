@@ -68,6 +68,11 @@ task 'install', 'Install pow configuration files', ->
       else
         callback()
 
+  createHostsDirectory = (callback) ->
+    sh 'mkdir -p "$HOME/Library/Application Support/Pow/Hosts"', (err) ->
+      return callback err if err
+      sh 'ln -sf "$HOME/Library/Application Support/Pow/Hosts" ~/.pow', callback
+
   installLocal = (callback) ->
     console.error "*** Installing local configuration files..."
     sh "./bin/pow --install-local", callback
@@ -84,7 +89,7 @@ task 'install', 'Install pow configuration files', ->
       else
         callback()
 
-  async.parallel [installLocal, installSystem], (err) ->
+  async.parallel [createHostsDirectory, installLocal, installSystem], (err) ->
     throw err if err
     console.error "*** Installed"
 

@@ -119,6 +119,18 @@ In Pow, an application may have more than one virtual host. Multiple
 symlinks that point to the same application will share the same worker
 processes.
 
+#### The Default Virtual Host ####
+
+If you attempt to access a domain that Pow doesn't understand, like
+http://localhost/, you'll see a page letting you know that Pow is
+installed and working correctly, with instructions on how to set up an
+application.
+
+You can override this behavior to serve all requests for unhandled
+domains with a particular Rack application. Create a symlink in
+`~/.pow` named `default` and point it to the application of your
+choice.
+
 ### Customizing Environment Variables ###
 
 Pow lets you customize the environment in which worker processes

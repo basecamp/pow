@@ -349,6 +349,9 @@ looks like.
 
 ## Version History ##
 
+* **0.3.1** (May 11, 2011):
+  * The `POW_EXT_DOMAINS` option should actually work now. Apologies.
+
 * **0.3.0** (May 10, 2011):
   * The installation script now performs a self-test and attempts to
     reload the system network configuration if DNS resolution fails.

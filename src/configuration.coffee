@@ -94,6 +94,7 @@ module.exports = class Configuration
     # Allow for comma-separated domain lists, e.g. `POW_DOMAINS=dev,test`
     @domains    = @domains.split?(",")    ? @domains
     @extDomains = @extDomains.split?(",") ? @extDomains
+    @allDomains = @domains.concat @extDomains
 
     # `hostRoot`: path to the directory containing symlinks to
     # applications that will be served by Pow. Defaults to
@@ -115,7 +116,7 @@ module.exports = class Configuration
     # served by the DNS server and hosts to be served by the HTTP
     # server.
     @dnsDomainPattern  = compilePattern @domains
-    @httpDomainPattern = compilePattern @domains.concat @extDomains
+    @httpDomainPattern = compilePattern @allDomains
 
   # Gets an object of the `Configuration` instance's options that can
   # be passed to `JSON.stringify`.
@@ -137,13 +138,13 @@ module.exports = class Configuration
   findApplicationRootForHost: (host = "", callback) ->
     @gatherApplicationRoots (err, roots) =>
       return callback err if err
-      for domain in @domains
+      for domain in @allDomains
         for file in getFilenamesForHost host, domain
           if root = roots[file]
             return callback null, domain, root
 
       if root = roots["default"]
-        return callback null, @domains[0], root
+        return callback null, @allDomains[0], root
 
       callback null
 

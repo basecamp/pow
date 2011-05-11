@@ -80,6 +80,14 @@ module.exports = testCase
       test.same fixturePath("apps/hello"), root
       test.done()
 
+  "findApplicationRootForHost with ext domain": (test) ->
+    configuration = createConfiguration hostRoot: fixturePath("configuration"), domains: ["dev"], extDomains: ["me"]
+    test.expect 2
+    configuration.findApplicationRootForHost "directory.me", (err, domain, root) ->
+      test.same "me", domain
+      test.same fixturePath("configuration/directory"), root
+      test.done()
+
   "getLogger returns the same logger instance": (test) ->
     configuration = createConfiguration()
     logger = configuration.getLogger "test"

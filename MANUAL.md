@@ -303,7 +303,8 @@ Alternatively, if you know the path to the Pow binary, you can
 generate an `eval`-safe version of the local configuration by invoking
 Pow with the `--print-config` option (useful for shell scripts):
 
-    $ eval $(~/Library/Application\ Support/Pow/Current/bin/pow --print-config)
+    $ eval $(~/Library/Application\ Support/Pow/Current/bin/pow \
+        --print-config)
     $ echo $POW_TIMEOUT
     900
 
@@ -348,7 +349,7 @@ looks like.
 
 ## Version History ##
 
-* **0.3.0** (May 10, 2011): 
+* **0.3.0** (May 10, 2011):
   * The installation script now performs a self-test and attempts to
     reload the system network configuration if DNS resolution fails.
   * Configuration files are installed as mode `0644`, and
@@ -361,17 +362,17 @@ looks like.
   * If the `tmp/always_restart.txt` file is present in an application,
     Pow will restart it before every request (useful with bare Rack
     apps or frameworks like Sinatra that don't manage code
-    reloading). 
+    reloading).
   * `POW_TIMEOUT` is now specified in seconds instead of milliseconds,
     and a new `POW_EXT_DOMAINS` option defines a list of top-level
     domains that Pow will handle (but not serve DNS requests for).
   * Requests without a `Host:` header no longer raise an exception,
     and URLs with `..` are now properly passed through to the Rack
-    application. 
+    application.
   * Error messages have been redesigned to include links to the
     manual and wiki.
   * A more helpful error message has been added for Rails 2.3 apps
-    without a `config.ru` file. 
+    without a `config.ru` file.
   * You can print the full Pow configuration in shell format with
     `pow --print-config`, and third-party apps can request information
     about the running Pow server via the `http://pow/config.json` and

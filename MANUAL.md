@@ -317,6 +317,13 @@ Pow with the `--print-config` option (useful for shell scripts):
   readme](https://github.com/Rodreegez/powder#readme) for more
   examples of what it can do.
 
+* [Powify](https://github.com/sethvargo/powify) is "an easy-to-use
+  wrapper for 37signals' Pow." Install the gem (`gem install powify`)
+  to get a `powify` command for installing, updating, and managing Pow
+  and your virtual hosts. See the [Powify
+  readme](https://github.com/sethvargo/powify#readme) for the full
+  list of commands.
+
 * [Showoff](http://showoff.io/) is "the easiest way to share localhost
   over the web." It creates a tunnel between your computer and the
   Showoff server, then gives you a publicly accessible URL so others

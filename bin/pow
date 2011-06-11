@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 require 'pathname'
 bin  = Pathname.new(__FILE__).realpath
 root = bin.dirname.parent

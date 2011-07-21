@@ -9,6 +9,7 @@
 fs              = require "fs"
 sys             = require "sys"
 connect         = require "connect"
+{HttpProxy}     = require "http-proxy"
 RackApplication = require "./rack_application"
 
 {pause} = require "./util"
@@ -54,6 +55,7 @@ module.exports = class HttpServer extends connect.HTTPServer
       o @findApplicationRoot
       o @handleStaticRequest
       o @findRackApplication
+      o @handleProxyRequest
       o @handleApplicationRequest
       x @handleErrorStartingApplication
       o @handleFaviconRequest
@@ -138,7 +140,7 @@ module.exports = class HttpServer extends connect.HTTPServer
     unless req.method in ["GET", "HEAD"]
       return next()
 
-    unless root = req.pow.root
+    unless (root = req.pow.root) and typeof root is "string"
       return next()
 
     if req.url.match /\.\./
@@ -153,7 +155,7 @@ module.exports = class HttpServer extends connect.HTTPServer
   # object with the application so it can be handled by
   # `handleApplicationRequest`.
   findRackApplication: (req, res, next) =>
-    return next() unless root = req.pow.root
+    return next() unless (root = req.pow.root) and typeof root is "string"
 
     exists join(root, "config.ru"), (rackConfigExists) =>
       if rackConfigExists
@@ -168,6 +170,15 @@ module.exports = class HttpServer extends connect.HTTPServer
         application.quit()
 
       next()
+
+  # If the request object is annotated with a port number, proxy the
+  # request off to the service listening on that port.
+  handleProxyRequest: (req, res, next) =>
+    return next() unless (port = req.pow.root) and typeof port is "number"
+
+    @proxy ?= new HttpProxy()
+    @proxy.proxyRequest req, res, host: 'localhost', port: port
+    req.pow.resume()
 
   # If the request object is annotated with an application, pass the
   # request off to the application's `handle` method.

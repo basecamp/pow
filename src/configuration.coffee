@@ -151,8 +151,9 @@ module.exports = class Configuration
   # Asynchronously build a mapping of entries in `hostRoot` to
   # application root paths. For each symlink, store the symlink's name
   # and the real path of the application it points to. For each
-  # directory, store the directory's name and its full path. The
-  # mapping is passed as an object to the second argument of
+  # directory, store the directory's name and its full path. For each
+  # file that contains a number, store the file's name and the number.
+  # The mapping is passed as an object to the second argument of
   # `callback`. If an error is raised, `callback` is called with the
   # error as its first argument.
   #
@@ -161,7 +162,8 @@ module.exports = class Configuration
   #     {
   #       "basecamp":  "/Volumes/37signals/basecamp",
   #       "launchpad": "/Volumes/37signals/launchpad",
-  #       "37img":     "/Volumes/37signals/portfolio"
+  #       "37img":     "/Volumes/37signals/portfolio",
+  #       "couchdb":   5984
   #     }
   gatherApplicationRoots: (callback) ->
     roots = {}
@@ -172,18 +174,24 @@ module.exports = class Configuration
         async.forEach files, (file, next) =>
           root = path.join @hostRoot, file
           name = file.toLowerCase()
-          fs.lstat root, (err, stats) ->
-            if stats?.isSymbolicLink()
-              fs.realpath root, (err, resolvedPath) ->
-                if err then next()
-                else fs.lstat resolvedPath, (err, stats) ->
-                  roots[name] = resolvedPath if stats?.isDirectory()
+          checkStats = (path) ->
+            fs.lstat path, (err, stats) ->
+              if stats?.isSymbolicLink()
+                fs.realpath path, (err, resolvedPath) ->
+                  if err then next()
+                  else checkStats(resolvedPath)
+              else if stats?.isDirectory()
+                roots[name] = path
+                next()
+              else if stats?.isFile() and stats.size < 10
+                fs.readFile path, 'utf-8', (err, data) ->
+                  return next() if err
+                  port = parseInt(data.trim())
+                  roots[name] = port unless isNaN(port)
                   next()
-            else if stats?.isDirectory()
-              roots[name] = root
-              next()
-            else
-              next()
+              else
+                next()
+          checkStats(root)
         , (err) ->
           callback err, roots
 

@@ -17,6 +17,7 @@ module.exports = testCase
         "www.directory":        fixturePath("configuration/www.directory")
         "symlink-to-directory": fixturePath("apps/hello")
         "symlink-to-symlink":   fixturePath("apps/hello")
+        "port-number":          3333
       test.done()
 
   "gatherApplicationRoots with non-existent root": (test) ->

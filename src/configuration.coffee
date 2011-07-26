@@ -129,44 +129,45 @@ module.exports = class Configuration
   getLogger: (name) ->
     @loggers[name] ||= new Logger path.join @logRoot, name + ".log"
 
-  # Search `hostRoot` for symlinks or directories matching the domain
-  # specified by `host`. If a match is found, the matching domain name
-  # and host are passed as second and third arguments to `callback`.
-  # If no match is found, `callback` is called without any arguments.
-  # If an error is raised, `callback` is called with the error as its
-  # first argument.
-  findApplicationRootForHost: (host = "", callback) ->
-    @gatherApplicationRoots (err, roots) =>
+  # Search `hostRoot` for files, symlinks or directories matching the
+  # domain specified by `host`. If a match is found, the matching domain
+  # name and its configuration are passed as second and third arguments
+  # to `callback`.  The configuration will either have a `root` or
+  # a `port` property.  If no match is found, `callback` is called
+  # without any arguments.  If an error is raised, `callback` is called
+  # with the error as its first argument.
+  findHostConfiguration: (host = "", callback) ->
+    @gatherHostConfigurations (err, hosts) =>
       return callback err if err
       for domain in @allDomains
         for file in getFilenamesForHost host, domain
-          if root = roots[file]
-            return callback null, domain, root
+          if conf = hosts[file]
+            return callback null, domain, conf
 
-      if root = roots["default"]
-        return callback null, @allDomains[0], root
+      if conf = hosts["default"]
+        return callback null, @allDomains[0], conf
 
       callback null
 
   # Asynchronously build a mapping of entries in `hostRoot` to
-  # application root paths. For each symlink, store the symlink's name
-  # and the real path of the application it points to. For each
-  # directory, store the directory's name and its full path. For each
-  # file that contains a number, store the file's name and the number.
-  # The mapping is passed as an object to the second argument of
-  # `callback`. If an error is raised, `callback` is called with the
+  # application root paths and proxy ports. For each symlink, store the
+  # symlink's name and the real path of the application it points to.
+  # For each directory, store the directory's name and its full path.
+  # For each file that contains a port number, store the file's name and
+  # the port.  The mapping is passed as an object to the second argument
+  # of `callback`. If an error is raised, `callback` is called with the
   # error as its first argument.
   #
   # The mapping object will look something like this:
   #
   #     {
-  #       "basecamp":  "/Volumes/37signals/basecamp",
-  #       "launchpad": "/Volumes/37signals/launchpad",
-  #       "37img":     "/Volumes/37signals/portfolio",
-  #       "couchdb":   5984
+  #       "basecamp":  { "root": "/Volumes/37signals/basecamp" },
+  #       "launchpad": { "root": "/Volumes/37signals/launchpad" },
+  #       "37img":     { "root": "/Volumes/37signals/portfolio" },
+  #       "couchdb":   { "port": 5984 }
   #     }
-  gatherApplicationRoots: (callback) ->
-    roots = {}
+  gatherHostConfigurations: (callback) ->
+    hosts = {}
     mkdirp @hostRoot, (err) =>
       return callback err if err
       fs.readdir @hostRoot, (err, files) =>
@@ -181,19 +182,19 @@ module.exports = class Configuration
                   if err then next()
                   else checkStats(resolvedPath)
               else if stats?.isDirectory()
-                roots[name] = path
+                hosts[name] = root: path
                 next()
               else if stats?.isFile() and stats.size < 10
                 fs.readFile path, 'utf-8', (err, data) ->
                   return next() if err
                   port = parseInt(data.trim())
-                  roots[name] = port unless isNaN(port)
+                  hosts[name] = {port} unless isNaN(port)
                   next()
               else
                 next()
           checkStats(root)
         , (err) ->
-          callback err, roots
+          callback err, hosts
 
 # Convenience wrapper for constructing paths to subdirectories of
 # `~/Library`.

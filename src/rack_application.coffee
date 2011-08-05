@@ -104,7 +104,7 @@ module.exports = class RackApplication
   # If `.rvmrc` and `$HOME/.rvm/scripts/rvm` are present, load rvm,
   # source `.rvmrc`, and invoke `callback` with the resulting
   # environment variables. If `.rvmrc` is present but rvm is not
-  # installed, invoke `callback` with an informative error message.
+  # installed, invoke `callback` without sourcing `.rvmrc`.
   loadRvmEnvironment: (env, callback) ->
     exists script = join(@root, ".rvmrc"), (rvmrcExists) =>
       if rvmrcExists
@@ -113,7 +113,7 @@ module.exports = class RackApplication
             before = "source '#{rvm}' > /dev/null"
             sourceScriptEnv script, env, {before}, callback
           else
-            callback Error ".rvmrc present but rvm (#{rvm}) not found"
+            callback null, env
       else
         callback null, env
 

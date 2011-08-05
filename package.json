@@ -14,6 +14,7 @@
   , "connect": ">= 1.0.3"
   , "log": ">= 1.1.1"
   , "nack": ">= 0.12.2"
+  , "http-proxy": ">= 0.5.8"
   , "ndns": ">= 0.1.2"
   }
 , "bundleDependencies" : [ "ndns" ]

@@ -8,6 +8,7 @@
 
 fs              = require "fs"
 sys             = require "sys"
+url             = require "url"
 connect         = require "connect"
 {HttpProxy}     = require "http-proxy"
 RackApplication = require "./rack_application"
@@ -125,11 +126,10 @@ module.exports = class HttpServer extends connect.HTTPServer
   findHostConfiguration: (req, res, next) =>
     resume = pause req
 
-    @configuration.findHostConfiguration req.pow.host, (err, domain, conf) =>
-      {root, port} = conf if conf
-      if root or port
-        req.pow.root = root if root
-        req.pow.port = port if port
+    @configuration.findHostConfiguration req.pow.host, (err, domain, config) =>
+      if config
+        req.pow.root   = config.root if config.root
+        req.pow.url    = config.url  if config.url
         req.pow.domain = domain
         req.pow.resume = resume
       else
@@ -173,13 +173,17 @@ module.exports = class HttpServer extends connect.HTTPServer
 
       next()
 
-  # If the request object is annotated with a port number, proxy the
-  # request off to the service listening on that port.
+  # If the request object is annotated with a url, proxy the
+  # request off to the hostname and port.
   handleProxyRequest: (req, res, next) =>
-    return next() unless port = req.pow.port
+    return next() unless port = req.pow.url
+    urlObj = url.parse req.pow.url
 
     @proxy ?= new HttpProxy()
-    @proxy.proxyRequest req, res, host: 'localhost', port: port
+    @proxy.proxyRequest req, res,
+      host: urlObj.hostname
+      port: urlObj.port
+
     req.pow.resume()
 
   # If the request object is annotated with an application, pass the

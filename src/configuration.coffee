@@ -164,7 +164,7 @@ module.exports = class Configuration
   #       "basecamp":  { "root": "/Volumes/37signals/basecamp" },
   #       "launchpad": { "root": "/Volumes/37signals/launchpad" },
   #       "37img":     { "root": "/Volumes/37signals/portfolio" },
-  #       "couchdb":   { "port": 5984 }
+  #       "couchdb":   { "url":  "http://localhost:5984" }
   #     }
   gatherHostConfigurations: (callback) ->
     hosts = {}
@@ -184,7 +184,7 @@ module.exports = class Configuration
                 return next() if err
                 data = data.trim()
                 if data.length < 10 and not isNaN(parseInt(data))
-                  hosts[name] = {port: parseInt(data)}
+                  hosts[name] = {url: "http://localhost:#{parseInt(data)}"}
                 else if data.match("https?://")
                   hosts[name] = {url: data}
                 next()

@@ -17,8 +17,8 @@ module.exports = testCase
         "www.directory":        { root: fixturePath("configuration/www.directory") }
         "symlink-to-directory": { root: fixturePath("apps/hello") }
         "symlink-to-symlink":   { root: fixturePath("apps/hello") }
-        "port-number":          { port: 3333 }
-        "remote-host":          { url: "http://pow.cx/" }
+        "port-number":          { url:  "http://localhost:3333" }
+        "remote-host":          { url:  "http://pow.cx/" }
       test.done()
 
   "gatherHostConfigurations with non-existent host": (test) ->

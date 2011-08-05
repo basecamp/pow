@@ -141,11 +141,11 @@ module.exports = class Configuration
       return callback err if err
       for domain in @allDomains
         for file in getFilenamesForHost host, domain
-          if conf = hosts[file]
-            return callback null, domain, conf
+          if config = hosts[file]
+            return callback null, domain, config
 
-      if conf = hosts["default"]
-        return callback null, @allDomains[0], conf
+      if config = hosts["default"]
+        return callback null, @allDomains[0], config
 
       callback null
 

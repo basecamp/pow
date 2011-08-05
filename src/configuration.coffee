@@ -179,11 +179,14 @@ module.exports = class Configuration
             if stats?.isDirectory()
               hosts[name] = root: path
               next()
-            else if stats?.isFile() and stats.size < 10
+            else if stats?.isFile()
               fs.readFile path, 'utf-8', (err, data) ->
                 return next() if err
-                port = parseInt(data.trim())
-                hosts[name] = {port} unless isNaN(port)
+                data = data.trim()
+                if data.length < 10 and not isNaN(parseInt(data))
+                  hosts[name] = {port: parseInt(data)}
+                else if data.match("https?://")
+                  hosts[name] = {url: data}
                 next()
             else
               next()

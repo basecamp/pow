@@ -175,24 +175,18 @@ module.exports = class Configuration
         async.forEach files, (file, next) =>
           root = path.join @hostRoot, file
           name = file.toLowerCase()
-          checkStats = (path) ->
-            fs.lstat path, (err, stats) ->
-              if stats?.isSymbolicLink()
-                fs.realpath path, (err, resolvedPath) ->
-                  if err then next()
-                  else checkStats(resolvedPath)
-              else if stats?.isDirectory()
-                hosts[name] = root: path
+          rstat root, (err, stats, path) ->
+            if stats?.isDirectory()
+              hosts[name] = root: path
+              next()
+            else if stats?.isFile() and stats.size < 10
+              fs.readFile path, 'utf-8', (err, data) ->
+                return next() if err
+                port = parseInt(data.trim())
+                hosts[name] = {port} unless isNaN(port)
                 next()
-              else if stats?.isFile() and stats.size < 10
-                fs.readFile path, 'utf-8', (err, data) ->
-                  return next() if err
-                  port = parseInt(data.trim())
-                  hosts[name] = {port} unless isNaN(port)
-                  next()
-              else
-                next()
-          checkStats(root)
+            else
+              next()
         , (err) ->
           callback err, hosts
 
@@ -216,6 +210,19 @@ getFilenamesForHost = (host, domain) ->
       parts.slice(i, length).join "."
   else
     []
+
+# Similar to `fs.stat`, but passes the realpath of the file as the
+# third argument to the callback.
+rstat = (path, callback) ->
+  fs.lstat path, (err, stats) ->
+    if err
+      callback err
+    else if stats?.isSymbolicLink()
+      fs.realpath path, (err, realpath) ->
+        if err then callback err
+        else rstat realpath, callback
+    else
+      callback err, stats, path
 
 # Helper function for compiling a list of top-level domains into a
 # regular expression for matching purposes.

@@ -176,13 +176,15 @@ module.exports = class HttpServer extends connect.HTTPServer
   # If the request object is annotated with a url, proxy the
   # request off to the hostname and port.
   handleProxyRequest: (req, res, next) =>
-    return next() unless port = req.pow.url
-    urlObj = url.parse req.pow.url
+    return next() unless req.pow.url
+    {hostname, port} = url.parse req.pow.url
 
-    @proxy ?= new HttpProxy()
-    @proxy.proxyRequest req, res,
-      host: urlObj.hostname
-      port: urlObj.port
+    proxy = new HttpProxy()
+    proxy.on 'proxyError', (err, req, res) ->
+      renderResponse res, 500, "proxy_error",
+        {err, hostname, port}
+
+    proxy.proxyRequest req, res, {host: hostname, port}
 
     req.pow.resume()
 

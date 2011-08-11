@@ -1,0 +1,7 @@
+<%- @renderTemplate "layout", title: "Proxy Error", => %>
+  <h1 class="err">Proxy Error</h1>
+  <h2>Couldn't proxy request to <code><%= @hostname %>:<%= @port %></code>.</h2>
+  <section>
+    <pre class="breakout small_text"><strong><%= @err %></strong>
+  </section>
+<% end %>

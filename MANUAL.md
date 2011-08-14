@@ -356,6 +356,18 @@ looks like.
 
 ## Version History ##
 
+* **0.3.2** (August 13, 2011):
+  * The bundled nack library has been upgraded to version 0.12.3 for
+    improved streaming response body support.
+  * The bundled Node binary has been upgraded to version 0.4.10.
+  * If an `.rvmrc` file is present but rvm is not installed, Pow will
+    fall back to whichever Ruby is in `$PATH` rather than displaying
+    an error message. This means you can migrate from rvm to rbenv
+    without needing to remove `.rvmrc` from your application.
+  * A few changes have been made to the (now unmaintained) ndns
+    library bundled with Pow in an attempt to avoid the infinite loop
+    bug described in issue #99.
+
 * **0.3.1** (May 11, 2011):
   * The `POW_EXT_DOMAINS` option should actually work now. Apologies.
 

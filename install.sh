@@ -28,11 +28,11 @@
 #            G       Zero-configuration Rack server for Mac OS X
 #                    http://pow.cx/
 #
-#     This is the beta installation script for Pow.
+#     This is the installation script for Pow.
 #     See the full annotated source: http://pow.cx/docs/
 #
-#     Install Pow beta by running this command:
-#     curl get.pow.cx/beta.sh | sh
+#     Install Pow by running this command:
+#     curl get.pow.cx | sh
 #
 #     Uninstall Pow: :'(
 #     curl get.pow.cx/uninstall.sh | sh
@@ -43,7 +43,7 @@
       set -e
       POW_ROOT="$HOME/Library/Application Support/Pow"
       POW_BIN="$POW_ROOT/Current/bin/pow"
-      [[ -z "$VERSION" ]] && VERSION=0.3.1
+      [[ -z "$VERSION" ]] && VERSION=0.3.2
 
 
 # Fail fast if we're not on OS X >= 10.6.0.

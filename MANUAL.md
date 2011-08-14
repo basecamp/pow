@@ -167,7 +167,7 @@ use this `.rvmrc` file (assuming you've already installed 1.9.2 with
     rvm 1.9.2
 
 If an application has an `.rvmrc` file but rvm isn't installed, Pow
-will show an error message without booting the app.
+will ignore the `.rvmrc` file and fall back to your system Ruby.
 
 ### Serving Static Files ###
 

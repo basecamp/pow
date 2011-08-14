@@ -221,7 +221,7 @@ use this <code>.rvmrc</code> file (assuming you've already installed 1.9.2 with
 </code></pre>
 
 <p>If an application has an <code>.rvmrc</code> file but rvm isn't installed, Pow
-will show an error message without booting the app.</p>
+will ignore the <code>.rvmrc</code> file and fall back to your system Ruby.</p>
 
 <h3><a name="section_2.4">2.4</a> Serving Static Files</h3>
 
@@ -419,6 +419,20 @@ looks like.</p>
 <h2><a name="section_6">6</a> Version History</h2>
 
 <ul>
+<li><p><strong>0.3.2</strong> (August 13, 2011):</p>
+
+<ul>
+<li>The bundled nack library has been upgraded to version 0.12.3 for
+improved streaming response body support.</li>
+<li>The bundled Node binary has been upgraded to version 0.4.10.</li>
+<li>If an <code>.rvmrc</code> file is present but rvm is not installed, Pow will
+fall back to whichever Ruby is in <code>$PATH</code> rather than displaying
+an error message. This means you can migrate from rvm to rbenv
+without needing to remove <code>.rvmrc</code> from your application.</li>
+<li>A few changes have been made to the (now unmaintained) ndns
+library bundled with Pow in an attempt to avoid the infinite loop
+bug described in issue #99.</li>
+</ul></li>
 <li><p><strong>0.3.1</strong> (May 11, 2011):</p>
 
 <ul>

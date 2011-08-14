@@ -8,35 +8,37 @@ module.exports = testCase
   setUp: (proceed) ->
     prepareFixtures proceed
 
-  "gatherApplicationRoots returns directories and symlinks to directories": (test) ->
+  "gatherHostConfigurations returns directories and symlinks to directories": (test) ->
     test.expect 1
     configuration = createConfiguration hostRoot: fixturePath("configuration")
-    configuration.gatherApplicationRoots (err, roots) ->
-      test.same roots,
-        "directory":            fixturePath("configuration/directory")
-        "www.directory":        fixturePath("configuration/www.directory")
-        "symlink-to-directory": fixturePath("apps/hello")
-        "symlink-to-symlink":   fixturePath("apps/hello")
+    configuration.gatherHostConfigurations (err, hosts) ->
+      test.same hosts,
+        "directory":            { root: fixturePath("configuration/directory") }
+        "www.directory":        { root: fixturePath("configuration/www.directory") }
+        "symlink-to-directory": { root: fixturePath("apps/hello") }
+        "symlink-to-symlink":   { root: fixturePath("apps/hello") }
+        "port-number":          { url:  "http://localhost:3333" }
+        "remote-host":          { url:  "http://pow.cx/" }
       test.done()
 
-  "gatherApplicationRoots with non-existent root": (test) ->
+  "gatherHostConfigurations with non-existent host": (test) ->
     test.expect 2
     configuration = createConfiguration hostRoot: fixturePath("tmp/pow")
-    configuration.gatherApplicationRoots (err, roots) ->
-      test.same {}, roots
+    configuration.gatherHostConfigurations (err, hosts) ->
+      test.same {}, hosts
       fs.lstat fixturePath("tmp/pow"), (err, stat) ->
         test.ok stat.isDirectory()
         test.done()
 
-  "findApplicationRootForHost matches hostnames to application roots": (test) ->
+  "findHostConfiguration matches hostnames to application roots": (test) ->
     configuration   = createConfiguration hostRoot: fixturePath("configuration")
     matchHostToRoot = (host, fixtureRoot) -> (proceed) ->
-      configuration.findApplicationRootForHost host, (err, domain, root) ->
+      configuration.findHostConfiguration host, (err, domain, conf) ->
         if fixtureRoot
           test.same "dev", domain
-          test.same fixturePath(fixtureRoot), root
+          test.same { root: fixturePath(fixtureRoot) }, conf
         else
-          test.ok !root
+          test.ok !conf
         proceed()
 
     test.expect 14
@@ -51,41 +53,41 @@ module.exports = testCase
       matchHostToRoot "nonexistent.dev"
     ], test.done
 
-  "findApplicationRootForHost with alternate domain": (test) ->
+  "findHostConfiguration with alternate domain": (test) ->
     configuration = createConfiguration hostRoot: fixturePath("configuration"), domains: ["dev.local"]
     test.expect 3
-    configuration.findApplicationRootForHost "directory.dev.local", (err, domain, root) ->
+    configuration.findHostConfiguration "directory.dev.local", (err, domain, conf) ->
       test.same "dev.local", domain
-      test.same fixturePath("configuration/directory"), root
-      configuration.findApplicationRootForHost "directory.dev", (err, domain, root) ->
-        test.ok !root
+      test.same fixturePath("configuration/directory"), conf.root
+      configuration.findHostConfiguration "directory.dev", (err, domain, conf) ->
+        test.ok !conf
         test.done()
 
-  "findApplicationRootForHost with multiple domains": (test) ->
+  "findHostConfiguration with multiple domains": (test) ->
     configuration = createConfiguration hostRoot: fixturePath("configuration"), domains: ["test", "dev"]
     test.expect 4
-    configuration.findApplicationRootForHost "directory.dev", (err, domain, root) ->
+    configuration.findHostConfiguration "directory.dev", (err, domain, conf) ->
       test.same "dev", domain
-      test.same fixturePath("configuration/directory"), root
-      configuration.findApplicationRootForHost "directory.dev", (err, domain, root) ->
+      test.same fixturePath("configuration/directory"), conf.root
+      configuration.findHostConfiguration "directory.dev", (err, domain, conf) ->
         test.same "dev", domain
-        test.same fixturePath("configuration/directory"), root
+        test.same fixturePath("configuration/directory"), conf.root
         test.done()
 
-  "findApplicationRootForHost with default host": (test) ->
+  "findHostConfiguration with default host": (test) ->
     configuration = createConfiguration hostRoot: fixturePath("configuration-with-default")
     test.expect 2
-    configuration.findApplicationRootForHost "missing.dev", (err, domain, root) ->
+    configuration.findHostConfiguration "missing.dev", (err, domain, conf) ->
       test.same "dev", domain
-      test.same fixturePath("apps/hello"), root
+      test.same fixturePath("apps/hello"), conf.root
       test.done()
 
-  "findApplicationRootForHost with ext domain": (test) ->
+  "findHostConfiguration with ext domain": (test) ->
     configuration = createConfiguration hostRoot: fixturePath("configuration"), domains: ["dev"], extDomains: ["me"]
     test.expect 2
-    configuration.findApplicationRootForHost "directory.me", (err, domain, root) ->
+    configuration.findHostConfiguration "directory.me", (err, domain, conf) ->
       test.same "me", domain
-      test.same fixturePath("configuration/directory"), root
+      test.same fixturePath("configuration/directory"), conf.root
       test.done()
 
   "getLogger returns the same logger instance": (test) ->

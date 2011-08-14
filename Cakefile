@@ -27,6 +27,7 @@ buildTemplates = (callback) ->
     compile("http_server/application_not_found.html")
     compile("http_server/error_starting_application.html")
     compile("http_server/layout.html")
+    compile("http_server/proxy_error.html")
     compile("http_server/rackup_file_missing.html")
     compile("http_server/welcome.html")
     compile("installer/cx.pow.firewall.plist")

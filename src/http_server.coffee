@@ -8,7 +8,9 @@
 
 fs              = require "fs"
 sys             = require "sys"
+url             = require "url"
 connect         = require "connect"
+{HttpProxy}     = require "http-proxy"
 RackApplication = require "./rack_application"
 
 {pause} = require "./util"
@@ -51,9 +53,10 @@ module.exports = class HttpServer extends connect.HTTPServer
       o @logRequest
       o @annotateRequest
       o @handlePowRequest
-      o @findApplicationRoot
+      o @findHostConfiguration
       o @handleStaticRequest
       o @findRackApplication
+      o @handleProxyRequest
       o @handleApplicationRequest
       x @handleErrorStartingApplication
       o @handleFaviconRequest
@@ -116,16 +119,17 @@ module.exports = class HttpServer extends connect.HTTPServer
       else
         @handleLocationNotFound req, res, next
 
-  # After the request has been annotated, attempt to match its
-  # hostname to a Rack application using the server's
-  # configuration. If an application is found, annotate the request
-  # object with the application's root path so we can use it further
-  # down the stack.
-  findApplicationRoot: (req, res, next) =>
+  # After the request has been annotated, attempt to match its hostname
+  # using the server's configuration. If a host configuration is found,
+  # annotate the request object with the application's root path or the
+  # port number so we can use it further down the stack.
+  findHostConfiguration: (req, res, next) =>
     resume = pause req
 
-    @configuration.findApplicationRootForHost req.pow.host, (err, domain, root) =>
-      if req.pow.root = root
+    @configuration.findHostConfiguration req.pow.host, (err, domain, config) =>
+      if config
+        req.pow.root   = config.root if config.root
+        req.pow.url    = config.url  if config.url
         req.pow.domain = domain
         req.pow.resume = resume
       else
@@ -138,7 +142,7 @@ module.exports = class HttpServer extends connect.HTTPServer
     unless req.method in ["GET", "HEAD"]
       return next()
 
-    unless root = req.pow.root
+    unless (root = req.pow.root) and typeof root is "string"
       return next()
 
     if req.url.match /\.\./
@@ -168,6 +172,21 @@ module.exports = class HttpServer extends connect.HTTPServer
         application.quit()
 
       next()
+
+  # If the request object is annotated with a url, proxy the
+  # request off to the hostname and port.
+  handleProxyRequest: (req, res, next) =>
+    return next() unless req.pow.url
+    {hostname, port} = url.parse req.pow.url
+
+    proxy = new HttpProxy()
+    proxy.on 'proxyError', (err, req, res) ->
+      renderResponse res, 500, "proxy_error",
+        {err, hostname, port}
+
+    proxy.proxyRequest req, res, {host: hostname, port}
+
+    req.pow.resume()
 
   # If the request object is annotated with an application, pass the
   # request off to the application's `handle` method.

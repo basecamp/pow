@@ -131,6 +131,10 @@ domains with a particular Rack application. Create a symlink in
 `~/.pow` named `default` and point it to the application of your
 choice.
 
+This is also a good way to make one of your Pow-served apps available
+at your IP address on your LAN. This way you can test your app on
+devices which don’t let you edit an `/etc/hosts` file, say… iOS devices?  
+
 ### Customizing Environment Variables ###
 
 Pow lets you customize the environment in which worker processes

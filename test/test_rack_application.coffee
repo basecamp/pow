@@ -13,7 +13,7 @@ serveApp = (path, callback) ->
     rvmPath:  fixturePath("fake-rvm")
     workers:  1
 
-  application = new RackApplication configuration, fixturePath(path)
+  @application = new RackApplication configuration, fixturePath(path)
   server = connect.createServer()
 
   server.use (req, res, next) ->
@@ -164,6 +164,20 @@ module.exports = testCase
           touch restart = fixturePath("apps/env/tmp/restart.txt"), ->
             request "GET", "/", (body) ->
               test.same "Goodbye!", JSON.parse(body).POW_TEST3
+              done -> unswap -> fs.unlink restart, -> test.done()
+
+  "custom worker/timeout values are loaded": (test) ->
+    serveApp "apps/env", (request, done) ->
+      request "GET", "/", (body) ->
+        test.same @application.pool.processOptions.idle, 900 * 1000
+        test.same @application.pool.workers.length, 1
+        powenv1 = fixturePath("apps/env/.powenv")
+        powenv2 = fixturePath("apps/env/.powenv2")
+        swap powenv1, powenv2, (err, unswap) ->
+          touch restart = fixturePath("apps/env/tmp/restart.txt"), ->
+            request "GET", "/", (body) ->
+              test.same @application.pool.processOptions.idle, 500 * 1000
+              test.same @application.pool.workers.length, 3
               done -> unswap -> fs.unlink restart, -> test.done()
 
   "handling an error in .powrc": (test) ->

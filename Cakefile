@@ -1,5 +1,3 @@
-require.paths.unshift "#{__dirname}/node_modules"
-
 async         = require 'async'
 fs            = require 'fs'
 {print}       = require 'sys'
@@ -26,8 +24,12 @@ buildTemplates = (callback) ->
         else fs.writeFile "lib/templates/#{name}.js", eco.compile(data), callback
 
   async.parallel [
-    compile("http_server/application_exception.html")
-    compile("http_server/nonexistent_domain.html")
+    compile("http_server/application_not_found.html")
+    compile("http_server/error_starting_application.html")
+    compile("http_server/layout.html")
+    compile("http_server/proxy_error.html")
+    compile("http_server/rackup_file_missing.html")
+    compile("http_server/welcome.html")
     compile("installer/cx.pow.firewall.plist")
     compile("installer/cx.pow.powd.plist")
     compile("installer/resolver")
@@ -67,6 +69,11 @@ task 'install', 'Install pow configuration files', ->
       else
         callback()
 
+  createHostsDirectory = (callback) ->
+    sh 'mkdir -p "$HOME/Library/Application Support/Pow/Hosts"', (err) ->
+      return callback err if err
+      sh 'ln -sf "$HOME/Library/Application Support/Pow/Hosts" ~/.pow', callback
+
   installLocal = (callback) ->
     console.error "*** Installing local configuration files..."
     sh "./bin/pow --install-local", callback
@@ -83,7 +90,7 @@ task 'install', 'Install pow configuration files', ->
       else
         callback()
 
-  async.parallel [installLocal, installSystem], (err) ->
+  async.parallel [createHostsDirectory, installLocal, installSystem], (err) ->
     throw err if err
     console.error "*** Installed"
 

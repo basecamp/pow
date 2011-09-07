@@ -71,6 +71,17 @@ module.exports = testCase
             test.same pid, newpid
             done -> fs.unlink restart, -> test.done()
 
+  "handling a request when restart.txt is present and the worker has timed out": (test) ->
+    serveApp "apps/pid", (request, done, app) ->
+      request "GET", "/", (body) ->
+        test.ok pid = parseInt body
+        app.pool.quit ->
+          touch restart = fixturePath("apps/pid/tmp/restart.txt"), ->
+            request "GET", "/", (body) ->
+              test.ok newpid = parseInt body
+              test.ok pid isnt newpid
+              done -> fs.unlink restart, -> test.done()
+
   "handling a request, always_restart.txt present, request": (test) ->
     test.expect 3
     always_restart = fixturePath("apps/pid/tmp/always_restart.txt")

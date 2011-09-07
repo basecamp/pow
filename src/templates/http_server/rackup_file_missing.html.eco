@@ -1,0 +1,10 @@
+<%- @renderTemplate "layout", title: "Rackup file missing", => %>
+  <h1 class="err">Rackup file missing</h1>
+  <h2>Your Rails app needs a <code>config.ru</code> file.</h2>
+  <section>
+    <p>If your app is using Rails 2.3, create a <code>config.ru</code> file in the application root containing the following:</p>
+    <pre class="breakout">require File.dirname(__FILE__) + '/config/environment'
+run ActionController::Dispatcher.new</pre>
+    <p>If you&rsquo;re using a version of Rails older than 2.3, you&rsquo;ll need to upgrade first.</p>
+  </section>
+<% end %>

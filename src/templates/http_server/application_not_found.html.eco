@@ -1,0 +1,10 @@
+<%- @renderTemplate "layout", title: "Application not found", => %>
+  <h1 class="err">Application not found</h1>
+  <h2>Symlink your app to <code>~/.pow/<%= @name %></code> first.</h2>
+  <section>
+    <p>When you access <code>http://<%= @host %>/</code>, Pow looks for a Rack application at <code>~/.pow/<%= @name %></code>. To run your app at this domain:</p>
+    <pre><span>$</span> cd ~/.pow
+<span>$</span> ln -s /path/to/myapp <%= @name %>
+<span>$</span> open http://<%= @host %>/</pre>
+  </section>
+<% end %>

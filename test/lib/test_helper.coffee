@@ -51,6 +51,7 @@ exports.serve = serve = (server, callback) ->
       debug "server on port #{port} is closing"
       server.close()
       callback()
+    , server
 
 exports.createRequester = createRequester = (port) ->
   (method, path, headers, callback) ->

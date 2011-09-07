@@ -1,6 +1,6 @@
 { "name": "pow"
 , "description": "Zero-configuration Rack server for Mac OS X"
-, "version": "0.2.2"
+, "version": "0.3.2"
 , "author": "Sam Stephenson"
 , "repository":
   { "type": "git"
@@ -10,22 +10,23 @@
 , "main": "./lib/index.js"
 , "dependencies": {
     "async": "0.1.8"
-  , "coffee-script": ">= 1.0.0"
+  , "coffee-script": ">= 1.1.0"
   , "connect": ">= 1.0.3"
+  , "http-proxy": ">= 0.5.8"
   , "log": ">= 1.1.1"
-  , "nack": ">= 0.12.0"
+  , "nack": ">= 0.12.2"
   , "ndns": ">= 0.1.2"
   }
 , "bundleDependencies" : [ "ndns" ]
 , "devDependencies": {
-    "eco": ">= 1.0.0"
+    "eco": "= 1.0.3"
 ,   "nodeunit": ">= 0.5.0"
   }
 , "engines" : { "node" : ">=0.4.1" }
 , "scripts": {
-    "install": "node node_modules/coffee-script/bin/cake install"
-,   "test": "node node_modules/coffee-script/bin/cake test"
-,   "start": "node node_modules/coffee-script/bin/cake start"
-,   "stop": "node node_modules/coffee-script/bin/cake stop"
+    "install": "[[ -z \"$BUNDLE_ONLY\" ]] && cake install || true"
+,   "test": "cake test"
+,   "start": "cake start"
+,   "stop": "cake stop"
   }
 }

@@ -8,11 +8,15 @@
 
 fs              = require "fs"
 sys             = require "sys"
+url             = require "url"
 connect         = require "connect"
+{HttpProxy}     = require "http-proxy"
 RackApplication = require "./rack_application"
 
 {pause} = require "./util"
 {dirname, join, exists} = require "path"
+
+{version} = JSON.parse fs.readFileSync __dirname + "/../package.json", "utf8"
 
 # `HttpServer` is a subclass of
 # [Connect](http://senchalabs.github.com/connect/)'s `HTTPServer` with
@@ -25,6 +29,21 @@ module.exports = class HttpServer extends connect.HTTPServer
   o = (fn) -> (req, res, next)      -> fn req, res, next
   x = (fn) -> (err, req, res, next) -> fn err, req, res, next
 
+  # Helper that loads the named template, creates a new context from
+  # the given context with itself and an optional `yield` block, and
+  # passes that to the template for rendering.
+  renderTemplate = (templateName, renderContext, yield) ->
+    template = require "./templates/http_server/#{templateName}.html"
+    context = {renderTemplate, yield}
+    context[key] = value for key, value of renderContext
+    template context
+
+  # Helper to render `templateName` to the given `res` response with
+  # the given `status` code and `context` values.
+  renderResponse = (res, status, templateName, context = {}) ->
+    res.writeHead status, "Content-Type": "text/html; charset=utf8", "X-Pow-Template": templateName
+    res.end renderTemplate templateName, context
+
   # Create an HTTP server for the given configuration. This sets up
   # the middleware stack, gets a `Logger` instace for the global
   # access log, and registers a handler to close any running
@@ -33,15 +52,23 @@ module.exports = class HttpServer extends connect.HTTPServer
     super [
       o @logRequest
       o @annotateRequest
-      o @findApplicationRoot
+      o @handlePowRequest
+      o @findHostConfiguration
       o @handleStaticRequest
       o @findRackApplication
+      o @handleProxyRequest
       o @handleApplicationRequest
-      x @handleApplicationException
+      x @handleErrorStartingApplication
+      o @handleFaviconRequest
+      o @handleApplicationNotFound
+      o @handleWelcomeRequest
+      o @handleRailsAppWithoutRackupFile
+      o @handleLocationNotFound
     ]
 
     @staticHandlers = {}
     @rackApplications = {}
+    @requestCount = 0
 
     @accessLog = @configuration.getLogger "access"
 
@@ -49,11 +76,19 @@ module.exports = class HttpServer extends connect.HTTPServer
       for root, application of @rackApplications
         application.quit()
 
+  # Gets an object describing the server's current status that can be
+  # passed to `JSON.stringify`.
+  toJSON: ->
+    pid: process.pid
+    version: version
+    requestCount: @requestCount
+
   # The first middleware in the stack logs each incoming request's
   # source address, method, hostname, and path to the access log
   # (`~/Library/Logs/Pow/access.log` by default).
   logRequest: (req, res, next) =>
     @accessLog.info "[#{req.socket.remoteAddress}] #{req.method} #{req.headers.host} #{req.url}"
+    @requestCount++
     next()
 
   # Annotate the request object with a `pow` property whose value is
@@ -61,31 +96,45 @@ module.exports = class HttpServer extends connect.HTTPServer
   # path, and application, if any. (Only the `pow.host` property is
   # set here.)
   annotateRequest: (req, res, next) ->
-    host = req.headers.host.replace /:.*/, ""
+    host = req.headers.host?.replace /(\.$)|(\.?:.*)/, ""
     req.pow = {host}
     next()
 
-  # After the request has been annotated, attempt to match its
-  # hostname to a Rack application using the server's
-  # configuration. If an application is found, annotate the request
-  # object with the application's root path so we can use it further
-  # down the stack. If no application is found, render an error page
-  # indicating that the hostname is not yet configured.
-  findApplicationRoot: (req, res, next) =>
+  # Serve requests for status information at `http://pow/config.json`
+  # and `http://pow/status.json`. The former returns a JSON
+  # representation of the server `Configuration` instance; the latter
+  # includes information about the current server version, number of
+  # requests handled, and process ID. Third-party utilities may use
+  # these endpoints to inspect a running Pow server.
+  handlePowRequest: (req, res, next) =>
+    return next() unless req.pow.host is "pow"
+
+    switch req.url
+      when "/config.json"
+        res.writeHead 200
+        res.end JSON.stringify @configuration
+      when "/status.json"
+        res.writeHead 200
+        res.end JSON.stringify this
+      else
+        @handleLocationNotFound req, res, next
+
+  # After the request has been annotated, attempt to match its hostname
+  # using the server's configuration. If a host configuration is found,
+  # annotate the request object with the application's root path or the
+  # port number so we can use it further down the stack.
+  findHostConfiguration: (req, res, next) =>
     resume = pause req
 
-    @configuration.findApplicationRootForHost req.pow.host, (err, domain, root) =>
-      if err
-        next err
-        resume()
+    @configuration.findHostConfiguration req.pow.host, (err, domain, config) =>
+      if config
+        req.pow.root   = config.root if config.root
+        req.pow.url    = config.url  if config.url
+        req.pow.domain = domain
+        req.pow.resume = resume
       else
-        if req.pow.root = root
-          req.pow.domain = domain
-          req.pow.resume = resume
-          next()
-        else
-          @handleNonexistentDomain req, res, next
-          resume()
+        resume()
+      next err
 
   # If this is a `GET` or `HEAD` request matching a file in the
   # application's `public/` directory, serve the file directly.
@@ -93,13 +142,14 @@ module.exports = class HttpServer extends connect.HTTPServer
     unless req.method in ["GET", "HEAD"]
       return next()
 
-    unless root = req.pow.root
+    unless (root = req.pow.root) and typeof root is "string"
+      return next()
+
+    if req.url.match /\.\./
       return next()
 
     handler = @staticHandlers[root] ?= connect.static join(root, "public")
-    handler req, res, ->
-      next()
-      req.pow.resume()
+    handler req, res, next
 
   # Check to see if the application root contains a `config.ru`
   # file. If it does, find the existing `RackApplication` instance for
@@ -123,30 +173,95 @@ module.exports = class HttpServer extends connect.HTTPServer
 
       next()
 
+  # If the request object is annotated with a url, proxy the
+  # request off to the hostname and port.
+  handleProxyRequest: (req, res, next) =>
+    return next() unless req.pow.url
+    {hostname, port} = url.parse req.pow.url
+
+    proxy = new HttpProxy()
+    proxy.on 'proxyError', (err, req, res) ->
+      renderResponse res, 500, "proxy_error",
+        {err, hostname, port}
+
+    proxy.proxyRequest req, res, {host: hostname, port}
+
+    req.pow.resume()
+
   # If the request object is annotated with an application, pass the
   # request off to the application's `handle` method.
-  handleApplicationRequest: (req, res, next) =>
+  handleApplicationRequest: (req, res, next) ->
     if application = req.pow.application
       application.handle req, res, next, req.pow.resume
     else
       next()
 
-  # Render `templateName` to the given `res` response with the given
-  # `status` code and `context` values.
-  render: (res, status, templateName, context = {}) ->
-    template = require "./templates/http_server/#{templateName}.html"
-    res.writeHead status, "Content-Type": "text/html; charset=utf8", "X-Pow-Template": templateName
-    res.end template context
+  # Serve an empty 200 response for any `/favicon.ico` requests that
+  # make it this far.
+  handleFaviconRequest: (req, res, next) ->
+    return next() unless req.url is "/favicon.ico"
+    res.writeHead 200
+    res.end()
+
+  # Show a friendly message when accessing a hostname that hasn't been
+  # set up with Pow yet (but only for hosts that the server is
+  # configured to handle).
+  handleApplicationNotFound: (req, res, next) =>
+    return next() if req.pow.root
+
+    host = req.pow.host
+    pattern = @configuration.httpDomainPattern
+    return next() unless domain = host?.match(pattern)?[1]
+
+    name = host.slice 0, host.length - domain.length
+    return next() unless name.length
+
+    renderResponse res, 503, "application_not_found", {name, host}
+
+  # If the request is for `/` on an unsupported domain (like
+  # `http://localhost/` or `http://127.0.0.1/`), show a page
+  # confirming that Pow is installed and running, with instructions on
+  # how to set up an app.
+  handleWelcomeRequest: (req, res, next) =>
+    return next() if req.pow.root or req.url isnt "/"
+    {domains} = @configuration
+    domain = if "dev" in domains then "dev" else domains[0]
+    renderResponse res, 200, "welcome", {version, domain}
+
+  # If the request is for an app that looks like a Rails 2 app but
+  # doesn't have a `config.ru` file, show a more helpful message.
+  handleRailsAppWithoutRackupFile: (req, res, next) ->
+    return next() unless root = req.pow.root
+    exists join(root, "config/environment.rb"), (looksLikeRailsApp) ->
+      return next() unless looksLikeRailsApp
+      renderResponse res, 503, "rackup_file_missing"
+
+  # If the request ends up here, it's for a static site, but the
+  # requested file doesn't exist. Show a basic 404 message.
+  handleLocationNotFound: (req, res, next) ->
+    res.writeHead 404, "Content-Type": "text/html"
+    res.end "<!doctype html><html><body><h1>404 Not Found</h1>"
 
   # If there's an exception thrown while handling a request, show a
   # nicely formatted error page along with the full backtrace.
-  handleApplicationException: (err, req, res, next) =>
+  handleErrorStartingApplication: (err, req, res, next) ->
     return next() unless root = req.pow.root
-    @render res, 500, "application_exception", {err, root}
 
-  # Show a friendly message when accessing a hostname that hasn't been
-  # set up with Pow yet.
-  handleNonexistentDomain: (req, res, next) =>
-    host = req.pow.host
-    name = host.slice 0, host.length - @configuration.domains[0].length - 1
-    @render res, 503, "nonexistent_domain", path: join @configuration.root, name
+    # Replace `$HOME` with `~` in backtrace lines.
+    home = process.env.HOME
+    stackLines = for line in err.stack.split "\n"
+      if line.slice(0, home.length) is home
+        "~" + line.slice home.length
+      else
+        line
+
+    # Split the backtrace lines into the first five lines and all
+    # remaining lines, if there are more than 10 lines total.
+    if stackLines.length > 10
+      stack = stackLines.slice 0, 5
+      rest = stackLines.slice 5
+    else
+      stack = stackLines
+
+    renderResponse res, 500, "error_starting_application",
+      {err, root, stack, rest}

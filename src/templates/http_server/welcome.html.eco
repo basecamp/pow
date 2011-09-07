@@ -1,0 +1,10 @@
+<%- @renderTemplate "layout", title: "Pow is installed", => %>
+  <h1 class="ok">Pow is installed</h1>
+  <h2>You&rsquo;re running version <%= @version %>.</h2>
+  <section>
+    <p>Set up a Rack application by symlinking it into your <code>~/.pow</code> directory. The name of the symlink determines the hostname you&rsquo;ll use to access the application.</p>
+    <pre><span>$</span> cd ~/.pow
+<span>$</span> ln -s /path/to/myapp
+<span>$</span> open http://myapp.<%= @domain %>/</pre>
+  </section>
+<% end %>

@@ -1,7 +1,7 @@
 # Pow's `mDnsServer` is designed to respond to mDNS `A` queries with
 # `127.0.0.1` for all subdomains of the specified top-level domain.
 # We can't use mDNSResponder as it will not register addition `A`
-# records. Stricly, the mDNS draft recommends 
+# records. Stricly, the mDNS draft recommends
 
 # XXX: We SHOULD listen on each interface seperately so we can
 # respond with the appropriate IP to the multicast address over
@@ -36,7 +36,7 @@ module.exports = class mDnsServer extends ndns.Server
         else
           hostname = stdout.trim()
           callback? null, hostname
-  
+
   lookupAddressToContactInterfacePattern = /interface:\s+(\S+)/i
   lookupAddressToContactAddressPattern = /inet\s+(\d+\.\d+\.\d+\.\d+)/i
   lookupAddressToContact: (address, callback) ->
@@ -65,44 +65,47 @@ module.exports = class mDnsServer extends ndns.Server
     @lookupHostname (error, hostname) =>
       # listen to queries for A records matching *.hostname.local
       @pattern = /// (^|\.) #{hostname} \. #{@configuration.mDnsDomain} \.? ///i
-      
+
       @logger.debug "multicasting on #{@configuration.mDnsAddress}"
       @setTTL 255
       @setMulticastTTL 255
       @setMulticastLoopback true
       @addMembership @configuration.mDnsAddress
-      
+
       @logger.debug "binding to port #{@configuration.mDnsPort}"
       @bind @configuration.mDnsPort
-      
+
       mDnsHost = "#{hostname}.#{@configuration.mDnsDomain}".toLowerCase()
       @logger.debug "adding mDNS domain #{util.inspect mDnsHost} to configuration"
-      @configuration.domains.push mDnsHost
-      
+      @configuration.addExtDomain mDnsHost
+
       callback?()
 
-  # Each incoming mDNS request ends up here. If it's an `A` query
-  # and the domain name is a subdomain of our mDNS name, we respond
-  # with find the IP used to route to the receiver. All other
+  # Each incoming mDNS request ends up here. If it's an unanswered `A`
+  # query and the domain name is a subdomain of our mDNS name, we
+  # respond with find the IP used to route to the receiver. All other
   # requests are ignored.
   handleRequest: (req, res) =>
-    q = req.question[0] ? {}
+    return unless req.question?.length and not req.answer?.length
 
-    if q.type is ndns.ns_t.a and q.class is ndns.ns_c.in and @pattern.test q.name
-      res.header = req.header
-      res.question = req.question
-      res.header.aa = 1
-      res.header.qr = 1
-      
-      @lookupAddressToContact req.rinfo.address, (error, myAddress) =>
-        if error
-          @logger.warning "couldn't find my address to talk to #{req.rinfo.address}"
-        else
-          res.addRR ndns.ns_s.an, q.name, ndns.ns_t.a, ndns.ns_c.in, 600, myAddress
-          res.sendTo this, @configuration.mDnsPort, @configuration.mDnsAddress, (error) =>
-            if error
-              @logger.warning "couldn't send mdns response: #{util.inspect error}"
-          
+    question = req.question[0] ? {}
+
+    return unless question.type is ndns.ns_t.a and question.class is ndns.ns_c.in and @pattern.test question.name
+
+    res.header = req.header
+    res.question = req.question
+    res.header.aa = 1
+    res.header.qr = 1
+
+    @lookupAddressToContact req.rinfo.address, (error, myAddress) =>
+      if error
+        @logger.warning "couldn't find my address to talk to #{req.rinfo.address}"
+      else
+        res.addRR ndns.ns_s.an, question.name, ndns.ns_t.a, ndns.ns_c.in, 600, myAddress
+        res.sendTo this, @configuration.mDnsPort, @configuration.mDnsAddress, (error) =>
+          if error
+            @logger.warning "couldn't send mdns response: #{util.inspect error}"
+
   # TODO: Hostname change monitoring
-  
+
   # TODO: Goodbye messages

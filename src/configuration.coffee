@@ -127,11 +127,21 @@ module.exports = class Configuration
     # ---
     @loggers = {}
 
-    # Precompile regular expressions for matching domain names to be
-    # served by the DNS server and hosts to be served by the HTTP
-    # server.
+    @compileDomainPatterns()
+
+  # Compile regular expressions for matching domain names to be
+  # served by the DNS server and hosts to be served by the HTTP
+  # server.
+  compileDomainPatterns: ->
     @dnsDomainPattern  = compilePattern @domains
     @httpDomainPattern = compilePattern @allDomains
+    @getLogger('mdns').debug("Compiled domain patterns:")
+
+  # Dynamically add an extra domain and recompile domain patterns.
+  addExtDomain: (domain) ->
+    @extDomains.push domain
+    @allDomains.push domain
+    @compileDomainPatterns()
 
   # Gets an object of the `Configuration` instance's options that can
   # be passed to `JSON.stringify`.

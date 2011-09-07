@@ -1,1 +1,3 @@
 export POW_TEST3="Goodbye!"
+export POW_WORKERS=3
+export POW_TIMEOUT=500

@@ -324,6 +324,12 @@ Pow with the `--print-config` option (useful for shell scripts):
   readme](https://github.com/sethvargo/powify#readme) for the full
   list of commands.
 
+* [Pow-index](https://github.com/marutanm/pow-index) is "provides 
+  index page of local Pow-able projects" Install the gem 
+  (`gem install pow-index`) to get a `pow-index` command for create
+  symbolic link to index page. See the [Pow-index readme]
+  (https://github.com/marutanm/Pow-index#readme) for more Informations.
+
 * [Showoff](http://showoff.io/) is "the easiest way to share localhost
   over the web." It creates a tunnel between your computer and the
   Showoff server, then gives you a publicly accessible URL so others

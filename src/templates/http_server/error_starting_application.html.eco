@@ -1,6 +1,6 @@
 <%- @renderTemplate "layout", title: "Error starting application", class: "big", => %>
   <h1 class="err">Error starting application</h1>
-  <h2>Your Rack app raised an exception when Pow tried to run it.</h2>
+  <h2>Your app raised an exception when Pow tried to run it.</h2>
   <section>
     <pre class="breakout small_text"><strong><%= @err %></strong>
 <%= @stack.join "\n" %><% if @rest: %>

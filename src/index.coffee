@@ -31,6 +31,10 @@ module.exports =
   # happens during a Pow daemon's lifecycle.
   Logger:          require "./logger"
 
+  # [ForemanApplication](foreman_application.html) represents a
+  # process formation.
+  ForemanApplication: require "./foreman_application"
+
   # [RackApplication](rack_application.html) represents a single
   # running application.
   RackApplication: require "./rack_application"

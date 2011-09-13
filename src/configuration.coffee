@@ -52,7 +52,7 @@ module.exports = class Configuration
   # A list of option names accessible on `Configuration` instances.
   @optionNames: [
     "bin", "dstPort", "httpPort", "dnsPort", "timeout", "workers",
-    "domains", "extDomains", "hostRoot", "logRoot", "rvmPath"
+    "procfile", "domains", "extDomains", "hostRoot", "logRoot", "rvmPath"
   ]
 
   # Pass in any options you'd like to override when creating a
@@ -82,6 +82,10 @@ module.exports = class Configuration
     # `workers`: the maximum number of worker processes to spawn for
     # any given application. Defaults to `2`.
     @workers    = options.workers    ? env.POW_WORKERS     ? 2
+    
+    # `procfile`: the name of the procfile to use when launching a
+    # process formation using Foreman. Defaults to `Procfile`.
+    @procfile   = options.procfile   ? env.POW_PROCFILE    ? "Procfile"
 
     # `domains`: the top-level domains for which Pow will respond to
     # DNS `A` queries with `127.0.0.1`. Defaults to `dev`.

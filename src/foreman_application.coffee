@@ -39,7 +39,7 @@ async = require "async"
 fs    = require "fs"
 net   = require "net"
 
-{bufferLines, pause, sourceScriptEnv} = require "./util"
+{bufferLines, pause, sourceScriptEnv, PortChecker} = require "./util"
 {join, exists, basename} = require "path"
 {spawn, exec}            = require 'child_process'
 {HttpProxy}              = require "http-proxy"
@@ -144,9 +144,11 @@ module.exports = class ForemanApplication
 
       # Set the application's state to ready.
       else
-        # @changeState "ready"       
+        @spawning = {}
         @webProcesses = {}
         @webProcessCount = 0
+        @spawnedCount = 0
+        @readyCount = 0
         
         port = 20000 + Math.floor(Math.random() * 15000)
         @foreman = spawn 'foreman', ['start', '-f', @procfile, '-p', port],
@@ -159,6 +161,7 @@ module.exports = class ForemanApplication
         # PID and port as it spawns and exits.
         bufferLines @foreman.stdout, (line) =>
           @logger.info line
+          # Change to 'ready' when all Foreman processes have launched
           @captureForemanPorts line if @state is "initializing"
 
         bufferLines @foreman.stderr, (line) => @logger.warning line
@@ -179,27 +182,48 @@ module.exports = class ForemanApplication
       @readyCallbacks = []   
       @quit()
 
-    pidMatch = /.* (web\.[0-9]+).*started with pid ([0-9]+)/(line)
-    if pidMatch
-      @webProcesses[pidMatch[1]] or= {}
-      @webProcesses[pidMatch[1]].pid = pidMatch[2]
+    countMatch = /Launching ([0-9]+) ([\w]+) process.*/(line)
+    if countMatch
+      if countMatch[2] == "web"
+        @webProcessCount = Number(countMatch[1])
+      
+    readyMatch = /.* (web\.[0-9]+).*started with pid ([0-9]+) and port ([0-9]+)/(line)
+    if readyMatch
+      @spawning[readyMatch[1]] or= {}
+      @spawning[readyMatch[1]].pid = Number(readyMatch[2])
+      @spawning[readyMatch[1]].port = Number(readyMatch[3])
+      @spawning[readyMatch[1]].name = readyMatch[1]
+      @spawnedCount++
   
-    portMatch = /.* (web\.[0-9]+).*Server running at http\:[^:]*:([0-9]+)/(line)
-    if portMatch
-      @webProcesses[portMatch[1]] or= {}
-      @webProcesses[portMatch[1]].port = portMatch[2]
+    if @spawnedCount > 0 and @spawnedCount == @webProcessCount
+      @changeState "spawning"
+      @checkPorts()
 
-    count = 0
-    processCount = 0
-    for name, process of @webProcesses
-      processCount++
-      count++ if process? and process.pid? and process.port?
-    @webProcessCount = processCount
+  # Start checking to see if the expected ports are accepting connections.
+  checkPorts: ->
+    return unless @state is "spawning"
+    @webProcesses = {}
 
-    if count > 0 and count == @webProcessCount
-      @changeState "ready"
-      readyCallback() for readyCallback in @readyCallbacks
-      @readyCallbacks = []
+    # Try all workers in parallel
+    for name, process of @spawning
+      detector = new PortChecker name, process.port
+      detector.on 'ready', (name) =>
+        @webProcesses[name] = @spawning[name]
+        delete @spawning[name]
+        @readyCount++
+        @logger.info "#{@readyCount} of #{@webProcessCount} workers ready"
+        if @readyCount == @webProcessCount
+          @changeState "ready"
+          readyCallback() for readyCallback in @readyCallbacks
+          @readyCallbacks = []
+
+      detector.on 'notAvailable', (name) =>
+        err = new Error("Timed out waiting for port #{@spawning[name].port} to be available.")
+        @changeState "ready"
+        readyCallback(err) for readyCallback in @readyCallbacks
+        @readyCallbacks = []   
+        @quit()
+
         
   # Begin the termination process. (If the application is initializing,
   # wait until it is ready before shutting down.)

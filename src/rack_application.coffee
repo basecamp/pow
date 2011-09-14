@@ -230,3 +230,51 @@ module.exports = class RackApplication
         @restart callback
       else
         callback()
+
+
+
+# TODO: Don't poll FS
+onceFileExists = (path, callback, timeout = 3000) ->
+  timeoutError = null
+  timeoutId = setTimeout ->
+    timeoutError = new Error "timeout: waiting for #{path}"
+  , timeout
+
+  decay = 1
+
+  statPath = (err, stat) ->
+    if !err and stat and stat.isSocket()
+      clearTimeout timeoutId
+      callback err, path
+    else if timeoutError
+      callback timeoutError, path
+    else
+      setTimeout ->
+        fs.stat path, statPath
+      , decay *= 2
+
+  statPath()
+
+
+tryConnect = (connection, path, callback) ->
+  errors = 0
+
+  reconnect = ->
+    onceFileExists path, (err) ->
+      return callback err if err
+      connection.connect path
+
+  onError = (err) ->
+    if err and ++errors > 3
+      connection.removeListener 'error', onError
+      callback new Error "timeout: couldn't connect to #{path}"
+    else
+      reconnect()
+
+  connection.on 'error', onError
+
+  connection.on 'connect', ->
+    connection.removeListener 'error', onError
+    callback null, connection
+
+  reconnect()

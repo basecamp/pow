@@ -150,8 +150,8 @@ module.exports = class ForemanApplication
         @spawnedCount = 0
         @readyCount = 0
         
-        port = 20000 + Math.floor(Math.random() * 15000)
-        @foreman = spawn 'foreman', ['start', '-f', @procfile, '-p', port],
+        # Let the Foreman app choose the backend ports
+        @foreman = spawn 'foreman', ['start', '-f', @procfile, '-p', 0],
           cwd:  @root
           env:  env
 

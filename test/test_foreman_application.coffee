@@ -50,8 +50,17 @@ module.exports = testCase
   "custom Procfile": (test) ->
     test.expect 1
     serveApp "apps/hello-coffee", (request, done) ->
-      request "GET", "/", (body) ->
+      request "GET", "/", (body, response) ->
         test.same "Hello Procfile.dev!", body
+        done -> test.done()
+
+  "warn when there's no 'web' process": (test) ->
+    test.expect 3
+    serveApp "apps/foreman-noweb", (request, done, application) ->
+      request "GET", "/", (body, response) ->
+        test.same 500, response.statusCode
+        test.same application.state, "terminating"
+        test.ok /Foreman didn\'t start any `web` processes. Check your Procfile/(body)
         done -> test.done()
 
   "starts multiple workers": (test) ->

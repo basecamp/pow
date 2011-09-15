@@ -186,6 +186,16 @@ module.exports = class ForemanApplication
     if countMatch
       if countMatch[2] == "web"
         @webProcessCount = Number(countMatch[1])
+    
+    if @webProcessCount == 0 and /.*started with pid.*/(line)
+      # For some reason, this event needs some time before killing the master kills all procs
+      setTimeout =>
+        err = new Error("Foreman didn't start any `web` processes. Check your Procfile.")
+        @changeState "ready"
+        readyCallback(err) for readyCallback in @readyCallbacks
+        @readyCallbacks = []   
+        @quit()
+      , 50
       
     readyMatch = /.* (web\.[0-9]+).*started with pid ([0-9]+) and port ([0-9]+)/(line)
     if readyMatch
@@ -228,7 +238,6 @@ module.exports = class ForemanApplication
   # Begin the termination process. (If the application is initializing,
   # wait until it is ready before shutting down.)
   terminate: ->
-    @logger.debug "Terminating."
     if @state is "initializing"
       @ready =>
         @terminate()
@@ -236,12 +245,14 @@ module.exports = class ForemanApplication
     else if @state is "ready"
       if @foreman
         @changeState "terminating"
+        @logger.debug "Sending SIGTERM to #{@foreman.pid}"
         @foreman.kill 'SIGTERM'
 
         # Setup a timer to send SIGTERM if the process doesn't
         # gracefully quit after 3 seconds.
         timeout = setTimeout =>
           if @state is 'terminating'
+            @logger.debug "Sending SIGKILL to #{@foreman.pid}"
             @foreman.kill 'SIGKILL'
         , 3000
 
@@ -257,7 +268,6 @@ module.exports = class ForemanApplication
       try   
         proxy = new HttpProxy()
         proxy.on 'proxyError', (err, req, res) ->
-          console.log "Proxy Error: #{err}"
           next(err)
         
         index = Math.ceil(Math.random() * @webProcessCount)

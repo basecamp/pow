@@ -79,6 +79,20 @@ module.exports = class ForemanApplication
     else
       callback?()
 
+  # Stat `tmp/restart.txt` in the application root and invoke the
+  # given callback with a single argument indicating whether or not
+  # the file has been touched since the last call to
+  # `queryRestartFile`.
+  queryRestartFile: (callback) ->
+    fs.stat join(@root, "tmp/restart.txt"), (err, stats) =>
+      if err
+        @mtime = null
+        callback false
+      else
+        lastMtime = @mtime
+        @mtime = stats.mtime.getTime()
+        callback lastMtime isnt @mtime
+
   # Collect environment variables from `.powrc` and `.powenv`, in that
   # order, if present. The idea is that `.powrc` files can be checked
   # into a source code repository for global configuration, leaving
@@ -108,17 +122,19 @@ module.exports = class ForemanApplication
       else
         callback null, env
 
-  # Load the application's full environment from `.powrc`, `.powenv`, and
+  # Stat `tmp/restart.txt` to cache its mtime, then load the
+  # application's full environment from `.powrc`, `.powenv`, and
   # `.rvmrc`.
   loadEnvironment: (callback) ->
-    @loadScriptEnvironment null, (err, env) =>
-      if err then callback err
-      else @loadRvmEnvironment env, (err, env) =>
+    @queryRestartFile =>
+      @loadScriptEnvironment null, (err, env) =>
         if err then callback err
-        else
-          # .powenv can override the choice of Procfile
-          @procfile = env?.POW_PROCFILE ? @procfile
-          callback null, env
+        else @loadRvmEnvironment env, (err, env) =>
+          if err then callback err
+          else
+            # .powenv can override the choice of Procfile
+            @procfile = env?.POW_PROCFILE ? @procfile
+            callback null, env
 
   # Begin the initialization process if the application is in the
   # uninitialized state. (If the application is terminating, queue a
@@ -168,10 +184,10 @@ module.exports = class ForemanApplication
 
         @foreman.on 'exit', (code, signal) =>
           @logger.debug "foreman master exited with code #{code} & signal #{signal}; #{@quitCallbacks.length} callbacks to go..."
-          quitCallback() for quitCallback in @quitCallbacks
-          @quitCallbacks = []
           @foreman = null
           @changeState null
+          quitCallback() for quitCallback in @quitCallbacks
+          @quitCallbacks = []
 
   captureForemanPorts: (line) ->
     portInUseMatch = /.* (web\.[0-9]+).*EADDRINUSE, Address already in use/(line)
@@ -257,28 +273,40 @@ module.exports = class ForemanApplication
         , 3000
 
   # Handle an incoming HTTP request. Wait until the application is in
-  # the ready state, then proxy the request to the Foreman child processes.
-  # If there's a problem with the proxy request, reset the application.
+  # the ready state, restart the workers if necessary, then proxy the
+  # request to the Foreman child processes. If there's a problem with
+  # the proxy request, reset the application.
   handle: (req, res, next, callback) ->
     resume = pause req
     @ready (err) =>
       return next err if err
-      req.proxyMetaVariables =
-        SERVER_PORT: @configuration.dstPort.toString()
-      try   
-        proxy = new HttpProxy()
-        proxy.on 'proxyError', (err, req, res) ->
-          next(err)
+      @restartIfNecessary =>
+        req.proxyMetaVariables =
+          SERVER_PORT: @configuration.dstPort.toString()
+        try   
+          proxy = new HttpProxy()
+          proxy.on 'proxyError', (err, req, res) ->
+            next(err)
         
-        index = Math.ceil(Math.random() * @webProcessCount)
-        process = @webProcesses["web.#{index}"]                                 
-        proxy.proxyRequest req, res, {host: 'localhost', port: process.port}
-      finally
-        resume()
-        callback?()
+          index = Math.ceil(Math.random() * @webProcessCount)
+          process = @webProcesses["web.#{index}"]                                 
+          proxy.proxyRequest req, res, {host: 'localhost', port: process.port}
+        finally
+          resume()
+          callback?()
 
   # Terminate the application, re-initialize it, and invoke the given
   # callback when the application's state becomes ready.
   restart: (callback) ->
     @quit =>
       @ready callback
+
+  # Restart the application if `tmp/restart.txt` has been touched
+  # since the last call to this function.
+  restartIfNecessary: (callback) ->
+    @queryRestartFile (mtimeChanged) =>
+      if mtimeChanged
+        @logger.debug "Restarting..."
+        @restart callback
+      else
+        callback()

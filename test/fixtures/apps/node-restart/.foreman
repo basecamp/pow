@@ -1,0 +1,3 @@
+# This won't ever be used, since Pow puts the port on the command line
+port: 6533
+concurrency: web=1

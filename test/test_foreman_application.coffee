@@ -144,3 +144,39 @@ module.exports = testCase
   
         test.ok count > 1, "Should have seen more than 1 backend port: #{JSON.stringify ports}"
         done -> test.done()
+
+  "handling a request, restart, request": (test) ->
+    test.expect 3
+    restart = fixturePath("apps/node-restart/tmp/restart.txt")
+    serveApp "apps/node-restart", (request, done) ->
+      fs.unlink restart, ->
+        request "GET", "/", (body) ->
+          test.ok pid = parseInt body
+          touch restart, ->
+            request "GET", "/", (body) ->
+              test.ok newpid = parseInt body
+              test.ok pid isnt newpid
+              done -> fs.unlink restart, -> test.done()
+
+  "handling the initial request when restart.txt is present": (test) ->
+    test.expect 3
+    touch restart = fixturePath("apps/node-restart/tmp/restart.txt"), ->
+      serveApp "apps/node-restart", (request, done) ->
+        request "GET", "/", (body) ->
+          test.ok pid = parseInt body
+          request "GET", "/", (body) ->
+            test.ok newpid = parseInt body
+            test.same pid, newpid
+            done -> fs.unlink restart, -> test.done()
+
+  "handling a request when restart.txt is present and the worker has timed out": (test) ->
+    serveApp "apps/node-restart", (request, done, app) ->
+      request "GET", "/", (body) ->
+        test.ok pid = parseInt body
+        app.quit ->
+          touch restart = fixturePath("apps/node-restart/tmp/restart.txt"), ->
+            request "GET", "/", (body) ->
+              test.ok newpid = parseInt body
+              test.ok pid isnt newpid
+              done -> fs.unlink restart, -> test.done()
+

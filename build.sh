@@ -11,7 +11,6 @@ cake build
 mkdir -p "$ROOT/$VERSION/node_modules"
 cp -R package.json bin lib "$ROOT/$VERSION"
 cp Cakefile "$ROOT/$VERSION"
-cp -R node_modules/ndns "$ROOT/$VERSION/node_modules"
 cd "$ROOT/$VERSION"
 BUNDLE_ONLY=1 npm install >/dev/null
 cp `which node` bin

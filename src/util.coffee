@@ -46,14 +46,14 @@ exports.LineBuffer = class LineBuffer extends Stream
 # Try a few times to connect to the given port.
 # Emits 'ready' or 'notAvailable', with the provided name.
 exports.PortChecker = class PortChecker extends EventEmitter
-  constructor: (name, port, retryTimeout = 200) ->
+  constructor: (name, port) ->
     @name = name
     @port = port
-    @errors = 0
-
-    @connect(retryTimeout)
+    @startedAt = new Date
+    @retryTimeout = 50
+    @connect()
     
-  connect: (retryTimeout) ->
+  connect: ->
     connection = net.createConnection @port
 
     connection.on 'connect', =>
@@ -62,11 +62,10 @@ exports.PortChecker = class PortChecker extends EventEmitter
 
     connection.on 'error', (exception) =>
       connection.destroy()
-      @errors = @errors + 1
-      if @errors < 3
+      if (new Date - @startedAt < 30000)
         setTimeout =>
-          @connect(retryTimeout*2)
-        , retryTimeout
+          @connect()
+        , @retryTimeout
       else
         @emit 'notAvailable', @name
 

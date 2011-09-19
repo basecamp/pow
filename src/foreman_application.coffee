@@ -166,28 +166,37 @@ module.exports = class ForemanApplication
         @spawnedCount = 0
         @readyCount = 0
         
-        # Let the Foreman app choose the backend ports
-        @foreman = spawn 'foreman', ['start', '-f', @procfile, '-p', 0],
-          cwd:  @root
-          env:  env
+        # Let the system select a port, then we'll use that as Foreman's base port
+        tmpServer = new net.Server
+        basePort = undefined
 
-        @logger.info "forman master #{@foreman.pid} spawned"
+        tmpServer.on 'close', =>
+          @foreman = spawn 'foreman', ['start', '-f', @procfile, '-p', basePort],
+            cwd:  @root
+            env:  env
 
-        # Log the workers' stderr and stdout, and capture each worker's
-        # PID and port as it spawns and exits.
-        bufferLines @foreman.stdout, (line) =>
-          @logger.info line
-          # Change to 'ready' when all Foreman processes have launched
-          @captureForemanPorts line if @state is "initializing"
+          @logger.info "forman master #{@foreman.pid} spawned"
 
-        bufferLines @foreman.stderr, (line) => @logger.warning line
+          # Log the workers' stderr and stdout, and capture each worker's
+          # PID and port as it spawns and exits.
+          bufferLines @foreman.stdout, (line) =>
+            @logger.info line
+            # Change to 'ready' when all Foreman processes have launched
+            @captureForemanPorts line if @state is "initializing"
 
-        @foreman.on 'exit', (code, signal) =>
-          @logger.debug "foreman master exited with code #{code} & signal #{signal}; #{@quitCallbacks.length} callbacks to go..."
-          @foreman = null
-          @changeState null
-          quitCallback() for quitCallback in @quitCallbacks
-          @quitCallbacks = []
+          bufferLines @foreman.stderr, (line) => @logger.warning line
+
+          @foreman.on 'exit', (code, signal) =>
+            @logger.debug "foreman master exited with code #{code} & signal #{signal}; #{@quitCallbacks.length} callbacks to go..."
+            @foreman = null
+            @changeState null
+            quitCallback() for quitCallback in @quitCallbacks
+            @quitCallbacks = []   
+
+        tmpServer.listen 0, =>
+          basePort = tmpServer.address().port
+          tmpServer.close()
+
 
   captureForemanPorts: (line) ->
     portInUseMatch = /.* (web\.[0-9]+).*EADDRINUSE, Address already in use/(line)

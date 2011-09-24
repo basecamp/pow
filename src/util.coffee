@@ -81,26 +81,42 @@ exports.chown = (path, owner, callback) ->
 # that, when invoked, replays the captured events on the stream in
 # order.
 exports.pause = (stream) ->
-  queue = []
+  unless stream._pausable
+    # Patch this stream object to make it nicely pausable
+    stream._pausable =
+      pauses: 0
+      events: ['data', 'end']
+      queue:  []
+      emit:   stream.emit
+      pause:  -> stream._pausable.pauses++
+      resume: ->
+        if stream._pausable.pauses > 0
+          stream._pausable.pauses--
 
-  onData  = (args...) -> queue.push ['data', args...]
-  onEnd   = (args...) -> queue.push ['end', args...]
+          # No more pauses: empty the queue
+          if stream._pausable.pauses == 0
+            stream.emit args... for args in stream._pausable.queue
+            stream._pausable.queue = []
+
+    # Override stream.emit to emulate pausing
+    stream.emit = (event, args...) ->
+      if stream._pausable.pauses > 0 and event in stream._pausable.events
+        stream._pausable.queue.push [event, args...]
+      else
+        args.unshift event
+        stream._pausable.emit.apply stream, args
+
+  stream._pausable.pause()
+
   onClose = -> removeListeners()
+  stream.on 'close', onClose
 
   removeListeners = ->
-    stream.removeListener 'data', onData
-    stream.removeListener 'end', onEnd
     stream.removeListener 'close', onClose
-
-  stream.on 'data', onData
-  stream.on 'end', onEnd
-  stream.on 'close', onClose
 
   ->
     removeListeners()
-
-    for args in queue
-      stream.emit args...
+    stream._pausable.resume()
 
 # Spawn a shell with the given `env` and source the named
 # `script`. Then collect its resulting environment variables and pass

@@ -6,12 +6,13 @@
 # their way through a middleware stack and are served to your browser
 # as static assets, Rack requests, or error pages.
 
-fs              = require "fs"
-sys             = require "sys"
-url             = require "url"
-connect         = require "connect"
-{HttpProxy}     = require "http-proxy"
-RackApplication = require "./rack_application"
+fs                 = require "fs"
+sys                = require "sys"
+url                = require "url"
+connect            = require "connect"
+{HttpProxy}        = require "http-proxy"
+RackApplication    = require "./rack_application"
+ForemanApplication = require "./foreman_application"
 
 {pause} = require "./util"
 {dirname, join, exists} = require "path"
@@ -56,6 +57,7 @@ module.exports = class HttpServer extends connect.HTTPServer
       o @findHostConfiguration
       o @handleStaticRequest
       o @findRackApplication
+      o @findForemanApplication
       o @handleProxyRequest
       o @handleApplicationRequest
       x @handleErrorStartingApplication
@@ -68,12 +70,15 @@ module.exports = class HttpServer extends connect.HTTPServer
 
     @staticHandlers = {}
     @rackApplications = {}
+    @foremanApplications = {}
     @requestCount = 0
 
     @accessLog = @configuration.getLogger "access"
 
     @on "close", =>
       for root, application of @rackApplications
+        application.quit()
+      for root, application of @foremanApplications
         application.quit()
 
   # Gets an object describing the server's current status that can be
@@ -150,6 +155,28 @@ module.exports = class HttpServer extends connect.HTTPServer
 
     handler = @staticHandlers[root] ?= connect.static join(root, "public")
     handler req, res, next
+
+  # Check to see if the application root contains a `Procfile`
+  # file. If it does, find the existing `ForemanApplication` instance for
+  # the root, or create and cache a new one. Then annotate the request
+  # object with the application so it can be handled by
+  # `handleApplicationRequest`.
+  findForemanApplication: (req, res, next) =>
+    return next() unless root = req.pow.root
+
+    exists join(root, "Procfile"), (procfileExists) =>
+      if procfileExists
+        req.pow.application = @foremanApplications[root] ?=
+          new ForemanApplication @configuration, root
+
+      # If `Procfile` isn't present but there's an existing
+      # `ForemanApplication` for the root, terminate the application and
+      # remove it from the cache.
+      else if application = @foremanApplications[root]
+        delete @foremanApplications[root]
+        application.quit()
+
+      next()
 
   # Check to see if the application root contains a `config.ru`
   # file. If it does, find the existing `RackApplication` instance for

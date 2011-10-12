@@ -1,12 +1,14 @@
 # The `util` module houses a number of utility functions used
 # throughout Pow.
 
-fs       = require "fs"
-path     = require "path"
-async    = require "async"
-{exec}   = require "child_process"
-{spawn}  = require "child_process"
-{Stream} = require 'stream'
+fs             = require "fs"
+path           = require "path"
+async          = require "async"
+{exec}         = require "child_process"
+{spawn}        = require "child_process"
+{Stream}       = require 'stream'
+{EventEmitter} = require 'events' 
+net            = require 'net'
 
 # The `LineBuffer` class is a `Stream` that emits a `data` event for
 # each line in the stream.
@@ -40,6 +42,32 @@ exports.LineBuffer = class LineBuffer extends Stream
       @write args...
     @emit 'data', @_buffer if @_buffer.length
     @emit 'end'
+
+# Try a few times to connect to the given port.
+# Emits 'ready' or 'notAvailable', with the provided name.
+exports.PortChecker = class PortChecker extends EventEmitter
+  constructor: (name, port) ->
+    @name = name
+    @port = port
+    @startedAt = new Date
+    @retryTimeout = 50
+    @connect()
+    
+  connect: ->
+    connection = net.createConnection @port
+
+    connection.on 'connect', =>
+      connection.destroy()
+      @emit 'ready', @name
+
+    connection.on 'error', (exception) =>
+      connection.destroy()
+      if (new Date - @startedAt < 30000)
+        setTimeout =>
+          @connect()
+        , @retryTimeout
+      else
+        @emit 'notAvailable', @name
 
 # Read lines from `stream` and invoke `callback` on each line.
 exports.bufferLines = (stream, callback) ->

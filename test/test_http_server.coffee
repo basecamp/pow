@@ -1,5 +1,5 @@
 http            = require "http"
-{HttpServer}    = require ".."
+{HttpServer}    = require "../lib"
 async           = require "async"
 {testCase}      = require "nodeunit"
 

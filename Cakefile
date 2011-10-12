@@ -71,8 +71,9 @@ task 'install', 'Install pow configuration files', ->
 
   createHostsDirectory = (callback) ->
     sh 'mkdir -p "$HOME/Library/Application Support/Pow/Hosts"', (err) ->
-      return callback err if err
-      sh 'ln -sf "$HOME/Library/Application Support/Pow/Hosts" ~/.pow', callback
+      fs.stat "#{process.env['HOME']}/.pow", (err) ->
+        if err then sh 'ln -s "$HOME/Library/Application Support/Pow/Hosts" "$HOME/.pow"', callback
+        else callback()
 
   installLocal = (callback) ->
     console.error "*** Installing local configuration files..."

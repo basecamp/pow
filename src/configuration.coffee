@@ -84,7 +84,10 @@ module.exports = class Configuration
     @workers    = options.workers    ? env.POW_WORKERS     ? 2
 
     # `domains`: the top-level domains for which Pow will respond to
-    # DNS `A` queries with `127.0.0.1`. Defaults to `dev`.
+    # DNS `A` queries with `127.0.0.1`. Defaults to `dev`. If you  
+    # configure this in your `~/.powconfig` you will need to re-run 
+    # `sudo pow --install-system` to make `/etc/resolver` aware of
+    # the new TLD's.
     @domains    = options.domains    ? env.POW_DOMAINS     ? env.POW_DOMAIN ? "dev"
 
     # `extDomains`: additional top-level domains for which Pow will

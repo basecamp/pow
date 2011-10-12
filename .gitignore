@@ -2,4 +2,4 @@
 /test/fixtures/tmp/
 /dist
 /node_modules/
-!/node_modules/ndns/
+!/node_modules/dnsserver

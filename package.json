@@ -14,10 +14,8 @@
   , "connect": ">= 1.0.3"
   , "http-proxy": "~> 0.7.0"
   , "log": ">= 1.1.1"
-  , "nack": ">= 0.13.0"
-  , "ndns": ">= 0.1.2"
+  , "dnsserver": "0.1.0"
   }
-, "bundleDependencies" : [ "ndns" ]
 , "devDependencies": {
     "eco": "= 1.0.3"
 ,   "nodeunit": ">= 0.5.0"

@@ -108,6 +108,9 @@ module.exports = class RackApplication
   loadRvmEnvironment: (env, callback) ->
     exists script = join(@root, ".rvmrc"), (rvmrcExists) =>
       if rvmrcExists
+        unless env?.rvm_version
+          console.log "Autoloading RVM..."
+
         exists rvm = @configuration.rvmPath, (rvmExists) ->
           if rvmExists
             before = "source '#{rvm}' > /dev/null"

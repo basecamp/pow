@@ -179,12 +179,12 @@ module.exports = class HttpServer extends connect.HTTPServer
     return next() unless req.pow.url
     {hostname, port} = url.parse req.pow.url
 
-    proxy = new HttpProxy()
+    proxy = new HttpProxy target: {host: hostname, port}
     proxy.on 'proxyError', (err, req, res) ->
       renderResponse res, 500, "proxy_error",
         {err, hostname, port}
 
-    proxy.proxyRequest req, res, {host: hostname, port}
+    proxy.proxyRequest req, res
 
     req.pow.resume()
 

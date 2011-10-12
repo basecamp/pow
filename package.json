@@ -14,7 +14,7 @@
   , "connect": ">= 1.0.3"
   , "http-proxy": "~> 0.7.0"
   , "log": ">= 1.1.1"
-  , "dnsserver": "https://github.com/sstephenson/dnsserver.js/tarball/library"
+  , "dnsserver": "0.1.0"
   }
 , "devDependencies": {
     "eco": "= 1.0.3"

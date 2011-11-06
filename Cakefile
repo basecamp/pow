@@ -54,7 +54,6 @@ task 'test', 'Run the Pow test suite', ->
   build ->
     process.env["RUBYOPT"]  = "-rubygems"
     process.env["NODE_ENV"] = "test"
-    require.paths.unshift __dirname + "/lib"
 
     {reporters} = require 'nodeunit'
     process.chdir __dirname

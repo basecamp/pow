@@ -8,7 +8,7 @@ fs       = require "fs"
 path     = require "path"
 {mkdirp} = require "./util"
 {chown}  = require "./util"
-sys      = require "sys"
+util     = require "util"
 
 # Import the Eco templates for the `/etc/resolver` and `launchd`
 # configuration files.
@@ -125,6 +125,6 @@ module.exports = class Installer
     @getStaleFiles (files) ->
       async.forEach files, (file, proceed) ->
         file.install (err) ->
-          sys.puts file.path unless err
+          util.puts file.path unless err
           proceed err
       , callback

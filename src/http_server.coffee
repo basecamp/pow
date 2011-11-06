@@ -7,7 +7,6 @@
 # as static assets, Rack requests, or error pages.
 
 fs              = require "fs"
-sys             = require "sys"
 url             = require "url"
 connect         = require "connect"
 {HttpProxy}     = require "http-proxy"

@@ -3,7 +3,7 @@
 # configuration files or start the daemon itself.
 
 {Daemon, Configuration, Installer} = require ".."
-sys = require "sys"
+util = require "util"
 
 # Set the process's title to `pow` so it's easier to find in `ps`,
 # `top`, Activity Monitor, and so on.
@@ -57,7 +57,7 @@ Configuration.getUserConfiguration (err, configuration) ->
       "'" + string.toString().replace(/'/g, "'\\''") + "'" #'
 
     for key, value of configuration.toJSON()
-      sys.puts "POW_" + underscore(key).toUpperCase() +
+      util.puts "POW_" + underscore(key).toUpperCase() +
         "=" + shellEscape(value)
 
   # Create the installer, passing in our loaded configuration.
@@ -70,7 +70,7 @@ Configuration.getUserConfiguration (err, configuration) ->
       installer.needsRootPrivileges (needsRoot) ->
         exitCode = if needsRoot then 1 else 0
         installer.getStaleFiles (files) ->
-          sys.puts file.path for file in files
+          util.puts file.path for file in files
           process.exit exitCode
     # Otherwise, install all the requested files, printing the full
     # path of each installed file to stdout.

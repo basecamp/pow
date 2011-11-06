@@ -118,7 +118,7 @@ exports.sourceScriptEnv = (script, env, options, callback) ->
   command = """
     #{options.before};
     source '#{script}' > /dev/null;
-    '#{process.execPath}' -e 'console.log(JSON.stringify(process.env))'
+    '#{process.execPath}' -e 'console.log(JSON.stringify(process.env)); ""'
   """
 
   exec command, cwd: path.dirname(script), env: env, (err, stdout, stderr) ->

@@ -22,7 +22,6 @@
   }
 , "engines" : { "node" : ">=0.4.1" }
 , "scripts": {
-    "install": "[[ -z \"$BUNDLE_ONLY\" ]] && cake install || true"
 ,   "test": "cake test"
 ,   "start": "cake start"
 ,   "stop": "cake stop"

@@ -12,9 +12,9 @@
     "async": "0.1.8"
   , "coffee-script": ">= 1.1.0"
   , "connect": ">= 1.0.3"
-  , "http-proxy": "~> 0.7.0"
   , "log": ">= 1.1.1"
   , "dnsserver": "0.1.0"
+  , "request": "~> 2.2"
   }
 , "devDependencies": {
     "eco": "= 1.0.3"

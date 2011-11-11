@@ -9,7 +9,7 @@
 fs              = require "fs"
 url             = require "url"
 connect         = require "connect"
-{HttpProxy}     = require "http-proxy"
+request         = require "request"
 RackApplication = require "./rack_application"
 
 {pause} = require "./util"
@@ -178,12 +178,26 @@ module.exports = class HttpServer extends connect.HTTPServer
     return next() unless req.pow.url
     {hostname, port} = url.parse req.pow.url
 
-    proxy = new HttpProxy target: {host: hostname, port}
-    proxy.on 'proxyError', (err, req, res) ->
+    headers = {}
+
+    for key, value of req.headers
+      headers[key] = value
+
+    headers['X-Forwarded-For']    = req.connection.address().address
+    headers['X-Forwarded-Host']   = req.pow.host
+    headers['X-Forwarded-Server'] = req.pow.host
+
+    proxy = request
+      method: req.method
+      url: "#{req.pow.url}#{req.url}"
+      headers: headers
+
+    req.pipe proxy
+    proxy.pipe res
+
+    proxy.on 'error', (err) ->
       renderResponse res, 500, "proxy_error",
         {err, hostname, port}
-
-    proxy.proxyRequest req, res
 
     req.pow.resume()
 

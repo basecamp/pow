@@ -32,7 +32,14 @@ module.exports = class Daemon extends EventEmitter
 
     startServer = (server, port, callback) -> process.nextTick ->
       try
-        server.listen port, -> callback null
+        server.on 'error', callback
+
+        server.once 'listening', ->
+          server.removeListener 'error', callback
+          callback()
+
+        server.listen port
+
       catch err
         callback err
 

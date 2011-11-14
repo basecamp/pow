@@ -50,6 +50,15 @@ task 'build', 'Compile CoffeeScript source files', ->
 task 'watch', 'Recompile CoffeeScript source files when modified', ->
   build true
 
+task 'pretest', "Install test dependencies", ->
+  exec 'which ruby gem', (err) ->
+    throw "ruby not found" if err
+
+    exec 'ruby -rubygems -e \'require "rack"\'', (err) ->
+      if err
+        exec 'gem install rack', (err, stdout, stderr) ->
+          throw err if err
+
 task 'test', 'Run the Pow test suite', ->
   build ->
     process.env["RUBYOPT"]  = "-rubygems"

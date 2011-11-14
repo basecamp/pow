@@ -52,13 +52,17 @@ module.exports = class Configuration
   # A list of option names accessible on `Configuration` instances.
   @optionNames: [
     "bin", "dstPort", "httpPort", "dnsPort", "timeout", "workers",
-    "domains", "extDomains", "hostRoot", "logRoot", "rvmPath"
+    "domains", "extDomains", "hostRoot", "logRoot", "rvmPath", "env"
   ]
 
   # Pass in any environment variables you'd like to override when
-  # creating a `Configuration` instance. Valid variables and their
-  # defaults:
+  # creating a `Configuration` instance.
   constructor: (env = process.env) ->
+    @loggers = {}
+    @initialize env
+
+  # Valid environment variables and their defaults:
+  initialize: (@env) ->
     # `POW_BIN`: the path to the `pow` binary. (This should be
     # correctly configured for you.)
     @bin        = env.POW_BIN         ? path.join __dirname, "../bin/pow"
@@ -115,8 +119,6 @@ module.exports = class Configuration
     @rvmPath    = env.POW_RVM_PATH    ? path.join process.env.HOME, ".rvm/scripts/rvm"
 
     # ---
-    @loggers = {}
-
     # Precompile regular expressions for matching domain names to be
     # served by the DNS server and hosts to be served by the HTTP
     # server.

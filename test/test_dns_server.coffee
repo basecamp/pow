@@ -12,7 +12,7 @@ module.exports = testCase
   "responds to all A queries for the configured domain": (test) ->
     test.expect 6
 
-    configuration = createConfiguration domains: ["powtest", "powdev"]
+    configuration = createConfiguration POW_DOMAINS: "powtest,powdev"
     dnsServer = new DnsServer configuration
     dnsServer.listen 0, ->
       {address, port} = dnsServer.address()

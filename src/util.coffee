@@ -118,7 +118,7 @@ exports.sourceScriptEnv = (script, env, options, callback) ->
   command = """
     #{options.before};
     source '#{script}' > /dev/null;
-    '#{process.execPath}' -e 'console.log(JSON.stringify(process.env)); ""'
+    env
   """
 
   exec command, cwd: path.dirname(script), env: env, (err, stdout, stderr) ->
@@ -128,7 +128,49 @@ exports.sourceScriptEnv = (script, env, options, callback) ->
       err.stderr = stderr
       callback err
 
-    try
-      callback null, JSON.parse stdout
-    catch exception
-      callback exception
+    callback null, parseEnv stdout
+
+# Get the user's login environment by spawning a login shell and
+# collecting its environment variables via the `env` command. First
+# spawn the user's shell with the `-l` option. If that fails, retry
+# without `-l`; some shells, like tcsh, cannot be started as
+# non-interactive login shells. If that fails, bubble the error up to
+# the callback. Otherwise, parse the output of `env` into a JavaScript
+# object and pass it to the callback.
+exports.getUserEnv = (callback) ->
+  user = process.env.LOGNAME
+  getUserShell (shell) ->
+    exec "login -qf #{user} #{shell} -l -c env", (err, stdout, stderr) ->
+      if err
+        exec "login -qf #{user} #{shell} -c env", (err, stdout, stderr) ->
+          if err
+            callback err
+          else
+            callback null, parseEnv stdout
+      else
+        callback null, parseEnv stdout
+
+# Invoke `dscl(1)` to find out what shell the user prefers. We cannot
+# rely on `process.env.SHELL` because it always seems to be
+# `/bin/bash` when spawned from `launchctl`, regardless of what the
+# user has set.
+getUserShell = (callback) ->
+  command = "dscl . -read '/Users/#{process.env.LOGNAME}' UserShell"
+  exec command, (err, stdout, stderr) ->
+    if err
+      callback process.env.SHELL
+    else
+      if matches = stdout.trim().match /^UserShell: (.+)$/
+        [match, shell] = matches
+        callback shell
+      else
+        callback process.env.SHELL
+
+# Parse the output of the `env` command into a JavaScript object.
+parseEnv = (stdout) ->
+  env = {}
+  for line in stdout.split "\n"
+    if matches = line.match /([^=]+)=(.+)/
+      [match, name, value] = matches
+      env[name] = value
+  env

@@ -122,7 +122,7 @@ module.exports = class RackApplication
   # `.rvmrc`.
   loadEnvironment: (callback) ->
     @queryRestartFile =>
-      @loadScriptEnvironment null, (err, env) =>
+      @loadScriptEnvironment @configuration.env, (err, env) =>
         if err then callback err
         else @loadRvmEnvironment env, (err, env) =>
           if err then callback err

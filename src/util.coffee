@@ -52,20 +52,23 @@ exports.bufferLines = (stream, callback) ->
 # Asynchronously and recursively create a directory if it does not
 # already exist. Then invoke the given callback.
 exports.mkdirp = (dirname, callback) ->
-  fs.lstat (p = path.normalize dirname), (err, stats) ->
-    if err
-      paths = [p].concat(p = path.dirname p until p in ["/", "."])
-      async.forEachSeries paths.reverse(), (p, next) ->
-        path.exists p, (exists) ->
-          if exists then next()
-          else fs.mkdir p, 0755, (err) ->
-            if err then callback err
-            else next()
-      , callback
-    else if stats.isDirectory()
-      callback()
+  fs.realpath dirname, (err, p) ->
+    if err then callback err
     else
-      callback "file exists"
+      fs.lstat p, (err, stats) ->
+        if err
+          paths = [p].concat(p = path.dirname p until p in ["/", "."])
+          async.forEachSeries paths.reverse(), (p, next) ->
+            path.exists p, (exists) ->
+              if exists then next()
+              else fs.mkdir p, 0755, (err) ->
+                if err then callback err
+                else next()
+          , callback
+        else if stats.isDirectory()
+          callback()
+        else
+          callback "file #{p} exists"
 
 # A wrapper around `chown(8)` for taking ownership of a given path
 # with the specified owner string (such as `"root:wheel"`). Invokes

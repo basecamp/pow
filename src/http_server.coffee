@@ -99,12 +99,18 @@ module.exports = class HttpServer extends connect.HTTPServer
     req.pow = {host}
     next()
 
-  # Serve requests for status information at `http://pow/config.json`
-  # and `http://pow/status.json`. The former returns a JSON
-  # representation of the server `Configuration` instance; the latter
-  # includes information about the current server version, number of
-  # requests handled, and process ID. Third-party utilities may use
-  # these endpoints to inspect a running Pow server.
+  # Serve requests for status information at `http://pow/`. The status
+  # endpoints are:
+  #
+  # * `/config.json`: Returns a JSON representation of the server's
+  #   `Configuration` instance.
+  # * `/env.json`: Returns the environment variables that all spawned
+  #   applications inherit.
+  # * `/status.json`: Returns information about the current server
+  #   version, number of requests handled, and process ID.
+  #
+  # Third-party utilities may use these endpoints to inspect a running
+  # Pow server.
   handlePowRequest: (req, res, next) =>
     return next() unless req.pow.host is "pow"
 
@@ -112,6 +118,9 @@ module.exports = class HttpServer extends connect.HTTPServer
       when "/config.json"
         res.writeHead 200
         res.end JSON.stringify @configuration
+      when "/env.json"
+        res.writeHead 200
+        res.end JSON.stringify @configuration.env
       when "/status.json"
         res.writeHead 200
         res.end JSON.stringify this

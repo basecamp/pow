@@ -10,8 +10,8 @@ serveRoot = (root, options, callback) ->
     callback = options
     options  = {}
   configuration = createConfiguration
-    hostRoot: fixturePath(root),
-    dstPort:  options.dstPort ? 80
+    POW_HOST_ROOT: fixturePath(root),
+    POW_DST_PORT:  options.dstPort ? 80
   if root is "proxies"
     # there's a proxy setup in this dir to 14136
     # let's create an app for it

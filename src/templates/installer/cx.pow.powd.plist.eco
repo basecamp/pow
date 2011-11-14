@@ -2,18 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>Label</key>
-	<string>cx.pow.powd</string>
-	<key>ProgramArguments</key>
-	<array>
-		<string>sh</string>
-		<string>-i</string>
-		<string>-c</string>
-		<string>$SHELL --login -c "'<%= @bin %>'"</string>
-	</array>
-	<key>KeepAlive</key>
-	<true/>
-	<key>RunAtLoad</key>
-	<true/>
+        <key>Label</key>
+        <string>cx.pow.powd</string>
+        <key>ProgramArguments</key>
+        <array>
+                <string><%= process.execPath %></string>
+                <string><%= @bin %></string>
+        </array>
+        <key>KeepAlive</key>
+        <true/>
+        <key>RunAtLoad</key>
+        <true/>
 </dict>
 </plist>

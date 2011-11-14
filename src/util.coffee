@@ -138,10 +138,11 @@ exports.sourceScriptEnv = (script, env, options, callback) ->
 # the callback. Otherwise, parse the output of `env` into a JavaScript
 # object and pass it to the callback.
 exports.getUserEnv = (callback) ->
+  user = process.env.LOGNAME
   getUserShell (shell) ->
-    exec "#{shell} -l -c env", (err, stdout, stderr) ->
+    exec "login -qf #{user} #{shell} -l -c env", (err, stdout, stderr) ->
       if err
-        exec "#{shell} -c env", (err, stdout, stderr) ->
+        exec "login -qf #{user} #{shell} -c env", (err, stdout, stderr) ->
           if err
             callback err
           else

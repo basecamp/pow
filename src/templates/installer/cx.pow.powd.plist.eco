@@ -6,10 +6,7 @@
 	<string>cx.pow.powd</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>sh</string>
-		<string>-i</string>
-		<string>-c</string>
-		<string>$SHELL --login -c "'<%= @bin %>'"</string>
+    <string><%= @bin %></string>
 	</array>
 	<key>KeepAlive</key>
 	<true/>

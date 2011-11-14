@@ -41,7 +41,6 @@ module.exports = class Daemon extends EventEmitter
         server.listen port
 
       catch err
-        console.log 'err', port
         callback err
 
     pass = =>

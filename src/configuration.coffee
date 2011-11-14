@@ -9,6 +9,7 @@ async             = require "async"
 Logger            = require "./logger"
 {mkdirp}          = require "./util"
 {sourceScriptEnv} = require "./util"
+{getUserEnv}      = require "./util"
 
 {env} = process
 
@@ -29,11 +30,15 @@ module.exports = class Configuration
   # script errors are passed along in the first argument. (No error
   # occurs if the file does not exist.)
   @loadUserConfigurationEnvironment: (callback) ->
-    path.exists p = @userConfigurationPath, (exists) ->
-      if exists
-        sourceScriptEnv p, {}, callback
+    getUserEnv (err, env) =>
+      if err
+        callback err
       else
-        callback null, {}
+        path.exists p = @userConfigurationPath, (exists) ->
+          if exists
+            sourceScriptEnv p, env, callback
+          else
+            callback null, env
 
   # Creates a Configuration object after evaluating the user
   # configuration file. Any environment variables in `~/.powconfig`

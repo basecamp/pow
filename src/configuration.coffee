@@ -52,7 +52,7 @@ module.exports = class Configuration
   # A list of option names accessible on `Configuration` instances.
   @optionNames: [
     "bin", "dstPort", "httpPort", "dnsPort", "timeout", "workers",
-    "domains", "extDomains", "hostRoot", "logRoot", "rvmPath", "env"
+    "domains", "extDomains", "hostRoot", "logRoot", "rvmPath"
   ]
 
   # Pass in any environment variables you'd like to override when

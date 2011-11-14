@@ -5,13 +5,22 @@ http   = require "http"
 
 {Configuration} = require "../.."
 
-exports.createConfiguration = (options = {}) ->
-  options.hostRoot ?= fixturePath("tmp")
-  options.logRoot  ?= fixturePath("tmp/logs")
-  new Configuration options
+exports.merge = merge = (objects...) ->
+  result = {}
+  for object in objects
+    for key, value of object
+      result[key] = value
+  result
 
 exports.fixturePath = fixturePath = (path) ->
   join fs.realpathSync(join __dirname, ".."), "fixtures", path
+
+defaultEnvironment =
+  POW_HOST_ROOT: fixturePath "tmp"
+  POW_LOG_ROOT:  fixturePath "tmp/logs"
+
+exports.createConfiguration = (env = {}) ->
+  new Configuration merge defaultEnvironment, env
 
 exports.prepareFixtures = (callback) ->
   rm_rf fixturePath("tmp"), ->

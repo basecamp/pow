@@ -11,8 +11,6 @@ Logger            = require "./logger"
 {sourceScriptEnv} = require "./util"
 {getUserEnv}      = require "./util"
 
-{env} = process
-
 module.exports = class Configuration
   # The user configuration file, `~/.powconfig`, is evaluated on
   # boot.  You can configure options such as the top-level domain,
@@ -23,7 +21,7 @@ module.exports = class Configuration
   #
   # See the `Configuration` constructor for a complete list of
   # environment options.
-  @userConfigurationPath: path.join env.HOME, ".powconfig"
+  @userConfigurationPath: path.join process.env.HOME, ".powconfig"
 
   # Evaluates the user configuration script and calls the `callback`
   # with the environment variables if the config file exists. Any
@@ -49,10 +47,7 @@ module.exports = class Configuration
       if err
         callback err
       else
-        for key, value of env
-          process.env[key] = value
-
-        callback null, new Configuration
+        callback null, new Configuration env
 
   # A list of option names accessible on `Configuration` instances.
   @optionNames: [
@@ -60,62 +55,64 @@ module.exports = class Configuration
     "domains", "extDomains", "hostRoot", "logRoot", "rvmPath"
   ]
 
-  # Pass in any options you'd like to override when creating a
-  # `Configuration` instance. Valid options and their defaults:
-  constructor: (options = {}) ->
-    # `bin`: the path to the `pow` binary. (This should be correctly
-    # configured for you.)
-    @bin        = options.bin        ? env.POW_BIN         ? path.join __dirname, "../bin/pow"
+  # Pass in any environment variables you'd like to override when
+  # creating a `Configuration` instance. Valid variables and their
+  # defaults:
+  constructor: (env = process.env) ->
+    # `POW_BIN`: the path to the `pow` binary. (This should be
+    # correctly configured for you.)
+    @bin        = env.POW_BIN         ? path.join __dirname, "../bin/pow"
 
-    # `dstPort`: the public port Pow expects to be forwarded or
+    # `POW_DST_PORT`: the public port Pow expects to be forwarded or
     # otherwise proxied for incoming HTTP requests. Defaults to `80`.
-    @dstPort    = options.dstPort    ? env.POW_DST_PORT    ? 80
+    @dstPort    = env.POW_DST_PORT    ? 80
 
-    # `httpPort`: the TCP port Pow opens for accepting incoming HTTP
-    # requests. Defaults to `20559`.
-    @httpPort   = options.httpPort   ? env.POW_HTTP_PORT   ? 20559
+    # `POW_HTTP_PORT`: the TCP port Pow opens for accepting incoming
+    # HTTP requests. Defaults to `20559`.
+    @httpPort   = env.POW_HTTP_PORT   ? 20559
 
-    # `dnsPort`: the UDP port Pow listens on for incoming DNS
+    # `POW_DNS_PORT`: the UDP port Pow listens on for incoming DNS
     # queries. Defaults to `20560`.
-    @dnsPort    = options.dnsPort    ? env.POW_DNS_PORT    ? 20560
+    @dnsPort    = env.POW_DNS_PORT    ? 20560
 
-    # `timeout`: how long (in seconds) to leave inactive Rack
+    # `POW_TIMEOUT`: how long (in seconds) to leave inactive Rack
     # applications running before they're killed. Defaults to 15
     # minutes (900 seconds).
-    @timeout    = options.timeout    ? env.POW_TIMEOUT     ? 15 * 60
+    @timeout    = env.POW_TIMEOUT     ? 15 * 60
 
-    # `workers`: the maximum number of worker processes to spawn for
-    # any given application. Defaults to `2`.
-    @workers    = options.workers    ? env.POW_WORKERS     ? 2
+    # `POW_WORKERS`: the maximum number of worker processes to spawn
+    # for any given application. Defaults to `2`.
+    @workers    = env.POW_WORKERS     ? 2
 
-    # `domains`: the top-level domains for which Pow will respond to
-    # DNS `A` queries with `127.0.0.1`. Defaults to `dev`. If you  
-    # configure this in your `~/.powconfig` you will need to re-run 
+    # `POW_DOMAINS`: the top-level domains for which Pow will respond
+    # to DNS `A` queries with `127.0.0.1`. Defaults to `dev`. If you
+    # configure this in your `~/.powconfig` you will need to re-run
     # `sudo pow --install-system` to make `/etc/resolver` aware of
-    # the new TLD's.
-    @domains    = options.domains    ? env.POW_DOMAINS     ? env.POW_DOMAIN ? "dev"
+    # the new TLDs.
+    @domains    = env.POW_DOMAINS     ? env.POW_DOMAIN ? "dev"
 
-    # `extDomains`: additional top-level domains for which Pow will
-    # serve HTTP requests (but not DNS requests -- hence the "ext").
-    @extDomains = options.extDomains ? env.POW_EXT_DOMAINS ? []
+    # `POW_EXT_DOMAINS`: additional top-level domains for which Pow
+    # will serve HTTP requests (but not DNS requests -- hence the
+    # "ext").
+    @extDomains = env.POW_EXT_DOMAINS ? []
 
     # Allow for comma-separated domain lists, e.g. `POW_DOMAINS=dev,test`
     @domains    = @domains.split?(",")    ? @domains
     @extDomains = @extDomains.split?(",") ? @extDomains
     @allDomains = @domains.concat @extDomains
 
-    # `hostRoot`: path to the directory containing symlinks to
+    # `POW_HOST_ROOT`: path to the directory containing symlinks to
     # applications that will be served by Pow. Defaults to
     # `~/Library/Application Support/Pow/Hosts`.
-    @hostRoot   = options.hostRoot   ? env.POW_HOST_ROOT   ? libraryPath "Application Support", "Pow", "Hosts"
+    @hostRoot   = env.POW_HOST_ROOT   ? libraryPath "Application Support", "Pow", "Hosts"
 
-    # `logRoot`: path to the directory that Pow will use to store its
-    # log files. Defaults to `~/Library/Logs/Pow`.
-    @logRoot    = options.logRoot    ? env.POW_LOG_ROOT    ? libraryPath "Logs", "Pow"
+    # `POW_LOG_ROOT`: path to the directory that Pow will use to store
+    # its log files. Defaults to `~/Library/Logs/Pow`.
+    @logRoot    = env.POW_LOG_ROOT    ? libraryPath "Logs", "Pow"
 
-    # `rvmPath`: path to the rvm initialization script. Defaults to
-    # `~/.rvm/scripts/rvm`.
-    @rvmPath    = options.rvmPath    ? env.POW_RVM_PATH    ? path.join env.HOME, ".rvm/scripts/rvm"
+    # `POW_RVM_PATH`: path to the rvm initialization script. Defaults
+    # to `~/.rvm/scripts/rvm`.
+    @rvmPath    = env.POW_RVM_PATH    ? path.join process.env.HOME, ".rvm/scripts/rvm"
 
     # ---
     @loggers = {}
@@ -204,7 +201,7 @@ module.exports = class Configuration
 # Convenience wrapper for constructing paths to subdirectories of
 # `~/Library`.
 libraryPath = (args...) ->
-  path.join env.HOME, "Library", args...
+  path.join process.env.HOME, "Library", args...
 
 # Strip a trailing `domain` from the given `host`, then generate a
 # sorted array of possible entry names for finding which application

@@ -9,9 +9,9 @@ http              = require "http"
 
 serveApp = (path, callback) ->
   configuration = createConfiguration
-    hostRoot: fixturePath("apps")
-    rvmPath:  fixturePath("fake-rvm")
-    workers:  1
+    POW_HOST_ROOT: fixturePath("apps")
+    POW_RVM_PATH:  fixturePath("fake-rvm")
+    POW_WORKERS:   1
 
   @application = new RackApplication configuration, fixturePath(path)
   server = connect.createServer()

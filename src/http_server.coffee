@@ -200,6 +200,7 @@ module.exports = class HttpServer extends connect.HTTPServer
       method: req.method
       url: "#{req.pow.url}#{req.url}"
       headers: headers
+      jar: false
 
     req.pipe proxy
     proxy.pipe res

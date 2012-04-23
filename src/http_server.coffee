@@ -29,11 +29,11 @@ module.exports = class HttpServer extends connect.HTTPServer
   x = (fn) -> (err, req, res, next) -> fn err, req, res, next
 
   # Helper that loads the named template, creates a new context from
-  # the given context with itself and an optional `yield` block, and
+  # the given context with itself and an optional `yielder` block, and
   # passes that to the template for rendering.
-  renderTemplate = (templateName, renderContext, yield) ->
+  renderTemplate = (templateName, renderContext, yielder) ->
     template = require "./templates/http_server/#{templateName}.html"
-    context = {renderTemplate, yield}
+    context = {renderTemplate, yielder}
     context[key] = value for key, value of renderContext
     template context
 

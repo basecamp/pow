@@ -58,7 +58,7 @@ exports.mkdirp = (dirname, callback) ->
       async.forEachSeries paths.reverse(), (p, next) ->
         path.exists p, (exists) ->
           if exists then next()
-          else fs.mkdir p, 0755, (err) ->
+          else fs.mkdir p, 0o755, (err) ->
             if err then callback err
             else next()
       , callback

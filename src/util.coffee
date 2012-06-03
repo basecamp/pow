@@ -131,24 +131,51 @@ exports.sourceScriptEnv = (script, env, options, callback) ->
     callback null, parseEnv stdout
 
 # Get the user's login environment by spawning a login shell and
-# collecting its environment variables via the `env` command. First
-# spawn the user's shell with the `-l` option. If that fails, retry
-# without `-l`; some shells, like tcsh, cannot be started as
-# non-interactive login shells. If that fails, bubble the error up to
-# the callback. Otherwise, parse the output of `env` into a JavaScript
-# object and pass it to the callback.
+# collecting its environment variables via the `env` command. (In case
+# the user's shell profile script prints output to stdout or stderr,
+# we must redirect `env` output to a temporary file and read that.)
 exports.getUserEnv = (callback) ->
+  filename = makeTemporaryFilename()
+  loginExec "env > #{filename}", (err) ->
+    if err then callback err
+    else readAndUnlink filename, (err, result) ->
+      if err then callback err
+      else callback null, parseEnv result
+
+# Generate and return a unique temporary filename based on the
+# current process's PID, the number of milliseconds elapsed since the
+# UNIX epoch, and a random integer.
+makeTemporaryFilename = ->
+  tmpdir    = process.env.TMPDIR ? "/tmp"
+  timestamp = new Date().getTime()
+  random    = parseInt Math.random() * Math.pow(2, 16)
+  filename  = "pow.#{process.pid}.#{timestamp}.#{random}"
+  path.join tmpdir, filename
+
+# Read the contents of a file, unlink the file, then invoke the
+# callback with the contents of the file.
+readAndUnlink = (filename, callback) ->
+  fs.readFile filename, (err, contents) ->
+    if err then callback err
+    else fs.unlink filename, (err) ->
+      if err then callback err
+      else callback contents
+
+# Execute the given command through a login shell and pass the
+# contents of its stdout and stderr streams to the callback. In order
+# to spawn a login shell, first spawn the user's shell with the `-l`
+# option. If that fails, retry  without `-l`; some shells, like tcsh,
+# cannot be started as non-interactive login shells. If that fails,
+# bubble the error up to the callback.
+loginExec = (command, callback) ->
   user = process.env.LOGNAME
   getUserShell (shell) ->
-    exec "login -qf #{user} #{shell} -l -c env", (err, stdout, stderr) ->
+    exec "login -qf #{user} #{shell} -l -c '#{command}'", (err, stdout, stderr) ->
       if err
-        exec "login -qf #{user} #{shell} -c env", (err, stdout, stderr) ->
-          if err
-            callback err
-          else
-            callback null, parseEnv stdout
+        exec "login -qf #{user} #{shell} -c '#{command}'", (err, stdout, stderr) ->
+          callback err, stdout, stderr
       else
-        callback null, parseEnv stdout
+        callback null, stdout, stderr
 
 # Invoke `dscl(1)` to find out what shell the user prefers. We cannot
 # rely on `process.env.SHELL` because it always seems to be

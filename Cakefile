@@ -21,7 +21,7 @@ buildTemplates = (callback) ->
     (callback) ->
       fs.readFile "src/templates/#{name}.eco", "utf8", (err, data) ->
         if err then callback err
-        else fs.writeFile "lib/templates/#{name}.js", eco.compile(data), callback
+        else fs.writeFile "lib/templates/#{name}.js", "module.exports = #{eco.precompile(data)}", callback
 
   async.parallel [
     compile("http_server/application_not_found.html")

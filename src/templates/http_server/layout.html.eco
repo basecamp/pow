@@ -102,7 +102,7 @@
 </head>
 <body class="<%= @class %>">
   <div class="page">
-    <%= @yield() %>
+    <%= @yieldContents() %>
     <ul>
       <li><a href="http://pow.cx/manual">Pow User&rsquo;s Manual</a></li>
       <li><a href="https://github.com/37signals/pow/wiki/Troubleshooting">Troubleshooting</a></li>

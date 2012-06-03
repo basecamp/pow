@@ -21,7 +21,7 @@ daemonSource   = require "./templates/installer/cx.pow.powd.plist"
 # indicating whether the file needs to be installed as root and what
 # permission bits it should have.
 class InstallerFile
-  constructor: (@path, source, @root = false, @mode = 0644) ->
+  constructor: (@path, source, @root = false, @mode = 0o644) ->
     @source = source.trim()
 
   # Check to see whether the file actually needs to be installed. If

@@ -2,7 +2,7 @@
 # `./build.sh` generates dist/$VERSION.tar.gz
 # `./build.sh --install` installs into ~/Library/Application Support/Pow/Current
 
-VERSION=$(node -e 'JSON.parse(require("fs").readFileSync("package.json","utf8")).version')
+VERSION=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("package.json","utf8")).version); ""')
 ROOT="/tmp/pow-build.$$"
 DIST="$(pwd)/dist"
 
@@ -12,7 +12,7 @@ mkdir -p "$ROOT/$VERSION/node_modules"
 cp -R package.json bin lib "$ROOT/$VERSION"
 cp Cakefile "$ROOT/$VERSION"
 cd "$ROOT/$VERSION"
-BUNDLE_ONLY=1 npm install >/dev/null
+BUNDLE_ONLY=1 npm install --production &>/dev/null
 cp `which node` bin
 
 if [ "$1" == "--install" ]; then

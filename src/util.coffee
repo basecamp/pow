@@ -115,20 +115,32 @@ exports.sourceScriptEnv = (script, env, options, callback) ->
   else
     options ?= {}
 
+  # Build up the command to execute, starting with the `before`
+  # option, if any. Then source the given script, swallowing any
+  # output written to stderr. Finally, dump the current environment to
+  # a temporary file.
+  cwd = path.dirname script
+  filename = makeTemporaryFilename()
   command = """
-    #{options.before};
-    source '#{script}' > /dev/null;
-    env
+    #{options.before ? "true"} &&
+    source #{quote script} > /dev/null &&
+    env > #{quote filename}
   """
 
-  exec command, cwd: path.dirname(script), env: env, (err, stdout, stderr) ->
-    if err
-      err.message = "'#{script}' failed to load"
-      err.stdout = stdout
-      err.stderr = stderr
-      callback err
-
-    callback null, parseEnv stdout
+  # Run our command through the user's shell in the directory of the
+  # script. If an error occurs, rewrite the error to a more
+  # descriptive message. Otherwise, read and parse the environment
+  # from the temporary file and pass it along to the callback.
+  getUserShell (shell) ->
+    exec "#{shell} -c #{quote command}", {cwd, env}, (err, stdout, stderr) ->
+      if err
+        err.message = "'#{script}' failed to load (#{shell} -c #{quote command})"
+        err.stdout = stdout
+        err.stderr = stderr
+        callback err
+      else readAndUnlink filename, (err, result) ->
+        if err then callback err
+        else callback null, parseEnv result
 
 # Get the user's login environment by spawning a login shell and
 # collecting its environment variables via the `env` command. (In case
@@ -136,11 +148,14 @@ exports.sourceScriptEnv = (script, env, options, callback) ->
 # we must redirect `env` output to a temporary file and read that.)
 exports.getUserEnv = (callback) ->
   filename = makeTemporaryFilename()
-  loginExec "env > #{filename}", (err) ->
+  loginExec "env > #{quote filename}", (err) ->
     if err then callback err
     else readAndUnlink filename, (err, result) ->
       if err then callback err
       else callback null, parseEnv result
+
+# Single-quote a string for command line execution.
+quote = (string) -> "'" + string.replace(/\'/g, "'\\''") + "'"
 
 # Generate and return a unique temporary filename based on the
 # current process's PID, the number of milliseconds elapsed since the
@@ -168,12 +183,11 @@ readAndUnlink = (filename, callback) ->
 # cannot be started as non-interactive login shells. If that fails,
 # bubble the error up to the callback.
 loginExec = (command, callback) ->
-  user = process.env.LOGNAME
   getUserShell (shell) ->
-    exec "login -qf #{user} #{shell} -l -c '#{command}'", (err, stdout, stderr) ->
+    login = "login -qf #{process.env.LOGNAME} #{shell}"
+    exec "#{login} -l -c #{quote command}", (err, stdout, stderr) ->
       if err
-        exec "login -qf #{user} #{shell} -c '#{command}'", (err, stdout, stderr) ->
-          callback err, stdout, stderr
+        exec "#{login} -c #{quote command}", callback
       else
         callback null, stdout, stderr
 

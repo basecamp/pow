@@ -155,11 +155,11 @@ makeTemporaryFilename = ->
 # Read the contents of a file, unlink the file, then invoke the
 # callback with the contents of the file.
 readAndUnlink = (filename, callback) ->
-  fs.readFile filename, (err, contents) ->
+  fs.readFile filename, "utf8", (err, contents) ->
     if err then callback err
     else fs.unlink filename, (err) ->
       if err then callback err
-      else callback contents
+      else callback null, contents
 
 # Execute the given command through a login shell and pass the
 # contents of its stdout and stderr streams to the callback. In order

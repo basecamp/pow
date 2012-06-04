@@ -131,6 +131,22 @@ domains with a particular Rack application. Create a symlink in
 `~/.pow` named `default` and point it to the application of your
 choice.
 
+#### Accessing Virtual Hosts From Other Computers ####
+
+Sometimes you need to access your Pow virtual hosts on another
+computer &mdash; for example, when testing your application on a
+mobile device.
+
+The `.dev` domain will only work on your development
+computer. However, you can use the special [`.xip.io`
+domain](http://xip.io/) to remotely access your Pow virtual hosts.
+
+Construct your xip.io domain by appending your application's name to
+your LAN IP address followed by `.xip.io`. For example, if your
+development computer's LAN IP address is `10.0.1.43`, you can visit
+`myapp.dev` from another computer on your local network using the URL
+`http://myapp.10.0.1.43.xip.io/`.
+
 ### Customizing Environment Variables ###
 
 Pow lets you customize the environment in which worker processes

@@ -105,6 +105,9 @@ module.exports = class Configuration
     @extDomains = @extDomains.split?(",") ? @extDomains
     @allDomains = @domains.concat @extDomains
 
+    # Support *.xip.io top-level domains.
+    @allDomains.push /\d+\.\d+\.\d+\.\d+\.xip\.io$/, /[0-9a-z]{1,7}\.xip\.io$/
+
     # `POW_HOST_ROOT`: path to the directory containing symlinks to
     # applications that will be served by Pow. Defaults to
     # `~/Library/Application Support/Pow/Hosts`.
@@ -213,6 +216,8 @@ libraryPath = (args...) ->
 # `["basecamp"]`.
 getFilenamesForHost = (host, domain) ->
   host = host.toLowerCase()
+  domain = host.match(domain)?[0] ? "" if domain.test?
+
   if host.slice(-domain.length - 1) is ".#{domain}"
     parts  = host.slice(0, -domain.length - 1).split "."
     length = parts.length

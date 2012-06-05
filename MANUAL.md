@@ -147,11 +147,11 @@ You can also use port proxying for accessing web apps written in other
 runtimes such as Python or Node.js. Remember that services behind the
 proxy won't automatically be started or stopped like Rack apps.
 
-#### Accessing Virtual Hosts From Other Computers ####
+#### Accessing Virtual Hosts from Other Computers ####
 
-Sometimes you need to access your Pow virtual hosts on another
-computer &mdash; for example, when testing your application on a
-mobile device.
+Sometimes you need to access your Pow virtual hosts from another
+computer on your local network &mdash; for example, when testing your
+application on a mobile device or from a Windows or Linux VM.
 
 The `.dev` domain will only work on your development
 computer. However, you can use the special [`.xip.io`

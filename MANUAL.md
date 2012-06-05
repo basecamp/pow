@@ -143,7 +143,7 @@ port 8080:
 
     $ echo 8080 > ~/.pow/proxiedapp
 
-You can also use port proxying for accessing web apps written in other
+You can also use port proxying to access web apps written for other
 runtimes such as Python or Node.js. Remember that services behind the
 proxy won't automatically be started or stopped like Rack apps.
 

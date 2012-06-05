@@ -133,17 +133,19 @@ choice.
 
 #### Port Proxying ####
 
-Because Pow listens on port 80, you can no longer run Apache or nginx
-on that port. With proxying proxying you can route traffic through Pow
-to any other port on your computer. Instead of creating a symlink,
-create a plain text file in your ~/.pow directory with the hostname
-and a port number in the contents.
+Pow's port proxying feature lets you route all web traffic on a
+particular hostname to another port on your computer. To use it, just
+create a file in `~/.pow` (instead of a symlink) with the destination
+port number as its contents.
 
-This isn't limited to Apache, but could be used for any other kind of
-web app like Python or Node.js. Remember services being proxied
-to won't automatically be started or stopped like Rack apps.
+For example, to forward all traffic for `http://proxiedapp.dev/` to
+port 8080:
 
-    echo 8080 > ~/.pow/myproxiedhost
+    $ echo 8080 > ~/.pow/proxiedapp
+
+You can also use port proxying for accessing web apps written in other
+runtimes such as Python or Node.js. Remember that services behind the
+proxy won't automatically be started or stopped like Rack apps.
 
 #### Accessing Virtual Hosts From Other Computers ####
 

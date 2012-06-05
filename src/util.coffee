@@ -146,13 +146,21 @@ exports.sourceScriptEnv = (script, env, options, callback) ->
 # collecting its environment variables via the `env` command. (In case
 # the user's shell profile script prints output to stdout or stderr,
 # we must redirect `env` output to a temporary file and read that.)
-exports.getUserEnv = (callback) ->
+#
+# The returned environment will include a default `LANG` variable if
+# one is not set by the user's shell. This default value of `LANG` is
+# determined by joining the user's current locale with the value of
+# the `defaultEncoding` parameter, or `UTF-8` if it is not set.
+exports.getUserEnv = (callback, defaultEncoding = "UTF-8") ->
   filename = makeTemporaryFilename()
   loginExec "env > #{quote filename}", (err) ->
     if err then callback err
     else readAndUnlink filename, (err, result) ->
       if err then callback err
-      else callback null, parseEnv result
+      else getUserLocale (locale) ->
+        env = parseEnv result
+        env.LANG ?= "#{locale}.#{defaultEncoding}"
+        callback null, env
 
 # Single-quote a string for command line execution.
 quote = (string) -> "'" + string.replace(/\'/g, "'\\''") + "'"
@@ -206,6 +214,14 @@ getUserShell = (callback) ->
         callback shell
       else
         callback process.env.SHELL
+
+# Read the user's current locale preference from the OS X defaults
+# database. Fall back to `en_US` if it can't be determined.
+getUserLocale = (callback) ->
+  exec "defaults read -g AppleLocale", (err, stdout, stderr) ->
+    locale = stdout?.trim() ? ""
+    locale = "en_US" unless locale.match /^\w+$/
+    callback locale
 
 # Parse the output of the `env` command into a JavaScript object.
 parseEnv = (stdout) ->

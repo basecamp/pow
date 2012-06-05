@@ -308,6 +308,8 @@ request with the header `Host: pow`. The available endponts are:
 * `/status.json`: A JSON-encoded object containing the current Pow
   server's process ID, version string, and the number of requests it's
   handled since it started.
+* `/env.json`: A JSON-encoded object representing the running server's
+  environment, which is inherited by each application worker.
 * `/config.json`: A JSON-encoded object representing the running
   server's [configuration](http://pow.cx/docs/configuration.html).
 

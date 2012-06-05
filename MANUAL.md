@@ -79,7 +79,7 @@ If you decide Pow's not for you, uninstallation is just as easy:
 
 ## Managing Applications ##
 
-Pow deals exclusively with Rack applications. For the purposes of this
+Pow deals primarily with Rack applications. For the purposes of this
 document, a _Rack application_ is a directory with a `config.ru`
 rackup file (and optionally a `public` subdirectory containing static
 assets). For more information on rackup files, see the [Rack::Builder
@@ -130,6 +130,20 @@ You can override this behavior to serve all requests for unhandled
 domains with a particular Rack application. Create a symlink in
 `~/.pow` named `default` and point it to the application of your
 choice.
+
+#### Port Proxying ####
+
+Because Pow listens on port 80, you can no longer run Apache or nginx
+on that port. With proxying proxying you can route traffic through Pow
+to any other port on your computer. Instead of creating a symlink,
+create a plain text file in your ~/.pow directory with the hostname
+and a port number in the contents.
+
+This isn't limited to Apache, but could be used for any other kind of
+web app like Python or Node.js. Remember services being proxied
+to won't automatically be started or stopped like Rack apps.
+
+    echo 8080 > ~/.pow/myproxiedhost
 
 #### Accessing Virtual Hosts From Other Computers ####
 

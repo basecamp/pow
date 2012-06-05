@@ -263,9 +263,9 @@ documentation](http://pow.cx/docs/configuration.html#section-5) for a
 full list of settings that you can change.
 
 **Note**: After modifying a setting in `~/.powconfig`, you'll need to
-  restart Pow for the change to take effect. You can do this by
-  finding the `pow` process in OS X's Activity Monitor and clicking
-  "Quit Process".
+  restart Pow for the change to take effect. See the Restarting Pow
+  section below.
+
 
 ### Configuring Top-Level Domains ###
 
@@ -323,6 +323,21 @@ Pow with the `--print-config` option (useful for shell scripts):
         --print-config)
     $ echo $POW_TIMEOUT
     900
+
+### Restarting Pow ###
+
+Pow runs as a Mac OS X Launch Agent. If the Pow server process
+terminates, the OS will restart it automatically.
+
+You may need to manually restart Pow if you make configuration changes
+to `~/.powconfig` or modify your login environment. To tell Pow to
+quit and restart, touch the global `restart.txt` file:
+
+    $ touch ~/.pow/restart.txt
+
+Alternatively, you can use the Activity Monitor application. Find the
+`pow` process in the process listing, select it, and click the Quit
+Process button.
 
 ## Third-Party Tools ##
 

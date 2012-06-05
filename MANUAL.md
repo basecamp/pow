@@ -57,7 +57,7 @@ set up the `ipfw` rule), if necessary. Then it boots the server.
 
 ### Installing From Source ###
 
-To install Pow from source, you'll need Node 0.4 and npm 1.0:
+To install Pow from source, you'll need Node 0.6.0 or higher and npm:
 
     $ git clone https://github.com/37signals/pow.git
     $ cd pow

@@ -16,8 +16,12 @@ serveRoot = (root, options, callback) ->
     # there's a proxy setup in this dir to 14136
     # let's create an app for it
     appOnPort = http.createServer (req, res) ->
-      res.writeHead 200, 'Content-Type': 'text/plain'
-      res.end "I'm on a port"
+      if req.url is "/redirect"
+        res.writeHead 302, 'Location': '/'
+        res.end 'Redirecting!'
+      else
+        res.writeHead 200, 'Content-Type': 'text/plain'
+        res.end "I'm on a port"
     appOnPort.listen 14136, ->
       serve new HttpServer(configuration), (request, done, server) ->
         callback request, (callback) ->
@@ -59,6 +63,13 @@ module.exports = testCase
     serveRoot "proxies", (request, done) ->
       request "GET", "/", host: "port.dev", (body) ->
         test.same "I'm on a port", body
+        done -> test.done()
+        
+  "returns 302 for proxied apps' 302 redirects": (test) ->
+    test.expect 1
+    serveRoot "proxies", (request, done) ->
+      request "GET", "/redirect", host: "port.dev", (body, response) ->
+        test.same 302, response.statusCode
         done -> test.done()
 
   "responds with a custom 503 when a domain isn't configured": (test) ->

@@ -186,20 +186,63 @@ loaded first.
 
 ### Working With Different Versions of Ruby ###
 
-Pow offers full support for running multiple applications under
-different versions of Ruby with
-[rvm](http://rvm.beginrescueend.com/). Just add a [project
-`.rvmrc`](http://rvm.beginrescueend.com/workflow/rvmrc/#project)
-file to your application's root directory and you're good to go.
+Pow invokes each application's Ruby processes in an isolated
+environment. This design makes it possible to use different Ruby
+runtimes on a per-application basis.
 
-For example, to instruct Pow to run an application with Ruby 1.9.2,
-use this `.rvmrc` file (assuming you've already installed 1.9.2 with
-`rvm install 1.9.2`):
+There are three ways to specify which version of Ruby to use for a
+particular application.
 
-    rvm 1.9.2
+#### Specifying Ruby Versions with rbenv ####
 
-If an application has an `.rvmrc` file but rvm isn't installed, Pow
-will ignore the `.rvmrc` file and fall back to your system Ruby.
+You can use [rbenv](https://github.com/sstephenson/rbenv) to specify
+per-application Ruby versions for use with Pow.
+
+The `rbenv local` command lets you set a per-project Ruby version by
+saving an `.rbenv-version` file in the current directory. For example,
+to configure a particular application to run with Ruby 1.9.3-p194,
+change to the application's directory and run:
+
+    $ rbenv local 1.9.3-p194
+
+Assuming you have set up rbenv in your login environment, there is no
+additional configuration necessary to use it with Pow.
+
+For more information, see the [rbenv
+documentation](https://github.com/sstephenson/rbenv#readme).
+
+#### Specifying Ruby Versions with RVM ####
+
+[RVM](http://rvm.io/) is another option for specifying per-application
+Ruby versions for use with Pow.
+
+You can create a [project `.rvmrc`
+file](https://rvm.io/workflow/rvmrc#project) to specify an
+application's Ruby version. For example, to configure your application
+to run with Ruby 1.8.7, add the following to `.rvmrc` in the
+application's root directory:
+
+    rvm 1.8.7
+
+Because RVM works by injecting itself into your shell, you must first
+load it in your application's `.powrc` or `.powenv` file using the
+following code:
+
+    [ ! -f "$rvm_path/scripts/rvm" ] || source "$rvm_path/scripts/rvm"
+
+For more information, see the [RVM web site](http://rvm.io/).
+
+#### Specifying Ruby Versions by Setting $PATH ####
+
+You can adjust the `PATH` environment variable in `.powrc` or
+`.powenv` to select Ruby versions on a per-application basis. For
+example, if you have Ruby installed into `/opt/ruby-1.8.7`, you can
+add the following to `.powenv`:
+
+    export PATH="/opt/ruby-1.8.7/bin:$PATH"
+
+When Pow loads your application, it will find and use the first `ruby`
+binary in your `PATH` &mdash; in this case `/opt/ruby-1.8.7/bin/ruby`.
 
 ### Serving Static Files ###
 

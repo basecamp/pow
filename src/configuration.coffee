@@ -120,8 +120,8 @@ module.exports = class Configuration
     # its log files. Defaults to `~/Library/Logs/Pow`.
     @logRoot    = env.POW_LOG_ROOT    ? libraryPath "Logs", "Pow"
 
-    # `POW_RVM_PATH`: path to the rvm initialization script. Defaults
-    # to `~/.rvm/scripts/rvm`.
+    # `POW_RVM_PATH` (**deprecated**): path to the rvm initialization
+    # script. Defaults to `~/.rvm/scripts/rvm`.
     @rvmPath    = env.POW_RVM_PATH    ? path.join process.env.HOME, ".rvm/scripts/rvm"
 
     # ---

@@ -112,7 +112,7 @@ module.exports = class RackApplication
       if rvmrcExists
         exists rvm = @configuration.rvmPath, (rvmExists) =>
           if rvmExists
-            libexecPath = resolve @configuration.bin, "../../libexec"
+            libexecPath = resolve "#{__dirname}/../libexec"
             before = """
               '#{libexecPath}/pow_rvm_deprecation_notice' '#{[@firstHost]}'
               source '#{rvm}' > /dev/null

@@ -241,10 +241,11 @@ module.exports = class RackApplication
   # file. This is called by the RVM deprecation notice mini-app.
   writeRvmBoilerplate: ->
     powrc = join @root, ".powrc"
-    line = '[ ! -f "$rvm_path/scripts/rvm" ] || source "$rvm_path/scripts/rvm"'
+    line1 = '[ ! -f "$rvm_path/scripts/rvm" ] || source "$rvm_path/scripts/rvm"'
+    line2 = '[ ! -f ".rvmrc" ] || source ".rvmrc"'
 
     fs.readFile powrc, "utf8", (err, contents) ->
       lines = contents?.split("\n") ? []
-      unless line in lines
-        lines.push line, ""
+      unless line1 in lines and line2 in lines
+        lines.push line1, line2, ""
         fs.writeFile powrc, lines.join("\n")

@@ -15,7 +15,7 @@ if [ -f "$NOTIFIED_FILE" ] && grep -xF "$RVMRC_PATH" "$NOTIFIED_FILE"; then
 fi
 
 for file in .powrc .powenv; do
-  if [ -f "$file" ] && egrep 'source.+rvm' "$file"; then
+  if [ -f "$file" ] && egrep 'source.+rvmrc' "$file"; then
     exit
   fi
 done

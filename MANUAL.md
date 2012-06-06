@@ -229,6 +229,7 @@ load it in your application's `.powrc` or `.powenv` file using the
 following code:
 
     [ ! -f "$rvm_path/scripts/rvm" ] || source "$rvm_path/scripts/rvm"
+    [ ! -f ".rvmrc" ] || source ".rvmrc"
 
 For more information, see the [RVM web site](http://rvm.io/).
 

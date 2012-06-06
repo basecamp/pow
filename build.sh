@@ -9,7 +9,7 @@ DIST="$(pwd)/dist"
 cake build
 
 mkdir -p "$ROOT/$VERSION/node_modules"
-cp -R package.json bin lib "$ROOT/$VERSION"
+cp -R package.json bin lib libexec "$ROOT/$VERSION"
 cp Cakefile "$ROOT/$VERSION"
 cd "$ROOT/$VERSION"
 BUNDLE_ONLY=1 npm install --production &>/dev/null

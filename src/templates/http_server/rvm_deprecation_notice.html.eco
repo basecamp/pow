@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Pow: Automatic RVM support is deprecated</title>
+    <style type="text/css">
+      html {
+        background: #fff;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        margin: 30px auto;
+        padding: 15px 35px;
+        width: 520px;
+        font-family: Lucida Grande;
+      }
+
+      h1 {
+        font-family: Helvetica;
+        font-size: 24px;
+      }
+
+      a {
+        color: #03f;
+      }
+
+      p {
+        width: 460px;
+        font-size: 13px;
+      }
+
+      .important {
+        background: #ff3;
+      }
+
+      code {
+        font-family: Menlo;
+        font-size: 12px;
+      }
+    </style>
+    <script type="text/javascript">
+      function addToPowrc(link) {
+        perform(link, "add_to_powrc",
+          "This code has been added to your application&rsquo;s <code>.powrc</code> file."
+        )
+      }
+
+      function disable(link) {
+        perform(link, "disable",
+          "You will not see this deprecation notice for other applications. " +
+          '<a href="#" onclick="enable(this); return false">Undo</a>'
+        )
+      }
+
+      function enable(link) {
+        perform(link, "enable")
+      }
+
+      function perform(link, action, successHTML) {
+        if (link.className == "busy") return
+        link.className = "busy"
+
+        xhr = new XMLHttpRequest()
+        xhr.open("POST", "/__pow__/rvm_deprecation/" + action, true)
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState != 4) return
+          link.className = ""
+
+          if (xhr.status == 200) {
+            var p = link.parentNode
+            var previousInnerHTML = p.previousInnerHTML
+            p.previousInnerHTML = p.innerHTML
+            p.innerHTML = successHTML || previousInnerHTML
+          }
+        }
+
+        xhr.send()
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Automatic RVM support is deprecated</h1>
+
+    <p>We&rsquo;re showing you this notice because you just accessed
+    an application with a per-project <code>.rvmrc</code> file.</p>
+
+    <p><span class="important">Support for automatically loading
+    per-project <code>.rvmrc</code> files in Pow is deprecated and
+    will be removed in the next major release.</span></p>
+
+    <p>Ensure your application continues to work with future releases
+    of Pow by adding the following code to the
+    application&rsquo;s <code>.powrc</code> file:</p>
+
+    <pre><code>[ ! -f "$rvm_path/scripts/rvm" ] || source "$rvm_path/scripts/rvm"
+[ ! -f ".rvmrc" ] || source ".rvmrc"</code></pre>
+
+    <p><a href="#" onclick="addToPowrc(this); return false">Add this
+    code to <code>.powrc</code> for me</a></p>
+
+    <p>We won&rsquo;t notify you again for this project.</p>
+
+    <p><a href="#" onclick="disable(this); return false">Don&rsquo;t
+    notify me about deprecations for any other applications,
+    either</a></p>
+
+    <p>Thanks for using Pow.</p>
+  </body>
+</html>

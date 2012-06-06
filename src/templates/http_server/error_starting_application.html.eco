@@ -5,6 +5,5 @@
     <pre class="breakout small_text"><strong><%= @err %></strong>
 <%= @stack.join "\n" %><% if @rest: %>
 <a href="#" onclick="this.style.display='none',this.nextSibling.style.display='';return false">Show <%= @rest.length %> more lines</a><div style="display: none"><%= @rest.join "\n" %></div><% end %></pre>
-    <p>(If your app uses Bundler, check to make sure you have the <a href="http://gembundler.com/">latest version</a>, then run <code>bundle install</code>. If you&rsquo;re using rvm, make sure you have the <a href="https://rvm.beginrescueend.com/rvm/upgrading/">latest version</a> installed and your app is using the right gemset.)</p>
   </section>
 <% end %>

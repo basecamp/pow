@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+HOST="$1"
+RVMRC_PATH="$PWD/.rvmrc"
+SUPPORT_ROOT="$HOME/Library/Application Support/Pow"
+DISABLED_FILE="$SUPPORT_ROOT/.disableRvmDeprecationNotices"
+NOTIFIED_FILE="$SUPPORT_ROOT/.rvmDeprecationNotices"
+
+if [ -z "$HOST" ] || [ -f "$DISABLED_FILE" ]; then
+  exit
+fi
+
+if [ -f "$NOTIFIED_FILE" ] && grep -xF "$RVMRC_PATH" "$NOTIFIED_FILE"; then
+  exit
+fi
+
+for file in .powrc .powenv; do
+  if [ -f "$file" ] && egrep 'source.+rvmrc' "$file"; then
+    exit
+  fi
+done
+
+echo "$RVMRC_PATH" >> "$NOTIFIED_FILE"
+open "http://$HOST/__pow__/rvm_deprecation"

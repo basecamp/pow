@@ -29,6 +29,7 @@ buildTemplates = (callback) ->
     compile("http_server/layout.html")
     compile("http_server/proxy_error.html")
     compile("http_server/rackup_file_missing.html")
+    compile("http_server/rvm_deprecation_notice.html")
     compile("http_server/welcome.html")
     compile("installer/cx.pow.firewall.plist")
     compile("installer/cx.pow.powd.plist")

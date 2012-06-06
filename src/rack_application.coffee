@@ -29,13 +29,13 @@ fs    = require "fs"
 nack  = require "nack"
 
 {bufferLines, pause, sourceScriptEnv} = require "./util"
-{join, exists, basename} = require "path"
+{join, exists, basename, resolve} = require "path"
 
 module.exports = class RackApplication
   # Create a `RackApplication` for the given configuration and
   # root path. The application begins life in the uninitialized
   # state.
-  constructor: (@configuration, @root) ->
+  constructor: (@configuration, @root, @firstHost) ->
     @logger = @configuration.getLogger join "apps", basename @root
     @readyCallbacks = []
     @quitCallbacks  = []
@@ -105,12 +105,18 @@ module.exports = class RackApplication
   # source `.rvmrc`, and invoke `callback` with the resulting
   # environment variables. If `.rvmrc` is present but rvm is not
   # installed, invoke `callback` without sourcing `.rvmrc`.
+  # Before loading rvm, Pow invokes a helper script that shows a
+  # deprecation notice if it has not yet been displayed.
   loadRvmEnvironment: (env, callback) ->
     exists script = join(@root, ".rvmrc"), (rvmrcExists) =>
       if rvmrcExists
-        exists rvm = @configuration.rvmPath, (rvmExists) ->
+        exists rvm = @configuration.rvmPath, (rvmExists) =>
           if rvmExists
-            before = "source '#{rvm}' > /dev/null"
+            libexecPath = resolve @configuration.bin, "../../libexec"
+            before = """
+              '#{libexecPath}/pow_rvm_deprecation_notice' '#{[@firstHost]}'
+              source '#{rvm}' > /dev/null
+            """.trim()
             sourceScriptEnv script, env, {before}, callback
           else
             callback null, env
@@ -230,3 +236,15 @@ module.exports = class RackApplication
         @restart callback
       else
         callback()
+
+  # Append RVM autoload boilerplate to the application's `.powrc`
+  # file. This is called by the RVM deprecation notice mini-app.
+  writeRvmBoilerplate: ->
+    powrc = join @root, ".powrc"
+    line = '[ ! -f "$rvm_path/scripts/rvm" ] || source "$rvm_path/scripts/rvm"'
+
+    fs.readFile powrc, "utf8", (err, contents) ->
+      lines = contents?.split("\n") ? []
+      unless line in lines
+        lines.push line, ""
+        fs.writeFile powrc, lines.join("\n")

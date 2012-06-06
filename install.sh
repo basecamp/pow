@@ -42,8 +42,9 @@
 
       set -e
       POW_ROOT="$HOME/Library/Application Support/Pow"
+      NODE_BIN="$POW_ROOT/Current/bin/node"
       POW_BIN="$POW_ROOT/Current/bin/pow"
-      [[ -z "$VERSION" ]] && VERSION=0.3.2
+      [[ -z "$VERSION" ]] && VERSION=0.4.0-beta1
 
 
 # Fail fast if we're not on OS X >= 10.6.0.
@@ -91,19 +92,19 @@
 # Install local configuration files.
 
       echo "*** Installing local configuration files..."
-      "$POW_BIN" --install-local
+      "$NODE_BIN" "$POW_BIN" --install-local
 
 
 # Check to see whether we need root privileges.
 
-      "$POW_BIN" --install-system --dry-run >/dev/null && NEEDS_ROOT=0 || NEEDS_ROOT=1
+      "$NODE_BIN" "$POW_BIN" --install-system --dry-run >/dev/null && NEEDS_ROOT=0 || NEEDS_ROOT=1
 
 
 # Install system configuration files, if necessary. (Avoid sudo otherwise.)
 
       if [ $NEEDS_ROOT -eq 1 ]; then
         echo "*** Installing system configuration files as root..."
-        sudo "$POW_BIN" --install-system
+        sudo "$NODE_BIN" "$POW_BIN" --install-system
         sudo launchctl load -Fw /Library/LaunchDaemons/cx.pow.firewall.plist 2>/dev/null
       fi
 
@@ -130,7 +131,7 @@
 
       # If this version of Pow supports the --print-config option,
       # source the configuration and use it to run a self-test.
-      CONFIG=$("$POW_BIN" --print-config 2>/dev/null || true)
+      CONFIG=$("$NODE_BIN" "$POW_BIN" --print-config 2>/dev/null || true)
 
       if [[ -n "$CONFIG" ]]; then
         eval "$CONFIG"

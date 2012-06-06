@@ -57,7 +57,7 @@ set up the `ipfw` rule), if necessary. Then it boots the server.
 
 ### Installing From Source ###
 
-To install Pow from source, you'll need Node 0.4 and npm 1.0:
+To install Pow from source, you'll need Node 0.6.0 or higher and npm:
 
     $ git clone https://github.com/37signals/pow.git
     $ cd pow
@@ -79,7 +79,7 @@ If you decide Pow's not for you, uninstallation is just as easy:
 
 ## Managing Applications ##
 
-Pow deals exclusively with Rack applications. For the purposes of this
+Pow deals primarily with Rack applications. For the purposes of this
 document, a _Rack application_ is a directory with a `config.ru`
 rackup file (and optionally a `public` subdirectory containing static
 assets). For more information on rackup files, see the [Rack::Builder
@@ -130,6 +130,38 @@ You can override this behavior to serve all requests for unhandled
 domains with a particular Rack application. Create a symlink in
 `~/.pow` named `default` and point it to the application of your
 choice.
+
+#### Port Proxying ####
+
+Pow's port proxying feature lets you route all web traffic on a
+particular hostname to another port on your computer. To use it, just
+create a file in `~/.pow` (instead of a symlink) with the destination
+port number as its contents.
+
+For example, to forward all traffic for `http://proxiedapp.dev/` to
+port 8080:
+
+    $ echo 8080 > ~/.pow/proxiedapp
+
+You can also use port proxying for accessing web apps written in other
+runtimes such as Python or Node.js. Remember that services behind the
+proxy won't automatically be started or stopped like Rack apps.
+
+#### Accessing Virtual Hosts From Other Computers ####
+
+Sometimes you need to access your Pow virtual hosts on another
+computer &mdash; for example, when testing your application on a
+mobile device.
+
+The `.dev` domain will only work on your development
+computer. However, you can use the special [`.xip.io`
+domain](http://xip.io/) to remotely access your Pow virtual hosts.
+
+Construct your xip.io domain by appending your application's name to
+your LAN IP address followed by `.xip.io`. For example, if your
+development computer's LAN IP address is `10.0.1.43`, you can visit
+`myapp.dev` from another computer on your local network using the URL
+`http://myapp.10.0.1.43.xip.io/`.
 
 ### Customizing Environment Variables ###
 
@@ -247,9 +279,9 @@ documentation](http://pow.cx/docs/configuration.html#section-5) for a
 full list of settings that you can change.
 
 **Note**: After modifying a setting in `~/.powconfig`, you'll need to
-  restart Pow for the change to take effect. You can do this by
-  finding the `pow` process in OS X's Activity Monitor and clicking
-  "Quit Process".
+  restart Pow for the change to take effect. See the Restarting Pow
+  section below.
+
 
 ### Configuring Top-Level Domains ###
 
@@ -292,6 +324,8 @@ request with the header `Host: pow`. The available endponts are:
 * `/status.json`: A JSON-encoded object containing the current Pow
   server's process ID, version string, and the number of requests it's
   handled since it started.
+* `/env.json`: A JSON-encoded object representing the running server's
+  environment, which is inherited by each application worker.
 * `/config.json`: A JSON-encoded object representing the running
   server's [configuration](http://pow.cx/docs/configuration.html).
 
@@ -307,6 +341,21 @@ Pow with the `--print-config` option (useful for shell scripts):
         --print-config)
     $ echo $POW_TIMEOUT
     900
+
+### Restarting Pow ###
+
+Pow runs as a Mac OS X Launch Agent. If the Pow server process
+terminates, the OS will restart it automatically.
+
+You may need to manually restart Pow if you make configuration changes
+to `~/.powconfig` or modify your login environment. To tell Pow to
+quit and restart, touch the global `restart.txt` file:
+
+    $ touch ~/.pow/restart.txt
+
+Alternatively, you can use the Activity Monitor application. Find the
+`pow` process in the process listing, select it, and click the Quit
+Process button.
 
 ## Third-Party Tools ##
 

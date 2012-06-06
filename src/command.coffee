@@ -78,7 +78,9 @@ Configuration.getUserConfiguration (err, configuration) ->
       installer.install (err) ->
         throw err if err
 
-  # Start up the Pow daemon if no arguments were passed.
+  # Start up the Pow daemon if no arguments were passed. Terminate the
+  # process if the daemon requests a restart.
   else
     daemon = new Daemon configuration
+    daemon.on "restart", -> process.exit()
     daemon.start()

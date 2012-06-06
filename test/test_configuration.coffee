@@ -90,6 +90,38 @@ module.exports = testCase
       test.same fixturePath("configuration/directory"), conf.root
       test.done()
 
+  "findHostConfiguration matches regex domains": (test) ->
+    configuration = createConfiguration POW_HOST_ROOT: fixturePath("configuration"), POW_DOMAINS: ["dev"], POW_EXT_DOMAINS: [/foo\d$/]
+    test.expect 2
+    configuration.findHostConfiguration "directory.foo3", (err, domain, conf) ->
+      test.ok domain.test?
+      test.same fixturePath("configuration/directory"), conf.root
+      test.done()
+
+  "findHostConfiguration matches xip.io domains": (test) ->
+    configuration   = createConfiguration POW_HOST_ROOT: fixturePath("configuration")
+    matchHostToRoot = (host, fixtureRoot) -> (proceed) ->
+      configuration.findHostConfiguration host, (err, domain, conf) ->
+        if fixtureRoot
+          test.ok domain.test?
+          test.same { root: fixturePath(fixtureRoot) }, conf
+        else
+          test.ok !conf
+        proceed()
+
+    test.expect 16
+    async.parallel [
+      matchHostToRoot "directory.127.0.0.1.xip.io",     "configuration/directory"
+      matchHostToRoot "directory.10.0.1.43.xip.io",     "configuration/directory"
+      matchHostToRoot "directory.9zlhb.xip.io",         "configuration/directory"
+      matchHostToRoot "directory.bxjy16.xip.io",        "configuration/directory"
+      matchHostToRoot "sub.directory.9zlhb.xip.io",     "configuration/directory"
+      matchHostToRoot "www.directory.9zlhb.xip.io",     "configuration/www.directory"
+      matchHostToRoot "www.directory.127.0.0.1.xip.io", "configuration/www.directory"
+      matchHostToRoot "127.0.0.1.xip.io"
+      matchHostToRoot "nonexistent.127.0.0.1.xip.io"
+    ], test.done
+
   "getLogger returns the same logger instance": (test) ->
     configuration = createConfiguration()
     logger = configuration.getLogger "test"

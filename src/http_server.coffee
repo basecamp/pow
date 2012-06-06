@@ -221,7 +221,10 @@ module.exports = class HttpServer extends connect.HTTPServer
     return next() unless application = req.pow.application
 
     if match = req.url.match /^\/__pow__\/rvm_deprecation(.*)/
-      switch match[1]
+      action = match[1]
+      return next() unless action is "" or req.method is "POST"
+
+      switch action
         when ""
           true
         when "/add_to_powrc"

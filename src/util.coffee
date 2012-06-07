@@ -1,12 +1,13 @@
 # The `util` module houses a number of utility functions used
 # throughout Pow.
 
-fs       = require "fs"
-path     = require "path"
-async    = require "async"
-{exec}   = require "child_process"
-{spawn}  = require "child_process"
-{Stream} = require 'stream'
+fs         = require "fs"
+path       = require "path"
+async      = require "async"
+{exec}     = require "child_process"
+{execFile} = require "child_process"
+{spawn}    = require "child_process"
+{Stream}   = require 'stream'
 
 # The `LineBuffer` class is a `Stream` that emits a `data` event for
 # each line in the stream.
@@ -102,7 +103,7 @@ exports.pause = (stream) ->
     for args in queue
       stream.emit args...
 
-# Spawn a shell with the given `env` and source the named
+# Spawn a Bash shell with the given `env` and source the named
 # `script`. Then collect its resulting environment variables and pass
 # them to `callback` as the second argument. If the script returns a
 # non-zero exit code, call `callback` with the error as its first
@@ -127,20 +128,19 @@ exports.sourceScriptEnv = (script, env, options, callback) ->
     env > #{quote filename}
   """
 
-  # Run our command through the user's shell in the directory of the
-  # script. If an error occurs, rewrite the error to a more
-  # descriptive message. Otherwise, read and parse the environment
-  # from the temporary file and pass it along to the callback.
-  getUserShell (shell) ->
-    exec "#{shell} -c #{quote command}", {cwd, env}, (err, stdout, stderr) ->
-      if err
-        err.message = "'#{script}' failed to load (#{shell} -c #{quote command})"
-        err.stdout = stdout
-        err.stderr = stderr
-        callback err
-      else readAndUnlink filename, (err, result) ->
-        if err then callback err
-        else callback null, parseEnv result
+  # Run our command through Bash in the directory of the script. If an
+  # error occurs, rewrite the error to a more descriptive
+  # message. Otherwise, read and parse the environment from the
+  # temporary file and pass it along to the callback.
+  execFile "/usr/bin/env", ["bash", "-c", command], {cwd, env}, (err, stdout, stderr) ->
+    if err
+      err.message = "'#{script}' failed to load:\n#{command}"
+      err.stdout = stdout
+      err.stderr = stderr
+      callback err
+    else readAndUnlink filename, (err, result) ->
+      if err then callback err
+      else callback null, parseEnv result
 
 # Get the user's login environment by spawning a login shell and
 # collecting its environment variables via the `env` command. (In case

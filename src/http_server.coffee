@@ -236,7 +236,8 @@ module.exports = class HttpServer extends connect.HTTPServer
           @configuration.disableRvmDeprecationNotices()
         else
           return next()
-      renderResponse res, 200, "rvm_deprecation_notice"
+      renderResponse res, 200, "rvm_deprecation_notice",
+        boilerplate: RackApplication.rvmBoilerplate
     else
       next()
 

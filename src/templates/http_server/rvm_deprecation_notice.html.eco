@@ -93,8 +93,7 @@
     of Pow by adding the following code to the
     application&rsquo;s <code>.powrc</code> file:</p>
 
-    <pre><code>[ ! -f "$rvm_path/scripts/rvm" ] || source "$rvm_path/scripts/rvm"
-[ ! -f ".rvmrc" ] || source ".rvmrc"</code></pre>
+    <pre><code><%= @boilerplate %></code></pre>
 
     <p><a href="#" onclick="addToPowrc(this); return false">Add this
     code to <code>.powrc</code> for me</a></p>

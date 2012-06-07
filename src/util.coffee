@@ -4,10 +4,8 @@
 fs         = require "fs"
 path       = require "path"
 async      = require "async"
-{exec}     = require "child_process"
 {execFile} = require "child_process"
-{spawn}    = require "child_process"
-{Stream}   = require 'stream'
+{Stream}   = require "stream"
 
 # The `LineBuffer` class is a `Stream` that emits a `data` event for
 # each line in the stream.
@@ -74,9 +72,9 @@ exports.mkdirp = (dirname, callback) ->
 # indicating whether or not the operation succeeded.
 exports.chown = (path, owner, callback) ->
   error = ""
-  chown = spawn "chown", [owner, path]
-  chown.stderr.on "data", (data) -> error += data.toString "utf8"
-  chown.on "exit", (code) -> callback error, code is 0
+  exec ["chown", owner, path], (err, stdout, stderr) ->
+    if err then callback err, stderr
+    else callback null
 
 # Capture all `data` events on the given stream and return a function
 # that, when invoked, replays the captured events on the stream in
@@ -132,7 +130,7 @@ exports.sourceScriptEnv = (script, env, options, callback) ->
   # error occurs, rewrite the error to a more descriptive
   # message. Otherwise, read and parse the environment from the
   # temporary file and pass it along to the callback.
-  execFile "/usr/bin/env", ["bash", "-c", command], {cwd, env}, (err, stdout, stderr) ->
+  exec ["bash", "-c", command], {cwd, env}, (err, stdout, stderr) ->
     if err
       err.message = "'#{script}' failed to load:\n#{command}"
       err.stdout = stdout
@@ -161,6 +159,14 @@ exports.getUserEnv = (callback, defaultEncoding = "UTF-8") ->
         env = parseEnv result
         env.LANG ?= "#{locale}.#{defaultEncoding}"
         callback null, env
+
+# Execute a command without spawning a subshell. The command argument
+# is an array of program name and arguments.
+exec = (command, options, callback) ->
+  unless callback?
+    callback = options
+    options = {}
+  execFile "/usr/bin/env", command, options, callback
 
 # Single-quote a string for command line execution.
 quote = (string) -> "'" + string.replace(/\'/g, "'\\''") + "'"
@@ -192,10 +198,10 @@ readAndUnlink = (filename, callback) ->
 # bubble the error up to the callback.
 loginExec = (command, callback) ->
   getUserShell (shell) ->
-    login = "login -qf #{process.env.LOGNAME} #{shell}"
-    exec "#{login} -l -c #{quote command}", (err, stdout, stderr) ->
+    login = ["login", "-qf", process.env.LOGNAME, shell]
+    exec [login..., "-l", "-c", command], (err, stdout, stderr) ->
       if err
-        exec "#{login} -c #{quote command}", callback
+        exec [login..., "-c", command], callback
       else
         callback null, stdout, stderr
 
@@ -204,7 +210,7 @@ loginExec = (command, callback) ->
 # `/bin/bash` when spawned from `launchctl`, regardless of what the
 # user has set.
 getUserShell = (callback) ->
-  command = "dscl . -read '/Users/#{process.env.LOGNAME}' UserShell"
+  command = ["dscl", ".", "-read", "/Users/#{process.env.LOGNAME}", "UserShell"]
   exec command, (err, stdout, stderr) ->
     if err
       callback process.env.SHELL
@@ -218,7 +224,7 @@ getUserShell = (callback) ->
 # Read the user's current locale preference from the OS X defaults
 # database. Fall back to `en_US` if it can't be determined.
 getUserLocale = (callback) ->
-  exec "defaults read -g AppleLocale", (err, stdout, stderr) ->
+  exec ["defaults", "read", "-g", "AppleLocale"], (err, stdout, stderr) ->
     locale = stdout?.trim() ? ""
     locale = "en_US" unless locale.match /^\w+$/
     callback locale

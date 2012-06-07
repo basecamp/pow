@@ -3,13 +3,17 @@
 When used in conjunction with Mac OS X's <a href="http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man5/resolver.5.html">/etc/resolver
 system</a>,
 there's no configuration needed to add and remove host names for
-local web development.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">ndns = </span><span class="nx">require</span> <span class="s2">&quot;ndns&quot;</span>
+local web development.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">dnsserver = </span><span class="nx">require</span> <span class="s">&quot;dnsserver&quot;</span>
 
-<span class="nv">module.exports = </span><span class="k">class</span> <span class="nx">DnsServer</span> <span class="k">extends</span> <span class="nx">ndns</span><span class="p">.</span><span class="nx">Server</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>Create a <code>DnsServer</code> with the given <code>Configuration</code> instance. The
+<span class="nv">NS_T_A  = </span><span class="mi">1</span>
+<span class="nv">NS_C_IN = </span><span class="mi">1</span>
+<span class="nv">NS_RCODE_NXDOMAIN = </span><span class="mi">3</span>
+
+<span class="nv">module.exports = </span><span class="k">class</span> <span class="nx">DnsServer</span> <span class="k">extends</span> <span class="nx">dnsserver</span><span class="p">.</span><span class="nx">Server</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>Create a <code>DnsServer</code> with the given <code>Configuration</code> instance. The
 server installs a single event handler for responding to DNS
 queries.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">constructor: </span><span class="nf">(@configuration) -&gt;</span>
-    <span class="k">super</span> <span class="s2">&quot;udp4&quot;</span>
-    <span class="nx">@on</span> <span class="s2">&quot;request&quot;</span><span class="p">,</span> <span class="nx">@handleRequest</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>The <code>listen</code> method is just a wrapper around <code>bind</code> that makes
+    <span class="k">super</span>
+    <span class="nx">@</span><span class="kc">on</span> <span class="s">&quot;request&quot;</span><span class="p">,</span> <span class="nx">@handleRequest</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>The <code>listen</code> method is just a wrapper around <code>bind</code> that makes
 <code>DnsServer</code> quack like a <code>HttpServer</code> (for initialization, at
 least).</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">listen: </span><span class="nf">(port, callback) -&gt;</span>
     <span class="nx">@bind</span> <span class="nx">port</span>
@@ -18,17 +22,13 @@ and the domain name matches the top-level domain specified in our
 configuration, we respond with <code>127.0.0.1</code>. Otherwise, we respond
 with <code>NXDOMAIN</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span>
     <span class="nv">pattern = </span><span class="nx">@configuration</span><span class="p">.</span><span class="nx">dnsDomainPattern</span>
-    <span class="nv">res.header = </span><span class="nx">req</span><span class="p">.</span><span class="nx">header</span>
-    <span class="nv">res.question = </span><span class="nx">req</span><span class="p">.</span><span class="nx">question</span>
-    <span class="nv">res.header.aa = </span><span class="mi">1</span>
-    <span class="nv">res.header.qr = </span><span class="mi">1</span>
 
-    <span class="nv">q = </span><span class="nx">req</span><span class="p">.</span><span class="nx">question</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">?</span> <span class="p">{}</span>
+    <span class="nv">q = </span><span class="nx">req</span><span class="p">.</span><span class="nx">question</span> <span class="o">?</span> <span class="p">{}</span>
 
-    <span class="k">if</span> <span class="nx">q</span><span class="p">.</span><span class="nx">type</span> <span class="o">is</span> <span class="nx">ndns</span><span class="p">.</span><span class="nx">ns_t</span><span class="p">.</span><span class="nx">a</span> <span class="o">and</span> <span class="nx">q</span><span class="p">.</span><span class="k">class</span> <span class="o">is</span> <span class="nx">ndns</span><span class="p">.</span><span class="nx">ns_c</span><span class="p">.</span><span class="k">in</span> <span class="o">and</span> <span class="nx">pattern</span><span class="p">.</span><span class="nx">test</span> <span class="nx">q</span><span class="p">.</span><span class="nx">name</span>
-      <span class="nx">res</span><span class="p">.</span><span class="nx">addRR</span> <span class="nx">ndns</span><span class="p">.</span><span class="nx">ns_s</span><span class="p">.</span><span class="nx">an</span><span class="p">,</span> <span class="nx">q</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span> <span class="nx">ndns</span><span class="p">.</span><span class="nx">ns_t</span><span class="p">.</span><span class="nx">a</span><span class="p">,</span> <span class="nx">ndns</span><span class="p">.</span><span class="nx">ns_c</span><span class="p">.</span><span class="k">in</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span>
+    <span class="k">if</span> <span class="nx">q</span><span class="p">.</span><span class="nx">type</span> <span class="o">is</span> <span class="nx">NS_T_A</span> <span class="o">and</span> <span class="nx">q</span><span class="p">.</span><span class="k">class</span> <span class="o">is</span> <span class="nx">NS_C_IN</span> <span class="o">and</span> <span class="nx">pattern</span><span class="p">.</span><span class="nx">test</span> <span class="nx">q</span><span class="p">.</span><span class="nx">name</span>
+      <span class="nx">res</span><span class="p">.</span><span class="nx">addRR</span> <span class="nx">q</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span> <span class="nx">NS_T_A</span><span class="p">,</span> <span class="nx">NS_C_IN</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="s">&quot;127.0.0.1&quot;</span>
     <span class="k">else</span>
-      <span class="nv">res.header.rcode = </span><span class="nx">ndns</span><span class="p">.</span><span class="nx">ns_rcode</span><span class="p">.</span><span class="nx">nxdomain</span>
+      <span class="nv">res.header.rcode = </span><span class="nx">NS_RCODE_NXDOMAIN</span>
 
     <span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">()</span>
 

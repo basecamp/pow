@@ -1,13 +1,29 @@
 <!DOCTYPE html>  <html> <head>   <title>daemon.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="command.html">                 command.coffee               </a>                                           <a class="source" href="configuration.html">                 configuration.coffee               </a>                                           <a class="source" href="daemon.html">                 daemon.coffee               </a>                                           <a class="source" href="dns_server.html">                 dns_server.coffee               </a>                                           <a class="source" href="http_server.html">                 http_server.coffee               </a>                                           <a class="source" href="index.html">                 index.coffee               </a>                                           <a class="source" href="installer.html">                 installer.coffee               </a>                                           <a class="source" href="logger.html">                 logger.coffee               </a>                                           <a class="source" href="rack_application.html">                 rack_application.coffee               </a>                                           <a class="source" href="util.html">                 util.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               daemon.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>A <code>Daemon</code> is the root object in a Pow process. It's responsible for
-starting and stopping an <code>HttpServer</code> and a <code>DnsServer</code> in tandem.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="p">{</span><span class="nx">EventEmitter</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;events&quot;</span>
-<span class="nv">HttpServer     = </span><span class="nx">require</span> <span class="s2">&quot;./http_server&quot;</span>
-<span class="nv">DnsServer      = </span><span class="nx">require</span> <span class="s2">&quot;./dns_server&quot;</span>
+starting and stopping an <code>HttpServer</code> and a <code>DnsServer</code> in tandem.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="p">{</span><span class="nx">EventEmitter</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s">&quot;events&quot;</span>
+<span class="nv">HttpServer     = </span><span class="nx">require</span> <span class="s">&quot;./http_server&quot;</span>
+<span class="nv">DnsServer      = </span><span class="nx">require</span> <span class="s">&quot;./dns_server&quot;</span>
+<span class="nv">fs             = </span><span class="nx">require</span> <span class="s">&quot;fs&quot;</span>
+<span class="nv">path           = </span><span class="nx">require</span> <span class="s">&quot;path&quot;</span>
 
 <span class="nv">module.exports = </span><span class="k">class</span> <span class="nx">Daemon</span> <span class="k">extends</span> <span class="nx">EventEmitter</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>Create a new <code>Daemon</code> with the given <code>Configuration</code> instance.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">constructor: </span><span class="nf">(@configuration) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p><code>HttpServer</code> and <code>DnsServer</code> instances are created accordingly.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="vi">@httpServer = </span><span class="k">new</span> <span class="nx">HttpServer</span> <span class="nx">@configuration</span>
     <span class="vi">@dnsServer  = </span><span class="k">new</span> <span class="nx">DnsServer</span> <span class="nx">@configuration</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>The daemon stops in response to <code>SIGINT</code>, <code>SIGTERM</code> and
-<code>SIGQUIT</code> signals.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">process</span><span class="p">.</span><span class="kc">on</span> <span class="s2">&quot;SIGINT&quot;</span><span class="p">,</span>  <span class="nx">@stop</span>
-    <span class="nx">process</span><span class="p">.</span><span class="kc">on</span> <span class="s2">&quot;SIGTERM&quot;</span><span class="p">,</span> <span class="nx">@stop</span>
-    <span class="nx">process</span><span class="p">.</span><span class="kc">on</span> <span class="s2">&quot;SIGQUIT&quot;</span><span class="p">,</span> <span class="nx">@stop</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Start the daemon if it's stopped. The process goes like this:</p>
+<code>SIGQUIT</code> signals.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">process</span><span class="p">.</span><span class="kc">on</span> <span class="s">&quot;SIGINT&quot;</span><span class="p">,</span>  <span class="nx">@stop</span>
+    <span class="nx">process</span><span class="p">.</span><span class="kc">on</span> <span class="s">&quot;SIGTERM&quot;</span><span class="p">,</span> <span class="nx">@stop</span>
+    <span class="nx">process</span><span class="p">.</span><span class="kc">on</span> <span class="s">&quot;SIGQUIT&quot;</span><span class="p">,</span> <span class="nx">@stop</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Watch for changes to the host root directory once the daemon has
+started. When the directory changes and the <code>restart.txt</code> file
+is present, remove it and emit a <code>restart</code> event.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">hostRoot = </span><span class="nx">@configuration</span><span class="p">.</span><span class="nx">hostRoot</span>
+    <span class="vi">@restartFilename = </span><span class="nx">path</span><span class="p">.</span><span class="nx">join</span> <span class="nx">hostRoot</span><span class="p">,</span> <span class="s">&quot;restart.txt&quot;</span>
+    <span class="nx">@</span><span class="kc">on</span> <span class="s">&quot;start&quot;</span><span class="p">,</span> <span class="o">=&gt;</span> <span class="vi">@watcher = </span><span class="nx">fs</span><span class="p">.</span><span class="nx">watch</span> <span class="nx">hostRoot</span><span class="p">,</span> <span class="nv">persistent: </span><span class="kc">false</span><span class="p">,</span> <span class="nx">@hostRootChanged</span>
+    <span class="nx">@</span><span class="kc">on</span> <span class="s">&quot;close&quot;</span><span class="p">,</span> <span class="o">=&gt;</span> <span class="nx">@watcher</span><span class="o">?</span><span class="p">.</span><span class="nx">close</span><span class="p">()</span>
+
+  <span class="nv">hostRootChanged: </span><span class="o">=&gt;</span>
+    <span class="nx">path</span><span class="p">.</span><span class="nx">exists</span> <span class="nx">@restartFilename</span><span class="p">,</span> <span class="p">(</span><span class="nx">exists</span><span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="nx">@restart</span><span class="p">()</span> <span class="k">if</span> <span class="nx">exists</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Remove the <code>~/.pow/restart.txt</code> file, if present, and emit a
+<code>restart</code> event. The <code>pow</code> command observes this event and
+terminates the process in response, causing Launch Services to
+restart the server.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">restart: </span><span class="o">-&gt;</span>
+    <span class="nx">fs</span><span class="p">.</span><span class="nx">unlink</span> <span class="nx">@restartFilename</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="nx">@emit</span> <span class="s">&quot;restart&quot;</span> <span class="nx">unless</span> <span class="nx">err</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Start the daemon if it's stopped. The process goes like this:</p>
 
 <ul>
 <li>First, start the HTTP server. If the HTTP server can't boot,
@@ -22,27 +38,34 @@ mark the daemon as started.</li>
 
     <span class="nv">startServer = </span><span class="nf">(server, port, callback) -&gt;</span> <span class="nx">process</span><span class="p">.</span><span class="nx">nextTick</span> <span class="o">-&gt;</span>
       <span class="k">try</span>
-        <span class="nx">server</span><span class="p">.</span><span class="nx">listen</span> <span class="nx">port</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="nx">callback</span> <span class="kc">null</span>
+        <span class="nx">server</span><span class="p">.</span><span class="kc">on</span> <span class="s">&#39;error&#39;</span><span class="p">,</span> <span class="nx">callback</span>
+
+        <span class="nx">server</span><span class="p">.</span><span class="nx">once</span> <span class="s">&#39;listening&#39;</span><span class="p">,</span> <span class="o">-&gt;</span>
+          <span class="nx">server</span><span class="p">.</span><span class="nx">removeListener</span> <span class="s">&#39;error&#39;</span><span class="p">,</span> <span class="nx">callback</span>
+          <span class="nx">callback</span><span class="p">()</span>
+
+        <span class="nx">server</span><span class="p">.</span><span class="nx">listen</span> <span class="nx">port</span>
+
       <span class="k">catch</span> <span class="nx">err</span>
         <span class="nx">callback</span> <span class="nx">err</span>
 
     <span class="nv">pass = </span><span class="o">=&gt;</span>
       <span class="vi">@starting = </span><span class="kc">false</span>
       <span class="vi">@started = </span><span class="kc">true</span>
-      <span class="nx">@emit</span> <span class="s2">&quot;start&quot;</span>
+      <span class="nx">@emit</span> <span class="s">&quot;start&quot;</span>
 
     <span class="nv">flunk = </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="o">=&gt;</span>
       <span class="vi">@starting = </span><span class="kc">false</span>
       <span class="k">try</span> <span class="nx">@httpServer</span><span class="p">.</span><span class="nx">close</span><span class="p">()</span>
       <span class="k">try</span> <span class="nx">@dnsServer</span><span class="p">.</span><span class="nx">close</span><span class="p">()</span>
-      <span class="nx">@emit</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="nx">err</span>
+      <span class="nx">@emit</span> <span class="s">&quot;error&quot;</span><span class="p">,</span> <span class="nx">err</span>
 
     <span class="p">{</span><span class="nx">httpPort</span><span class="p">,</span> <span class="nx">dnsPort</span><span class="p">}</span> <span class="o">=</span> <span class="nx">@configuration</span>
     <span class="nx">startServer</span> <span class="nx">@httpServer</span><span class="p">,</span> <span class="nx">httpPort</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="o">=&gt;</span>
       <span class="k">if</span> <span class="nx">err</span> <span class="k">then</span> <span class="nx">flunk</span> <span class="nx">err</span>
       <span class="k">else</span> <span class="nx">startServer</span> <span class="nx">@dnsServer</span><span class="p">,</span> <span class="nx">dnsPort</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="o">=&gt;</span>
         <span class="k">if</span> <span class="nx">err</span> <span class="k">then</span> <span class="nx">flunk</span> <span class="nx">err</span>
-        <span class="k">else</span> <span class="nx">pass</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Stop the daemon if it's started. This means calling <code>close</code> on
+        <span class="k">else</span> <span class="nx">pass</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Stop the daemon if it's started. This means calling <code>close</code> on
 both servers in succession, beginning with the HTTP server, and
 waiting for the servers to notify us that they're done. The daemon
 emits a <code>stop</code> event when this process is complete.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">stop: </span><span class="o">=&gt;</span>
@@ -52,9 +75,9 @@ emits a <code>stop</code> event when this process is complete.</p>             <
     <span class="nv">stopServer = </span><span class="nf">(server, callback) -&gt;</span> <span class="nx">process</span><span class="p">.</span><span class="nx">nextTick</span> <span class="o">-&gt;</span>
       <span class="k">try</span>
         <span class="nv">close = </span><span class="o">-&gt;</span>
-          <span class="nx">server</span><span class="p">.</span><span class="nx">removeListener</span> <span class="s2">&quot;close&quot;</span><span class="p">,</span> <span class="nx">close</span>
+          <span class="nx">server</span><span class="p">.</span><span class="nx">removeListener</span> <span class="s">&quot;close&quot;</span><span class="p">,</span> <span class="nx">close</span>
           <span class="nx">callback</span> <span class="kc">null</span>
-        <span class="nx">server</span><span class="p">.</span><span class="kc">on</span> <span class="s2">&quot;close&quot;</span><span class="p">,</span> <span class="nx">close</span>
+        <span class="nx">server</span><span class="p">.</span><span class="kc">on</span> <span class="s">&quot;close&quot;</span><span class="p">,</span> <span class="nx">close</span>
         <span class="nx">server</span><span class="p">.</span><span class="nx">close</span><span class="p">()</span>
       <span class="k">catch</span> <span class="nx">err</span>
         <span class="nx">callback</span> <span class="nx">err</span>
@@ -63,6 +86,6 @@ emits a <code>stop</code> event when this process is complete.</p>             <
       <span class="nx">stopServer</span> <span class="nx">@dnsServer</span><span class="p">,</span> <span class="o">=&gt;</span>
         <span class="vi">@stopping = </span><span class="kc">false</span>
         <span class="vi">@started  = </span><span class="kc">false</span>
-        <span class="nx">@emit</span> <span class="s2">&quot;stop&quot;</span>
+        <span class="nx">@emit</span> <span class="s">&quot;stop&quot;</span>
 
 </pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

@@ -55,12 +55,19 @@ you use (<code>myapp.dev</code>) to access the application it points to
 <li><a href="#section_2.1.1">2.1.1 Subdomains</a></li>
 <li><a href="#section_2.1.2">2.1.2 Multiple Virtual Hosts</a></li>
 <li><a href="#section_2.1.3">2.1.3 The Default Virtual Host</a></li>
+<li><a href="#section_2.1.4">2.1.4 Port Proxying</a></li>
+<li><a href="#section_2.1.5">2.1.5 Accessing Virtual Hosts from Other Computers</a></li>
 </ul></li>
 <li><a href="#section_2.2">2.2 Customizing Environment Variables</a>
 <ul>
 <li><a href="#section_2.2.1">2.2.1 Choosing the Right Environment Script</a></li>
 </ul></li>
-<li><a href="#section_2.3">2.3 Working With Different Versions of Ruby</a></li>
+<li><a href="#section_2.3">2.3 Working With Different Versions of Ruby</a>
+<ul>
+<li><a href="#section_2.3.1">2.3.1 Specifying Ruby Versions with rbenv</a></li>
+<li><a href="#section_2.3.2">2.3.2 Specifying Ruby Versions with RVM</a></li>
+<li><a href="#section_2.3.3">2.3.3 Specifying Ruby Versions by Setting $PATH</a></li>
+</ul></li>
 <li><a href="#section_2.4">2.4 Serving Static Files</a></li>
 <li><a href="#section_2.5">2.5 Restarting Applications</a>
 <ul>
@@ -72,6 +79,7 @@ you use (<code>myapp.dev</code>) to access the application it points to
 <ul>
 <li><a href="#section_3.1">3.1 Configuring Top-Level Domains</a></li>
 <li><a href="#section_3.2">3.2 Reading the Current Configuration</a></li>
+<li><a href="#section_3.3">3.3 Restarting Pow</a></li>
 </ul></li>
 <li><a href="#section_4">4 Third-Party Tools</a></li>
 <li><a href="#section_5">5 Contributing</a></li>
@@ -107,7 +115,7 @@ set up the <code>ipfw</code> rule), if necessary. Then it boots the server.</p>
 
 <h3><a name="section_1.1">1.1</a> Installing From Source</h3>
 
-<p>To install Pow from source, you'll need Node 0.4 and npm 1.0:</p>
+<p>To install Pow from source, you'll need Node 0.6.0 or higher and npm:</p>
 
 <pre><code>$ git clone https://github.com/37signals/pow.git
 $ cd pow
@@ -131,7 +139,7 @@ wiki page.</p>
 
 <h2><a name="section_2">2</a> Managing Applications</h2>
 
-<p>Pow deals exclusively with Rack applications. For the purposes of this
+<p>Pow deals primarily with Rack applications. For the purposes of this
 document, a <em>Rack application</em> is a directory with a <code>config.ru</code>
 rackup file (and optionally a <code>public</code> subdirectory containing static
 assets). For more information on rackup files, see the <a href="http://rack.rubyforge.org/doc/Rack/Builder.html">Rack::Builder
@@ -183,6 +191,39 @@ domains with a particular Rack application. Create a symlink in
 <code>~/.pow</code> named <code>default</code> and point it to the application of your
 choice.</p>
 
+<h4><a name="section_2.1.4">2.1.4</a> Port Proxying</h4>
+
+<p>Pow's port proxying feature lets you route all web traffic on a
+particular hostname to another port on your computer. To use it, just
+create a file in <code>~/.pow</code> (instead of a symlink) with the destination
+port number as its contents.</p>
+
+<p>For example, to forward all traffic for <code>http://proxiedapp.dev/</code> to
+port 8080:</p>
+
+<pre><code>$ echo 8080 &gt; ~/.pow/proxiedapp
+</code></pre>
+
+<p>You can also use port proxying to access web apps written for other
+runtimes such as Python or Node.js. Remember that services behind the
+proxy won't automatically be started or stopped like Rack apps.</p>
+
+<h4><a name="section_2.1.5">2.1.5</a> Accessing Virtual Hosts from Other Computers</h4>
+
+<p>Sometimes you need to access your Pow virtual hosts from another
+computer on your local network &mdash; for example, when testing your
+application on a mobile device or from a Windows or Linux VM.</p>
+
+<p>The <code>.dev</code> domain will only work on your development
+computer. However, you can use the special <a href="http://xip.io/"><code>.xip.io</code>
+domain</a> to remotely access your Pow virtual hosts.</p>
+
+<p>Construct your xip.io domain by appending your application's name to
+your LAN IP address followed by <code>.xip.io</code>. For example, if your
+development computer's LAN IP address is <code>10.0.1.43</code>, you can visit
+<code>myapp.dev</code> from another computer on your local network using the URL
+<code>http://myapp.10.0.1.43.xip.io/</code>.</p>
+
 <h3><a name="section_2.2">2.2</a> Customizing Environment Variables</h3>
 
 <p>Pow lets you customize the environment in which worker processes
@@ -207,21 +248,70 @@ loaded first.</p>
 
 <h3><a name="section_2.3">2.3</a> Working With Different Versions of Ruby</h3>
 
-<p>Pow offers full support for running multiple applications under
-different versions of Ruby with
-<a href="http://rvm.beginrescueend.com/">rvm</a>. Just add a <a href="http://rvm.beginrescueend.com/workflow/rvmrc/#project">project
-<code>.rvmrc</code></a>
-file to your application's root directory and you're good to go.</p>
+<p>Pow invokes each application's Ruby processes in an isolated
+environment. This design makes it possible to use different Ruby
+runtimes on a per-application basis.</p>
 
-<p>For example, to instruct Pow to run an application with Ruby 1.9.2,
-use this <code>.rvmrc</code> file (assuming you've already installed 1.9.2 with
-<code>rvm install 1.9.2</code>):</p>
+<p>There are three ways to specify which version of Ruby to use for a
+particular application.</p>
 
-<pre><code>rvm 1.9.2
+<h4><a name="section_2.3.1">2.3.1</a> Specifying Ruby Versions with rbenv</h4>
+
+<p>You can use <a href="https://github.com/sstephenson/rbenv">rbenv</a> to specify
+per-application Ruby versions for use with Pow.</p>
+
+<p>The <code>rbenv local</code> command lets you set a per-project Ruby version by
+saving an <code>.rbenv-version</code> file in the current directory. For example,
+to configure a particular application to run with Ruby 1.9.3-p194,
+change to the application's directory and run:</p>
+
+<pre><code>$ rbenv local 1.9.3-p194
 </code></pre>
 
-<p>If an application has an <code>.rvmrc</code> file but rvm isn't installed, Pow
-will ignore the <code>.rvmrc</code> file and fall back to your system Ruby.</p>
+<p>Assuming you have set up rbenv in your login environment, there is no
+additional configuration necessary to use it with Pow.</p>
+
+<p>For more information, see the <a href="https://github.com/sstephenson/rbenv#readme">rbenv
+documentation</a>.</p>
+
+<h4><a name="section_2.3.2">2.3.2</a> Specifying Ruby Versions with RVM</h4>
+
+<p><a href="http://rvm.io/">RVM</a> is another option for specifying per-application
+Ruby versions for use with Pow.</p>
+
+<p>You can create a <a href="https://rvm.io/workflow/rvmrc#project">project <code>.rvmrc</code>
+file</a> to specify an
+application's Ruby version. For example, to configure your application
+to run with Ruby 1.8.7, add the following to <code>.rvmrc</code> in the
+application's root directory:</p>
+
+<pre><code>rvm 1.8.7
+</code></pre>
+
+<p>Because RVM works by injecting itself into your shell, you must first
+load it in each application's <code>.powrc</code> or <code>.powenv</code> file using the
+following code:</p>
+
+<pre><code>if [ -f "$rvm_path/scripts/rvm" ] &amp;&amp; [ -f ".rvmrc" ]; then
+  source "$rvm_path/scripts/rvm"
+  source ".rvmrc"
+fi
+</code></pre>
+
+<p>For more information, see the <a href="http://rvm.io/">RVM web site</a>.</p>
+
+<h4><a name="section_2.3.3">2.3.3</a> Specifying Ruby Versions by Setting $PATH</h4>
+
+<p>You can adjust the <code>PATH</code> environment variable in <code>.powrc</code> or
+<code>.powenv</code> to select Ruby versions on a per-application basis. For
+example, if you have Ruby installed into <code>/opt/ruby-1.8.7</code>, you can
+add the following to <code>.powenv</code>:</p>
+
+<pre><code>export PATH="/opt/ruby-1.8.7/bin:$PATH"
+</code></pre>
+
+<p>When Pow loads your application, it will find and use the first <code>ruby</code>
+binary in your <code>PATH</code> &mdash; in this case <code>/opt/ruby-1.8.7/bin/ruby</code>.</p>
 
 <h3><a name="section_2.4">2.4</a> Serving Static Files</h3>
 
@@ -303,9 +393,8 @@ documentation</a> for a
 full list of settings that you can change.</p>
 
 <p><strong>Note</strong>: After modifying a setting in <code>~/.powconfig</code>, you'll need to
-  restart Pow for the change to take effect. You can do this by
-  finding the <code>pow</code> process in OS X's Activity Monitor and clicking
-  "Quit Process".</p>
+  restart Pow for the change to take effect. See the Restarting Pow
+  section below.</p>
 
 <h3><a name="section_3.1">3.1</a> Configuring Top-Level Domains</h3>
 
@@ -350,6 +439,8 @@ request with the header <code>Host: pow</code>. The available endponts are:</p>
 <li><code>/status.json</code>: A JSON-encoded object containing the current Pow
 server's process ID, version string, and the number of requests it's
 handled since it started.</li>
+<li><code>/env.json</code>: A JSON-encoded object representing the running server's
+environment, which is inherited by each application worker.</li>
 <li><code>/config.json</code>: A JSON-encoded object representing the running
 server's <a href="http://pow.cx/docs/configuration.html">configuration</a>.</li>
 </ul>
@@ -368,6 +459,22 @@ Pow with the <code>--print-config</code> option (useful for shell scripts):</p>
 $ echo $POW_TIMEOUT
 900
 </code></pre>
+
+<h3><a name="section_3.3">3.3</a> Restarting Pow</h3>
+
+<p>Pow runs as a Mac OS X Launch Agent. If the Pow server process
+terminates, the OS will restart it automatically.</p>
+
+<p>You may need to manually restart Pow if you make configuration changes
+to <code>~/.powconfig</code> or modify your login environment. To tell Pow to
+quit and restart, touch the global <code>restart.txt</code> file:</p>
+
+<pre><code>$ touch ~/.pow/restart.txt
+</code></pre>
+
+<p>Alternatively, you can use the Activity Monitor application. Find the
+<code>pow</code> process in the process listing, select it, and click the Quit
+Process button.</p>
 
 <h2><a name="section_4">4</a> Third-Party Tools</h2>
 
@@ -419,6 +526,33 @@ looks like.</p>
 <h2><a name="section_6">6</a> Version History</h2>
 
 <ul>
+<li><p><strong>0.4.0</strong> (June 7, 2012):</p>
+
+<ul>
+<li>Pow's port proxying feature lets you proxy virtual hosts to other
+ports on your computer. Just create a file in <code>~/.pow</code> with the
+virtual host as the filename and the port number as its contents,
+e.g. <code>echo 8080 &gt; ~/.pow/myapp</code>.</li>
+<li>Built-in support for <a href="http://xip.io/">xip.io wildcard DNS</a> lets
+you access your Pow virtual hosts from other computers on your
+local network &mdash; perfect for testing your apps in Windows or
+on mobile devices. Just visit e.g. <code>http://myapp.10.0.0.1.xip.io/</code>
+(where 10.0.0.1 is your LAN IP address) instead of
+<code>http://myapp.dev/</code>.</li>
+<li>You can now restart Pow itself by touching the
+<code>~/.pow/restart.txt</code> file.</li>
+<li>If you use a shell other than Bash, Pow now properly loads your
+login environment, including <code>$PATH</code>.</li>
+<li>An infinite loop bug that could cause Pow to lock up and consume
+99% CPU under certain circumstances has been fixed by replacing
+the bundled ndns library with an alternative.</li>
+<li>The bundled nack library has been upgraded to version 0.13.2.</li>
+<li>Due to the large number of issues it causes, support for
+automatically loading project <code>.rvmrc</code> files has been
+deprecated and will be removed in the next major release. See the
+"Specifying Ruby Versions with RVM" section of the manual for
+instructions on how to continue using RVM with Pow.</li>
+</ul></li>
 <li><p><strong>0.3.2</strong> (August 13, 2011):</p>
 
 <ul>
@@ -476,7 +610,7 @@ about the running Pow server via the <code>http://pow/config.json</code> and
 
 <p>(The MIT License)</p>
 
-<p>Copyright &copy; 2011 Sam Stephenson, 37signals</p>
+<p>Copyright &copy; 2012 Sam Stephenson, 37signals</p>
 
 <p>Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

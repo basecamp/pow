@@ -225,11 +225,13 @@ application's root directory:
     rvm 1.8.7
 
 Because RVM works by injecting itself into your shell, you must first
-load it in your application's `.powrc` or `.powenv` file using the
+load it in each application's `.powrc` or `.powenv` file using the
 following code:
 
-    [ ! -f "$rvm_path/scripts/rvm" ] || source "$rvm_path/scripts/rvm"
-    [ ! -f ".rvmrc" ] || source ".rvmrc"
+    if [ -f "$rvm_path/scripts/rvm" ] && [ -f ".rvmrc" ]; then
+      source "$rvm_path/scripts/rvm"
+      source ".rvmrc"
+    fi
 
 For more information, see the [RVM web site](http://rvm.io/).
 

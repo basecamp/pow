@@ -451,6 +451,31 @@ looks like.
 
 ## Version History ##
 
+* **0.4.0** (June 7, 2012):
+  * Pow's port proxying feature lets you proxy virtual hosts to other
+    ports on your computer. Just create a file in `~/.pow` with the
+    virtual host as the filename and the port number as its contents,
+    e.g. `echo 8080 > ~/.pow/myapp`.
+  * Built-in support for [xip.io wildcard DNS](http://xip.io/) lets
+    you access your Pow virtual hosts from other computers on your
+    local network &mdash; perfect for testing your apps in Windows or
+    on mobile devices. Just visit e.g. `http://myapp.10.0.0.1.xip.io/`
+    (where 10.0.0.1 is your LAN IP address) instead of
+    `http://myapp.dev/`.
+  * You can now restart Pow itself by touching the
+    `~/.pow/restart.txt` file.
+  * If you use a shell other than Bash, Pow now properly loads your
+    login environment, including `$PATH`.
+  * An infinite loop bug that could cause Pow to lock up and consume
+    99% CPU under certain circumstances has been fixed by replacing
+    the bundled ndns library with an alternative.
+  * The bundled nack library has been upgraded to version 0.13.2.
+  * Due to the large number of issues it causes, support for
+    automatically loading project `.rvmrc` files has been
+    deprecated and will be removed in the next major release. See the
+    "Specifying Ruby Versions with RVM" section of the manual for
+    instructions on how to continue using RVM with Pow.
+
 * **0.3.2** (August 13, 2011):
   * The bundled nack library has been upgraded to version 0.12.3 for
     improved streaming response body support.
@@ -501,7 +526,7 @@ looks like.
 
 (The MIT License)
 
-Copyright &copy; 2011 Sam Stephenson, 37signals
+Copyright &copy; 2012 Sam Stephenson, 37signals
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

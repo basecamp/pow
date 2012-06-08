@@ -190,16 +190,17 @@ readAndUnlink = (filename, callback) ->
       if err then callback err
       else callback null, contents
 
-# Execute the given command through a login shell and pass the
-# contents of its stdout and stderr streams to the callback. In order
-# to spawn a login shell, first spawn the user's shell with the `-l`
-# option. If that fails, retry  without `-l`; some shells, like tcsh,
-# cannot be started as non-interactive login shells. If that fails,
-# bubble the error up to the callback.
+# Execute the given command through an interactive login shell and
+# pass the contents of its stdout and stderr streams to the
+# callback. In order to spawn a login shell, first spawn the user's
+# shell through `/usr/bin/login` with the `-i` (interactive)
+# option. If that fails, assume the shell does not support the `-i`
+# option and retry without it. If that fails, bubble the error up to
+# the callback.
 loginExec = (command, callback) ->
   getUserShell (shell) ->
     login = ["login", "-qf", process.env.LOGNAME, shell]
-    exec [login..., "-l", "-c", command], (err, stdout, stderr) ->
+    exec [login..., "-i", "-c", command], (err, stdout, stderr) ->
       if err
         exec [login..., "-c", command], callback
       else

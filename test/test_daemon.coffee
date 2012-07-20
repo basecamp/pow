@@ -46,8 +46,9 @@ module.exports = testCase
     daemon = new Daemon configuration
 
     daemon.start()
-    touch restartFilename, ->
-      daemon.once "restart", ->
-        path.exists restartFilename, (exists) ->
-          test.ok !exists
-          test.done()
+    daemon.once "start", ->
+      touch restartFilename, ->
+        daemon.once "restart", ->
+          path.exists restartFilename, (exists) ->
+            test.ok !exists
+            test.done()

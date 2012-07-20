@@ -51,4 +51,6 @@ module.exports = testCase
         daemon.once "restart", ->
           path.exists restartFilename, (exists) ->
             test.ok !exists
-            test.done()
+            daemon.stop()
+            daemon.on "stop", ->
+              test.done()

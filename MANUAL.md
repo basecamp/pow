@@ -253,6 +253,13 @@ Pow automatically serves static files in the `public` directory of
 your application. It's possible to serve a completely static site
 without a `config.ru` file as long as it has a `public` directory.
 
+In case all what you want is just to serve up a folder over http://
+you can use this bare minimum `config.ru`:
+
+    require 'rack'
+    root=Dir.pwd
+    run Rack::Directory.new("#{root}")
+
 ### Restarting Applications ###
 
 You can tell Pow to restart an application the next time it's

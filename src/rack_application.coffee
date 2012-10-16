@@ -249,8 +249,8 @@ module.exports = class RackApplication
         fs.writeFile powrc, "#{boilerplate}\n#{contents}"
 
   @rvmBoilerplate: """
-    if [ -f "$rvm_path/scripts/rvm" ] && [ -f ".rvmrc" ]; then
+    if [ -f "$rvm_path/scripts/rvm" ] && { [ -f ".rvmrc" ] || [ -f ".ruby-version" ]; }; then
       source "$rvm_path/scripts/rvm"
-      source ".rvmrc"
+      [ -f ".rvmrc" ] && source ".rvmrc" || rvm `cat .ruby-version`
     fi
   """

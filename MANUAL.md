@@ -365,7 +365,7 @@ other means.
 If you are writing software that interfaces with Pow, you can inspect
 the running server's status and configuration via HTTP. To access this
 information, open a connection to `localhost` and issue a `GET`
-request with the header `Host: pow`. The available endponts are:
+request with the header `Host: pow`. The available endpoints are:
 
 * `/status.json`: A JSON-encoded object containing the current Pow
   server's process ID, version string, and the number of requests it's

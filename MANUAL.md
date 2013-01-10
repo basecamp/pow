@@ -419,13 +419,12 @@ Process button.
   readme](https://github.com/sethvargo/powify#readme) for the full
   list of commands.
 
-* [Showoff](http://showoff.io/) is "the easiest way to share localhost
+* [Forward](https://forwardhq.com/) lets you "share localhost
   over the web." It creates a tunnel between your computer and the
-  Showoff server, then gives you a publicly accessible URL so others
-  can see the app or site you're working on. Showoff supports Pow's
-  virtual hosts &mdash; install the gem via `gem install showoff-io`,
-  then run `show dev.` (with the trailing dot). Your Pow apps will be
-  accessible at `http://yourappname.yourname.showoff.io/`.
+  Forward server, then gives you a publicly accessible URL so others
+  can see the app or site you're working on. Install the gem via (`gem install forward`) and
+  then run `forward yourapp.dev`. Your Pow application will be
+  accessible at `https://youraccount.fwd.wf/`.
 
 ## Contributing ##
 

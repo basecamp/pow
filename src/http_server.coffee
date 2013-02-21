@@ -157,7 +157,8 @@ module.exports = class HttpServer extends connect.HTTPServer
     if req.url.match /\.\./
       return next()
 
-    handler = @staticHandlers[root] ?= connect.static join(root, "public")
+    static_path = if fs.existsSync(join(root, ".powstatic")) then root else join(root, "public")
+    handler = @staticHandlers[root] ?= connect.static static_path
     handler req, res, next
 
   # Check to see if the application root contains a `config.ru`

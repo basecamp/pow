@@ -13,7 +13,7 @@ request         = require "request"
 RackApplication = require "./rack_application"
 
 {pause} = require "./util"
-{dirname, join, exists} = require "path"
+{dirname, join, exists, existsSync} = require "path"
 
 {version} = JSON.parse fs.readFileSync __dirname + "/../package.json", "utf8"
 
@@ -157,7 +157,9 @@ module.exports = class HttpServer extends connect.HTTPServer
     if req.url.match /\.\./
       return next()
 
-    handler = @staticHandlers[root] ?= connect.static join(root, "public")
+    static_path = ->
+      if existsSync(join(root, ".powstatic")) then root else join(root, "public")
+    handler = @staticHandlers[root] ?= connect.static static_path()
     handler req, res, next
 
   # Check to see if the application root contains a `config.ru`

@@ -151,7 +151,7 @@ exports.sourceScriptEnv = (script, env, options, callback) ->
 # the `defaultEncoding` parameter, or `UTF-8` if it is not set.
 exports.getUserEnv = (callback, defaultEncoding = "UTF-8") ->
   filename = makeTemporaryFilename()
-  loginExec "env > #{quote filename}", (err) ->
+  loginExec "exec env > #{quote filename}", (err) ->
     if err then callback err
     else readAndUnlink filename, (err, result) ->
       if err then callback err
@@ -199,7 +199,7 @@ readAndUnlink = (filename, callback) ->
 loginExec = (command, callback) ->
   getUserShell (shell) ->
     login = ["login", "-qf", process.env.LOGNAME, shell]
-    exec [login..., "-l", "-c", command], (err, stdout, stderr) ->
+    exec [login..., "-i", "-c", command], (err, stdout, stderr) ->
       if err
         exec [login..., "-c", command], callback
       else

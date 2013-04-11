@@ -65,8 +65,7 @@ exports.serve = serve = (server, callback) ->
 exports.createRequester = createRequester = (port) ->
   (method, path, headers, callback) ->
     callback = headers unless callback
-    client   = http.createClient port
-    request  = client.request method, path, headers
+    request  = http.request {method, path, port, headers}
 
     if data = headers.data
       delete headers.data

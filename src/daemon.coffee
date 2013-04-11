@@ -25,7 +25,7 @@ module.exports = class Daemon extends EventEmitter
     hostRoot = @configuration.hostRoot
     @restartFilename = path.join hostRoot, "restart.txt"
     @on "start", => @watcher = fs.watch hostRoot, persistent: false, @hostRootChanged
-    @on "close", => @watcher?.close()
+    @on "stop", => @watcher?.close()
 
   hostRootChanged: =>
     fs.exists @restartFilename, (exists) =>

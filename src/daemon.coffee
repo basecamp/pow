@@ -25,10 +25,10 @@ module.exports = class Daemon extends EventEmitter
     hostRoot = @configuration.hostRoot
     @restartFilename = path.join hostRoot, "restart.txt"
     @on "start", => @watcher = fs.watch hostRoot, persistent: false, @hostRootChanged
-    @on "close", => @watcher?.close()
+    @on "stop", => @watcher?.close()
 
   hostRootChanged: =>
-    path.exists @restartFilename, (exists) =>
+    fs.exists @restartFilename, (exists) =>
       @restart() if exists
 
   # Remove the `~/.pow/restart.txt` file, if present, and emit a

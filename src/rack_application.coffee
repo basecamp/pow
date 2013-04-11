@@ -29,7 +29,7 @@ fs    = require "fs"
 nack  = require "nack"
 
 {bufferLines, pause, sourceScriptEnv} = require "./util"
-{join, exists, basename, resolve} = require "path"
+{join, basename, resolve} = require "path"
 
 module.exports = class RackApplication
   # Create a `RackApplication` for the given configuration and
@@ -81,7 +81,7 @@ module.exports = class RackApplication
   # finished. (Multiple calls to this method are aggregated.)
   setPoolRunOnceFlag: (callback) ->
     unless @statCallbacks.length
-      exists join(@root, "tmp/always_restart.txt"), (alwaysRestart) =>
+      fs.exists join(@root, "tmp/always_restart.txt"), (alwaysRestart) =>
         @pool.runOnce = alwaysRestart
         statCallback() for statCallback in @statCallbacks
         @statCallbacks = []
@@ -94,7 +94,7 @@ module.exports = class RackApplication
   # `.powenv` free for any necessary local overrides.
   loadScriptEnvironment: (env, callback) ->
     async.reduce [".powrc", ".envrc", ".powenv"], env, (env, filename, callback) =>
-      exists script = join(@root, filename), (scriptExists) ->
+      fs.exists script = join(@root, filename), (scriptExists) ->
         if scriptExists
           sourceScriptEnv script, env, callback
         else
@@ -108,9 +108,9 @@ module.exports = class RackApplication
   # Before loading rvm, Pow invokes a helper script that shows a
   # deprecation notice if it has not yet been displayed.
   loadRvmEnvironment: (env, callback) ->
-    exists script = join(@root, ".rvmrc"), (rvmrcExists) =>
+    fs.exists script = join(@root, ".rvmrc"), (rvmrcExists) =>
       if rvmrcExists
-        exists rvm = @configuration.rvmPath, (rvmExists) =>
+        fs.exists rvm = @configuration.rvmPath, (rvmExists) =>
           if rvmExists
             libexecPath = resolve "#{__dirname}/../libexec"
             before = """

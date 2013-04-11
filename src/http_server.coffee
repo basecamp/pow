@@ -13,7 +13,7 @@ request         = require "request"
 RackApplication = require "./rack_application"
 
 {pause} = require "./util"
-{dirname, join, exists} = require "path"
+{dirname, join} = require "path"
 
 {version} = JSON.parse fs.readFileSync __dirname + "/../package.json", "utf8"
 
@@ -168,7 +168,7 @@ module.exports = class HttpServer extends connect.HTTPServer
   findRackApplication: (req, res, next) =>
     return next() unless root = req.pow.root
 
-    exists join(root, "config.ru"), (rackConfigExists) =>
+    fs.exists join(root, "config.ru"), (rackConfigExists) =>
       if rackConfigExists
         req.pow.application = @rackApplications[root] ?=
           new RackApplication @configuration, root, req.pow.host
@@ -285,7 +285,7 @@ module.exports = class HttpServer extends connect.HTTPServer
   # doesn't have a `config.ru` file, show a more helpful message.
   handleRailsAppWithoutRackupFile: (req, res, next) ->
     return next() unless root = req.pow.root
-    exists join(root, "config/environment.rb"), (looksLikeRailsApp) ->
+    fs.exists join(root, "config/environment.rb"), (looksLikeRailsApp) ->
       return next() unless looksLikeRailsApp
       renderResponse res, 503, "rackup_file_missing"
 

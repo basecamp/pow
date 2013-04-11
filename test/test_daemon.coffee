@@ -1,4 +1,5 @@
 net = require "net"
+fs = require "fs"
 path = require "path"
 {testCase} = require "nodeunit"
 {Configuration, Daemon} = require ".."
@@ -46,8 +47,11 @@ module.exports = testCase
     daemon = new Daemon configuration
 
     daemon.start()
-    touch restartFilename, ->
-      daemon.once "restart", ->
-        path.exists restartFilename, (exists) ->
-          test.ok !exists
-          test.done()
+
+    daemon.once "restart", ->
+      fs.exists restartFilename, (exists) ->
+        test.ok !exists
+        daemon.stop()
+        test.done()
+
+    touch restartFilename

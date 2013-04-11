@@ -10,7 +10,7 @@ module.exports = testCase
     prepareFixtures proceed
 
   "responds to all A queries for the configured domain": (test) ->
-    test.expect 6
+    test.expect 12
 
     configuration = createConfiguration POW_DOMAINS: "powtest,powdev"
     dnsServer = new DnsServer configuration
@@ -22,10 +22,11 @@ module.exports = testCase
         exec cmd, (err, stdout, stderr) ->
           status = stdout.match(/status: (.*?),/)?[1]
           answer = stdout.match(/IN\tA\t([\d.]+)/)?[1]
-          callback status, answer
+          callback err, status, answer
 
       testResolves = (host, expectedStatus, expectedAnswer) ->
-        (callback) -> resolve host, (status, answer) ->
+        (callback) -> resolve host, (err, status, answer) ->
+          test.ifError err
           test.same [expectedStatus, expectedAnswer], [status, answer]
           callback()
 

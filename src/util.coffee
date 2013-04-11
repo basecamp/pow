@@ -55,7 +55,7 @@ exports.mkdirp = (dirname, callback) ->
     if err
       paths = [p].concat(p = path.dirname p until p in ["/", "."])
       async.forEachSeries paths.reverse(), (p, next) ->
-        path.exists p, (exists) ->
+        fs.exists p, (exists) ->
           if exists then next()
           else fs.mkdir p, 0o755, (err) ->
             if err then callback err

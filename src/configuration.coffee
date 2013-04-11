@@ -32,7 +32,7 @@ module.exports = class Configuration
       if err
         callback err
       else
-        path.exists p = @userConfigurationPath, (exists) ->
+        fs.exists p = @userConfigurationPath, (exists) ->
           if exists
             sourceScriptEnv p, env, callback
           else

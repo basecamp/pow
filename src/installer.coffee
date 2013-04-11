@@ -29,7 +29,7 @@ class InstallerFile
   # contents, `callback` is invoked with false. Otherwise, `callback`
   # is invoked with true.
   isStale: (callback) ->
-    path.exists @path, (exists) =>
+    fs.exists @path, (exists) =>
       if exists
         fs.readFile @path, "utf8", (err, contents) =>
           if err

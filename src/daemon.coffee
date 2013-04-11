@@ -28,7 +28,7 @@ module.exports = class Daemon extends EventEmitter
     @on "close", => @watcher?.close()
 
   hostRootChanged: =>
-    path.exists @restartFilename, (exists) =>
+    fs.exists @restartFilename, (exists) =>
       @restart() if exists
 
   # Remove the `~/.pow/restart.txt` file, if present, and emit a

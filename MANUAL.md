@@ -451,6 +451,10 @@ looks like.
 
 ## Version History ##
 
+* **0.4.1**
+
+  * Compatibility with Node 0.10.x.
+
 * **0.4.0** (June 7, 2012):
   * Pow's port proxying feature lets you proxy virtual hosts to other
     ports on your computer. Just create a file in `~/.pow` with the

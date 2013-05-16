@@ -52,4 +52,4 @@ See the [user's manual](http://pow.cx/manual) for more information.
 
 -----
 
-&copy; 2012 Sam Stephenson, 37signals
+&copy; 2013 Sam Stephenson, 37signals

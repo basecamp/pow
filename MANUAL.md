@@ -451,7 +451,7 @@ looks like.
 
 ## Version History ##
 
-* **0.4.1**
+* **0.4.1** (May 16, 2013):
 
   * Compatibility with Node 0.10.x.
 

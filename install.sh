@@ -44,7 +44,7 @@
       POW_ROOT="$HOME/Library/Application Support/Pow"
       NODE_BIN="$POW_ROOT/Current/bin/node"
       POW_BIN="$POW_ROOT/Current/bin/pow"
-      [[ -z "$VERSION" ]] && VERSION=0.4.0
+      [[ -z "$VERSION" ]] && VERSION=0.4.1
 
 
 # Fail fast if we're not on OS X >= 10.6.0.

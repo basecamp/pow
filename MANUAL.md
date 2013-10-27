@@ -249,9 +249,16 @@ binary in your `PATH` &mdash; in this case `/opt/ruby-1.8.7/bin/ruby`.
 
 ### Serving Static Files ###
 
-Pow automatically serves static files in the `public` directory of
-your application. It's possible to serve a completely static site
-without a `config.ru` file as long as it has a `public` directory.
+Pow automatically serves static files in the `public` directory of your
+application. It's possible to serve a completely static site without a
+`config.ru` file as long as it has a `public` directory. If you have a static
+site and want to keep your files in the root of your project (i.e. not in a
+`public` directory), you can do the following:
+
+  $ cd ~/.pow
+  $ mkdir your-app-domain
+  $ cd !$
+  $ ln -s ~/Projects/your-app public
 
 ### Restarting Applications ###
 

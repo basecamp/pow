@@ -255,10 +255,10 @@ application. It's possible to serve a completely static site without a
 site and want to keep your files in the root of your project (i.e. not in a
 `public` directory), you can do the following:
 
-  $ cd ~/.pow
-  $ mkdir your-app-domain
-  $ cd !$
-  $ ln -s ~/Projects/your-app public
+    $ cd ~/.pow
+    $ mkdir your-app-domain
+    $ cd !$
+    $ ln -s ~/Projects/your-app public
 
 ### Restarting Applications ###
 

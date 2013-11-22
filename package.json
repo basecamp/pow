@@ -12,7 +12,7 @@
     "async": "0.1.22"
   , "connect": "~> 1.8.0"
   , "log": ">= 1.1.1"
-  , "nack": "~> 0.15"
+  , "nack": "~> 0.16"
   , "request": "~> 2.16"
   , "dnsserver": "https://github.com/sstephenson/dnsserver.js/tarball/4f2c713b2e"
   }

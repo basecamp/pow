@@ -207,7 +207,6 @@ module.exports = class RackApplication
   # request along to the Nack pool. If the Nack worker raises an
   # exception handling the request, reset the application.
   handle: (req, res, next, callback) ->
-    resume = pause req
     @ready (err) =>
       return next err if err
       @setPoolRunOnceFlag =>
@@ -219,7 +218,6 @@ module.exports = class RackApplication
               @quit() if err
               next err
           finally
-            resume()
             callback?()
 
   # Terminate the application, re-initialize it, and invoke the given

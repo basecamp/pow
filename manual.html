@@ -315,9 +315,17 @@ binary in your <code>PATH</code> &mdash; in this case <code>/opt/ruby-1.8.7/bin/
 
 <h3><a name="section_2.4">2.4</a> Serving Static Files</h3>
 
-<p>Pow automatically serves static files in the <code>public</code> directory of
-your application. It's possible to serve a completely static site
-without a <code>config.ru</code> file as long as it has a <code>public</code> directory.</p>
+<p>Pow automatically serves static files in the <code>public</code> directory of your
+application. It's possible to serve a completely static site without a
+<code>config.ru</code> file as long as it has a <code>public</code> directory. If you have a static
+site and want to keep your files in the root of your project (i.e. not in a
+<code>public</code> directory), you can do the following:</p>
+
+<pre><code>$ cd ~/.pow
+$ mkdir your-app-domain
+$ cd !$
+$ ln -s ~/Projects/your-app public
+</code></pre>
 
 <h3><a name="section_2.5">2.5</a> Restarting Applications</h3>
 
@@ -433,7 +441,7 @@ other means.</p>
 <p>If you are writing software that interfaces with Pow, you can inspect
 the running server's status and configuration via HTTP. To access this
 information, open a connection to <code>localhost</code> and issue a <code>GET</code>
-request with the header <code>Host: pow</code>. The available endponts are:</p>
+request with the header <code>Host: pow</code>. The available endpoints are:</p>
 
 <ul>
 <li><code>/status.json</code>: A JSON-encoded object containing the current Pow
@@ -491,13 +499,12 @@ to get a <code>powify</code> command for installing, updating, and managing Pow
 and your virtual hosts. See the <a href="https://github.com/sethvargo/powify#readme">Powify
 readme</a> for the full
 list of commands.</p></li>
-<li><p><a href="http://showoff.io/">Showoff</a> is "the easiest way to share localhost
+<li><p><a href="https://forwardhq.com/">Forward</a> lets you "share localhost
 over the web." It creates a tunnel between your computer and the
-Showoff server, then gives you a publicly accessible URL so others
-can see the app or site you're working on. Showoff supports Pow's
-virtual hosts &mdash; install the gem via <code>gem install showoff-io</code>,
-then run <code>show dev.</code> (with the trailing dot). Your Pow apps will be
-accessible at <code>http://yourappname.yourname.showoff.io/</code>.</p></li>
+Forward server, then gives you a publicly accessible URL so others
+can see the app or site you're working on. Install the gem via (<code>gem install forward</code>) and
+then run <code>forward yourapp.dev</code>. Your Pow application will be
+accessible at <code>https://youraccount.fwd.wf/</code>.</p></li>
 </ul>
 
 <h2><a name="section_5">5</a> Contributing</h2>
@@ -526,6 +533,14 @@ looks like.</p>
 <h2><a name="section_6">6</a> Version History</h2>
 
 <ul>
+<li><p><strong>0.4.2</strong> (April 3, 2014):</p>
+
+<ul>
+<li>Fixes the firewall script to ensure ipfw is enabled.</li>
+<li>Fixes loading the user environment for Zsh users.</li>
+<li>Fixes issues with uploading large files.</li>
+<li>Upgrades bundled Node version to 0.10.26.</li>
+</ul></li>
 <li><p><strong>0.4.1</strong> (May 16, 2013):</p>
 
 <ul>

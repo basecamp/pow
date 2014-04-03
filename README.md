@@ -36,7 +36,7 @@
 
 -----
 
-Current Version: **0.4.1**
+Current Version: **0.4.3**
 
 To install or upgrade Pow, open a terminal and run this command:
 
@@ -52,4 +52,4 @@ See the [user's manual](http://pow.cx/manual) for more information.
 
 -----
 
-&copy; 2013 Sam Stephenson, 37signals
+&copy; 2014 Sam Stephenson, Basecamp

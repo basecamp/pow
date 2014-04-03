@@ -457,6 +457,10 @@ looks like.
 
 ## Version History ##
 
+* **0.4.3** (April 3, 2014):
+  * Upgrade Nack to 0.16 to fix issues when requiring the json
+    library.
+
 * **0.4.2** (April 3, 2014):
   * Fixes the firewall script to ensure ipfw is enabled.
   * Fixes loading the user environment for Zsh users.
@@ -541,7 +545,7 @@ looks like.
 
 (The MIT License)
 
-Copyright &copy; 2012 Sam Stephenson, 37signals
+Copyright &copy; 2014 Sam Stephenson, Basecamp
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

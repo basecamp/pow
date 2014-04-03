@@ -1,250 +1,707 @@
-<!DOCTYPE html>  <html> <head>   <title>http_server.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="command.html">                 command.coffee               </a>                                           <a class="source" href="configuration.html">                 configuration.coffee               </a>                                           <a class="source" href="daemon.html">                 daemon.coffee               </a>                                           <a class="source" href="dns_server.html">                 dns_server.coffee               </a>                                           <a class="source" href="http_server.html">                 http_server.coffee               </a>                                           <a class="source" href="index.html">                 index.coffee               </a>                                           <a class="source" href="installer.html">                 installer.coffee               </a>                                           <a class="source" href="logger.html">                 logger.coffee               </a>                                           <a class="source" href="rack_application.html">                 rack_application.coffee               </a>                                           <a class="source" href="util.html">                 util.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               http_server.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>Where the magic happens.</p>
+<!DOCTYPE html>
 
-<p>Pow's <code>HttpServer</code> runs as your user and listens on a high port
+<html>
+<head>
+  <title>http_server.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="command.html">
+                command.coffee
+              </a>
+            
+              
+              <a class="source" href="configuration.html">
+                configuration.coffee
+              </a>
+            
+              
+              <a class="source" href="daemon.html">
+                daemon.coffee
+              </a>
+            
+              
+              <a class="source" href="dns_server.html">
+                dns_server.coffee
+              </a>
+            
+              
+              <a class="source" href="http_server.html">
+                http_server.coffee
+              </a>
+            
+              
+              <a class="source" href="index.html">
+                index.coffee
+              </a>
+            
+              
+              <a class="source" href="installer.html">
+                installer.coffee
+              </a>
+            
+              
+              <a class="source" href="logger.html">
+                logger.coffee
+              </a>
+            
+              
+              <a class="source" href="rack_application.html">
+                rack_application.coffee
+              </a>
+            
+              
+              <a class="source" href="util.html">
+                util.coffee
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>http_server.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <p>Where the magic happens.</p>
+<p>Pow’s <code>HttpServer</code> runs as your user and listens on a high port
 (20559 by default) for HTTP requests. (An <code>ipfw</code> rule forwards
 incoming requests on port 80 to your Pow instance.) Requests work
 their way through a middleware stack and are served to your browser
-as static assets, Rack requests, or error pages.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">fs              = </span><span class="nx">require</span> <span class="s">&quot;fs&quot;</span>
-<span class="nv">url             = </span><span class="nx">require</span> <span class="s">&quot;url&quot;</span>
-<span class="nv">connect         = </span><span class="nx">require</span> <span class="s">&quot;connect&quot;</span>
-<span class="nv">request         = </span><span class="nx">require</span> <span class="s">&quot;request&quot;</span>
-<span class="nv">RackApplication = </span><span class="nx">require</span> <span class="s">&quot;./rack_application&quot;</span>
+as static assets, Rack requests, or error pages.</p>
 
-<span class="p">{</span><span class="nx">pause</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s">&quot;./util&quot;</span>
-<span class="p">{</span><span class="nx">dirname</span><span class="p">,</span> <span class="nx">join</span><span class="p">,</span> <span class="nx">exists</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s">&quot;path&quot;</span>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+fs              = <span class="hljs-built_in">require</span> <span class="hljs-string">"fs"</span>
+url             = <span class="hljs-built_in">require</span> <span class="hljs-string">"url"</span>
+connect         = <span class="hljs-built_in">require</span> <span class="hljs-string">"connect"</span>
+request         = <span class="hljs-built_in">require</span> <span class="hljs-string">"request"</span>
+RackApplication = <span class="hljs-built_in">require</span> <span class="hljs-string">"./rack_application"</span>
 
-<span class="p">{</span><span class="nx">version</span><span class="p">}</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">readFileSync</span> <span class="nx">__dirname</span> <span class="o">+</span> <span class="s">&quot;/../package.json&quot;</span><span class="p">,</span> <span class="s">&quot;utf8&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p><code>HttpServer</code> is a subclass of
-<a href="http://senchalabs.github.com/connect/">Connect</a>'s <code>HTTPServer</code> with
-a custom set of middleware and a reference to a Pow <code>Configuration</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">module.exports = </span><span class="k">class</span> <span class="nx">HttpServer</span> <span class="k">extends</span> <span class="nx">connect</span><span class="p">.</span><span class="nx">HTTPServer</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>Connect depends on Function.prototype.length to determine
+{pause} = <span class="hljs-built_in">require</span> <span class="hljs-string">"./util"</span>
+{dirname, join} = <span class="hljs-built_in">require</span> <span class="hljs-string">"path"</span>
+
+{version} = JSON.parse fs.readFileSync __dirname + <span class="hljs-string">"/../package.json"</span>, <span class="hljs-string">"utf8"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p><code>HttpServer</code> is a subclass of
+<a href="http://senchalabs.github.com/connect/">Connect</a>‘s <code>HTTPServer</code> with
+a custom set of middleware and a reference to a Pow <code>Configuration</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-built_in">module</span>.<span class="hljs-built_in">exports</span> = <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HttpServer</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">connect</span>.<span class="hljs-title">HTTPServer</span></span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Connect depends on Function.prototype.length to determine
 whether a given middleware is an error handler. These wrappers
-provide compatibility with bound instance methods.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">o = </span><span class="nf">(fn) -&gt;</span> <span class="nf">(req, res, next)      -&gt;</span> <span class="nx">fn</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span>
-  <span class="nv">x = </span><span class="nf">(fn) -&gt;</span> <span class="nf">(err, req, res, next) -&gt;</span> <span class="nx">fn</span> <span class="nx">err</span><span class="p">,</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Helper that loads the named template, creates a new context from
+provide compatibility with bound instance methods.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-function"><span class="hljs-title">o</span> = <span class="hljs-params">(fn)</span> -&gt;</span> <span class="hljs-function"><span class="hljs-params">(req, res, next)</span>      -&gt;</span> fn req, res, next
+  <span class="hljs-function"><span class="hljs-title">x</span> = <span class="hljs-params">(fn)</span> -&gt;</span> <span class="hljs-function"><span class="hljs-params">(err, req, res, next)</span> -&gt;</span> fn err, req, res, next</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Helper that loads the named template, creates a new context from
 the given context with itself and an optional <code>yieldContents</code>
-block, and passes that to the template for rendering.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">renderTemplate = </span><span class="nf">(templateName, renderContext, yieldContents) -&gt;</span>
-    <span class="nv">template = </span><span class="nx">require</span> <span class="s">&quot;./templates/http_server/</span><span class="si">#{</span><span class="nx">templateName</span><span class="si">}</span><span class="s">.html&quot;</span>
-    <span class="nv">context = </span><span class="p">{</span><span class="nx">renderTemplate</span><span class="p">,</span> <span class="nx">yieldContents</span><span class="p">}</span>
-    <span class="nx">context</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">value</span> <span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span> <span class="k">of</span> <span class="nx">renderContext</span>
-    <span class="nx">template</span> <span class="nx">context</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Helper to render <code>templateName</code> to the given <code>res</code> response with
-the given <code>status</code> code and <code>context</code> values.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">renderResponse = </span><span class="nf">(res, status, templateName, context = {}) -&gt;</span>
-    <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span> <span class="nx">status</span><span class="p">,</span> <span class="s">&quot;Content-Type&quot;</span><span class="o">:</span> <span class="s">&quot;text/html; charset=utf8&quot;</span><span class="p">,</span> <span class="s">&quot;X-Pow-Template&quot;</span><span class="o">:</span> <span class="nx">templateName</span>
-    <span class="nx">res</span><span class="p">.</span><span class="nx">end</span> <span class="nx">renderTemplate</span> <span class="nx">templateName</span><span class="p">,</span> <span class="nx">context</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Create an HTTP server for the given configuration. This sets up
+block, and passes that to the template for rendering.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-function"><span class="hljs-title">renderTemplate</span> = <span class="hljs-params">(templateName, renderContext, yieldContents)</span> -&gt;</span>
+    template = <span class="hljs-built_in">require</span> <span class="hljs-string">"./templates/http_server/<span class="hljs-subst">#{templateName}</span>.html"</span>
+    context = {renderTemplate, yieldContents}
+    context[key] = value <span class="hljs-keyword">for</span> key, value <span class="hljs-keyword">of</span> renderContext
+    template context</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Helper to render <code>templateName</code> to the given <code>res</code> response with
+the given <code>status</code> code and <code>context</code> values.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-function"><span class="hljs-title">renderResponse</span> = <span class="hljs-params">(res, status, templateName, context = {})</span> -&gt;</span>
+    res.writeHead status, <span class="hljs-string">"Content-Type"</span>: <span class="hljs-string">"text/html; charset=utf8"</span>, <span class="hljs-string">"X-Pow-Template"</span>: templateName
+    res.end renderTemplate templateName, context</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Create an HTTP server for the given configuration. This sets up
 the middleware stack, gets a <code>Logger</code> instace for the global
 access log, and registers a handler to close any running
-applications when the server shuts down.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">constructor: </span><span class="nf">(@configuration) -&gt;</span>
-    <span class="k">super</span> <span class="p">[</span>
-      <span class="nx">o</span> <span class="nx">@logRequest</span>
-      <span class="nx">o</span> <span class="nx">@annotateRequest</span>
-      <span class="nx">o</span> <span class="nx">@handlePowRequest</span>
-      <span class="nx">o</span> <span class="nx">@findHostConfiguration</span>
-      <span class="nx">o</span> <span class="nx">@handleStaticRequest</span>
-      <span class="nx">o</span> <span class="nx">@findRackApplication</span>
-      <span class="nx">o</span> <span class="nx">@handleProxyRequest</span>
-      <span class="nx">o</span> <span class="nx">@handleRvmDeprecationRequest</span>
-      <span class="nx">o</span> <span class="nx">@handleApplicationRequest</span>
-      <span class="nx">x</span> <span class="nx">@handleErrorStartingApplication</span>
-      <span class="nx">o</span> <span class="nx">@handleFaviconRequest</span>
-      <span class="nx">o</span> <span class="nx">@handleApplicationNotFound</span>
-      <span class="nx">o</span> <span class="nx">@handleWelcomeRequest</span>
-      <span class="nx">o</span> <span class="nx">@handleRailsAppWithoutRackupFile</span>
-      <span class="nx">o</span> <span class="nx">@handleLocationNotFound</span>
-    <span class="p">]</span>
+applications when the server shuts down.</p>
 
-    <span class="vi">@staticHandlers = </span><span class="p">{}</span>
-    <span class="vi">@rackApplications = </span><span class="p">{}</span>
-    <span class="vi">@requestCount = </span><span class="mi">0</span>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@configuration</span>)</span> -&gt;</span>
+    <span class="hljs-keyword">super</span> [
+      o <span class="hljs-property">@logRequest</span>
+      o <span class="hljs-property">@annotateRequest</span>
+      o <span class="hljs-property">@handlePowRequest</span>
+      o <span class="hljs-property">@findHostConfiguration</span>
+      o <span class="hljs-property">@handleStaticRequest</span>
+      o <span class="hljs-property">@findRackApplication</span>
+      o <span class="hljs-property">@handleProxyRequest</span>
+      o <span class="hljs-property">@handleRvmDeprecationRequest</span>
+      o <span class="hljs-property">@handleApplicationRequest</span>
+      x <span class="hljs-property">@handleErrorStartingApplication</span>
+      o <span class="hljs-property">@handleFaviconRequest</span>
+      o <span class="hljs-property">@handleApplicationNotFound</span>
+      o <span class="hljs-property">@handleWelcomeRequest</span>
+      o <span class="hljs-property">@handleRailsAppWithoutRackupFile</span>
+      o <span class="hljs-property">@handleLocationNotFound</span>
+    ]
 
-    <span class="vi">@accessLog = </span><span class="nx">@configuration</span><span class="p">.</span><span class="nx">getLogger</span> <span class="s">&quot;access&quot;</span>
+    <span class="hljs-property">@staticHandlers</span> = {}
+    <span class="hljs-property">@rackApplications</span> = {}
+    <span class="hljs-property">@requestCount</span> = <span class="hljs-number">0</span>
 
-    <span class="nx">@</span><span class="kc">on</span> <span class="s">&quot;close&quot;</span><span class="p">,</span> <span class="o">=&gt;</span>
-      <span class="k">for</span> <span class="nx">root</span><span class="p">,</span> <span class="nx">application</span> <span class="k">of</span> <span class="nx">@rackApplications</span>
-        <span class="nx">application</span><span class="p">.</span><span class="nx">quit</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Gets an object describing the server's current status that can be
-passed to <code>JSON.stringify</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">toJSON: </span><span class="o">-&gt;</span>
-    <span class="nv">pid: </span><span class="nx">process</span><span class="p">.</span><span class="nx">pid</span>
-    <span class="nv">version: </span><span class="nx">version</span>
-    <span class="nv">requestCount: </span><span class="nx">@requestCount</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>The first middleware in the stack logs each incoming request's
+    <span class="hljs-property">@accessLog</span> = <span class="hljs-property">@configuration</span>.getLogger <span class="hljs-string">"access"</span>
+
+    <span class="hljs-property">@on</span> <span class="hljs-string">"close"</span>,<span class="hljs-function"> =&gt;</span>
+      <span class="hljs-keyword">for</span> root, application <span class="hljs-keyword">of</span> <span class="hljs-property">@rackApplications</span>
+        application.quit()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Gets an object describing the server’s current status that can be
+passed to <code>JSON.stringify</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">toJSON</span>:<span class="hljs-function"> -&gt;</span>
+    <span class="hljs-attribute">pid</span>: process.pid
+    <span class="hljs-attribute">version</span>: version
+    <span class="hljs-attribute">requestCount</span>: <span class="hljs-property">@requestCount</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>The first middleware in the stack logs each incoming request’s
 source address, method, hostname, and path to the access log
-(<code>~/Library/Logs/Pow/access.log</code> by default).</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">logRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="nx">@accessLog</span><span class="p">.</span><span class="nx">info</span> <span class="s">&quot;[</span><span class="si">#{</span><span class="nx">req</span><span class="p">.</span><span class="nx">socket</span><span class="p">.</span><span class="nx">remoteAddress</span><span class="si">}</span><span class="s">] </span><span class="si">#{</span><span class="nx">req</span><span class="p">.</span><span class="nx">method</span><span class="si">}</span><span class="s"> </span><span class="si">#{</span><span class="nx">req</span><span class="p">.</span><span class="nx">headers</span><span class="p">.</span><span class="nx">host</span><span class="si">}</span><span class="s"> </span><span class="si">#{</span><span class="nx">req</span><span class="p">.</span><span class="nx">url</span><span class="si">}</span><span class="s">&quot;</span>
-    <span class="nx">@requestCount</span><span class="o">++</span>
-    <span class="nx">next</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>Annotate the request object with a <code>pow</code> property whose value is
-an object that will hold the request's normalized hostname, root
-path, and application, if any. (Only the <code>pow.host</code> property is
-set here.)</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">annotateRequest: </span><span class="nf">(req, res, next) -&gt;</span>
-    <span class="nv">host = </span><span class="nx">req</span><span class="p">.</span><span class="nx">headers</span><span class="p">.</span><span class="nx">host</span><span class="o">?</span><span class="p">.</span><span class="nx">replace</span> <span class="sr">/(\.$)|(\.?:.*)/</span><span class="p">,</span> <span class="s">&quot;&quot;</span>
-    <span class="nv">req.pow = </span><span class="p">{</span><span class="nx">host</span><span class="p">}</span>
-    <span class="nx">next</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>Serve requests for status information at <code>http://pow/</code>. The status
-endpoints are:</p>
+(<code>~/Library/Logs/Pow/access.log</code> by default).</p>
 
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">logRequest</span>: <span class="hljs-function"><span class="hljs-params">(req, res, next)</span> =&gt;</span>
+    <span class="hljs-property">@accessLog</span>.info <span class="hljs-string">"[<span class="hljs-subst">#{req.socket.remoteAddress}</span>] <span class="hljs-subst">#{req.method}</span> <span class="hljs-subst">#{req.headers.host}</span> <span class="hljs-subst">#{req.url}</span>"</span>
+    <span class="hljs-property">@requestCount</span>++
+    next()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Annotate the request object with a <code>pow</code> property whose value is
+an object that will hold the request’s normalized hostname, root
+path, and application, if any. (Only the <code>pow.host</code> property is
+set here.)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">annotateRequest</span>: <span class="hljs-function"><span class="hljs-params">(req, res, next)</span> -&gt;</span>
+    host = req.headers.host?.replace <span class="hljs-regexp">/(\.$)|(\.?:.*)/</span>, <span class="hljs-string">""</span>
+    req.pow = {host}
+    next()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>Serve requests for status information at <code>http://pow/</code>. The status
+endpoints are:</p>
 <ul>
-<li><code>/config.json</code>: Returns a JSON representation of the server's
+<li><code>/config.json</code>: Returns a JSON representation of the server’s
 <code>Configuration</code> instance.</li>
 <li><code>/env.json</code>: Returns the environment variables that all spawned
 applications inherit.</li>
 <li><code>/status.json</code>: Returns information about the current server
 version, number of requests handled, and process ID.</li>
 </ul>
-
 <p>Third-party utilities may use these endpoints to inspect a running
-Pow server.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handlePowRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">host</span> <span class="o">is</span> <span class="s">&quot;pow&quot;</span>
+Pow server.</p>
 
-    <span class="k">switch</span> <span class="nx">req</span><span class="p">.</span><span class="nx">url</span>
-      <span class="k">when</span> <span class="s">&quot;/config.json&quot;</span>
-        <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span> <span class="mi">200</span>
-        <span class="nx">res</span><span class="p">.</span><span class="nx">end</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span> <span class="nx">@configuration</span>
-      <span class="k">when</span> <span class="s">&quot;/env.json&quot;</span>
-        <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span> <span class="mi">200</span>
-        <span class="nx">res</span><span class="p">.</span><span class="nx">end</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span> <span class="nx">@configuration</span><span class="p">.</span><span class="nx">env</span>
-      <span class="k">when</span> <span class="s">&quot;/status.json&quot;</span>
-        <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span> <span class="mi">200</span>
-        <span class="nx">res</span><span class="p">.</span><span class="nx">end</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span> <span class="k">this</span>
-      <span class="k">else</span>
-        <span class="nx">@handleLocationNotFound</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>After the request has been annotated, attempt to match its hostname
-using the server's configuration. If a host configuration is found,
-annotate the request object with the application's root path or the
-port number so we can use it further down the stack.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">findHostConfiguration: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="nv">resume = </span><span class="nx">pause</span> <span class="nx">req</span>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">handlePowRequest</span>: <span class="hljs-function"><span class="hljs-params">(req, res, next)</span> =&gt;</span>
+    <span class="hljs-keyword">return</span> next() <span class="hljs-keyword">unless</span> req.pow.host <span class="hljs-keyword">is</span> <span class="hljs-string">"pow"</span>
 
-    <span class="nx">@configuration</span><span class="p">.</span><span class="nx">findHostConfiguration</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">host</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">domain</span><span class="p">,</span> <span class="nx">config</span><span class="p">)</span> <span class="o">=&gt;</span>
-      <span class="k">if</span> <span class="nx">config</span>
-        <span class="nv">req.pow.root   = </span><span class="nx">config</span><span class="p">.</span><span class="nx">root</span> <span class="k">if</span> <span class="nx">config</span><span class="p">.</span><span class="nx">root</span>
-        <span class="nv">req.pow.url    = </span><span class="nx">config</span><span class="p">.</span><span class="nx">url</span>  <span class="k">if</span> <span class="nx">config</span><span class="p">.</span><span class="nx">url</span>
-        <span class="nv">req.pow.domain = </span><span class="nx">domain</span>
-        <span class="nv">req.pow.resume = </span><span class="nx">resume</span>
-      <span class="k">else</span>
-        <span class="nx">resume</span><span class="p">()</span>
-      <span class="nx">next</span> <span class="nx">err</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>If this is a <code>GET</code> or <code>HEAD</code> request matching a file in the
-application's <code>public/</code> directory, serve the file directly.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleStaticRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="nx">unless</span> <span class="nx">req</span><span class="p">.</span><span class="nx">method</span> <span class="k">in</span> <span class="p">[</span><span class="s">&quot;GET&quot;</span><span class="p">,</span> <span class="s">&quot;HEAD&quot;</span><span class="p">]</span>
-      <span class="k">return</span> <span class="nx">next</span><span class="p">()</span>
+    <span class="hljs-keyword">switch</span> req.url
+      <span class="hljs-keyword">when</span> <span class="hljs-string">"/config.json"</span>
+        res.writeHead <span class="hljs-number">200</span>
+        res.end JSON.stringify <span class="hljs-property">@configuration</span>
+      <span class="hljs-keyword">when</span> <span class="hljs-string">"/env.json"</span>
+        res.writeHead <span class="hljs-number">200</span>
+        res.end JSON.stringify <span class="hljs-property">@configuration</span>.env
+      <span class="hljs-keyword">when</span> <span class="hljs-string">"/status.json"</span>
+        res.writeHead <span class="hljs-number">200</span>
+        res.end JSON.stringify <span class="hljs-keyword">this</span>
+      <span class="hljs-keyword">else</span>
+        <span class="hljs-property">@handleLocationNotFound</span> req, res, next</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>After the request has been annotated, attempt to match its hostname
+using the server’s configuration. If a host configuration is found,
+annotate the request object with the application’s root path or the
+port number so we can use it further down the stack.</p>
 
-    <span class="nx">unless</span> <span class="p">(</span><span class="nv">root = </span><span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span><span class="p">)</span> <span class="o">and</span> <span class="k">typeof</span> <span class="nx">root</span> <span class="o">is</span> <span class="s">&quot;string&quot;</span>
-      <span class="k">return</span> <span class="nx">next</span><span class="p">()</span>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">findHostConfiguration</span>: <span class="hljs-function"><span class="hljs-params">(req, res, next)</span> =&gt;</span>
+    resume = pause req
 
-    <span class="k">if</span> <span class="nx">req</span><span class="p">.</span><span class="nx">url</span><span class="p">.</span><span class="nx">match</span> <span class="sr">/\.\./</span>
-      <span class="k">return</span> <span class="nx">next</span><span class="p">()</span>
+    <span class="hljs-property">@configuration</span>.findHostConfiguration req.pow.host, <span class="hljs-function"><span class="hljs-params">(err, domain, config)</span> =&gt;</span>
+      <span class="hljs-keyword">if</span> config
+        req.pow.root   = config.root <span class="hljs-keyword">if</span> config.root
+        req.pow.url    = config.url  <span class="hljs-keyword">if</span> config.url
+        req.pow.domain = domain
+        req.pow.resume = resume
+      <span class="hljs-keyword">else</span>
+        resume()
+      next err</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>If this is a <code>GET</code> or <code>HEAD</code> request matching a file in the
+application’s <code>public/</code> directory, serve the file directly.</p>
 
-    <span class="nv">handler = </span><span class="nx">@staticHandlers</span><span class="p">[</span><span class="nx">root</span><span class="p">]</span> <span class="o">?=</span> <span class="nx">connect</span><span class="p">.</span><span class="nx">static</span> <span class="nx">join</span><span class="p">(</span><span class="nx">root</span><span class="p">,</span> <span class="s">&quot;public&quot;</span><span class="p">)</span>
-    <span class="nx">handler</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>Check to see if the application root contains a <code>config.ru</code>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">handleStaticRequest</span>: <span class="hljs-function"><span class="hljs-params">(req, res, next)</span> =&gt;</span>
+    <span class="hljs-keyword">unless</span> req.method <span class="hljs-keyword">in</span> [<span class="hljs-string">"GET"</span>, <span class="hljs-string">"HEAD"</span>]
+      <span class="hljs-keyword">return</span> next()
+
+    <span class="hljs-keyword">unless</span> (root = req.pow.root) <span class="hljs-keyword">and</span> <span class="hljs-keyword">typeof</span> root <span class="hljs-keyword">is</span> <span class="hljs-string">"string"</span>
+      <span class="hljs-keyword">return</span> next()
+
+    <span class="hljs-keyword">if</span> req.url.match <span class="hljs-regexp">/\.\./</span>
+      <span class="hljs-keyword">return</span> next()
+
+    handler = <span class="hljs-property">@staticHandlers</span>[root] ?= connect.static(join(root, <span class="hljs-string">"public"</span>), <span class="hljs-attribute">redirect</span>: <span class="hljs-literal">false</span>)
+    handler req, res, next</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>Check to see if the application root contains a <code>config.ru</code>
 file. If it does, find the existing <code>RackApplication</code> instance for
 the root, or create and cache a new one. Then annotate the request
 object with the application so it can be handled by
-<code>handleApplicationRequest</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">findRackApplication: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nv">root = </span><span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span>
+<code>handleApplicationRequest</code>.</p>
 
-    <span class="nx">exists</span> <span class="nx">join</span><span class="p">(</span><span class="nx">root</span><span class="p">,</span> <span class="s">&quot;config.ru&quot;</span><span class="p">),</span> <span class="p">(</span><span class="nx">rackConfigExists</span><span class="p">)</span> <span class="o">=&gt;</span>
-      <span class="k">if</span> <span class="nx">rackConfigExists</span>
-        <span class="nv">req.pow.application = </span><span class="nx">@rackApplications</span><span class="p">[</span><span class="nx">root</span><span class="p">]</span> <span class="o">?=</span>
-          <span class="k">new</span> <span class="nx">RackApplication</span> <span class="nx">@configuration</span><span class="p">,</span> <span class="nx">root</span><span class="p">,</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">host</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>If <code>config.ru</code> isn't present but there's an existing
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">findRackApplication</span>: <span class="hljs-function"><span class="hljs-params">(req, res, next)</span> =&gt;</span>
+    <span class="hljs-keyword">return</span> next() <span class="hljs-keyword">unless</span> root = req.pow.root
+
+    fs.exists join<span class="hljs-function"><span class="hljs-params">(root, <span class="hljs-string">"config.ru"</span>)</span>, <span class="hljs-params">(rackConfigExists)</span> =&gt;</span>
+      <span class="hljs-keyword">if</span> rackConfigExists
+        req.pow.application = <span class="hljs-property">@rackApplications</span>[root] ?=
+          <span class="hljs-keyword">new</span> RackApplication <span class="hljs-property">@configuration</span>, root, req.pow.host</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>If <code>config.ru</code> isn’t present but there’s an existing
 <code>RackApplication</code> for the root, terminate the application and
-remove it from the cache.</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">else</span> <span class="k">if</span> <span class="nv">application = </span><span class="nx">@rackApplications</span><span class="p">[</span><span class="nx">root</span><span class="p">]</span>
-        <span class="k">delete</span> <span class="nx">@rackApplications</span><span class="p">[</span><span class="nx">root</span><span class="p">]</span>
-        <span class="nx">application</span><span class="p">.</span><span class="nx">quit</span><span class="p">()</span>
+remove it from the cache.</p>
 
-      <span class="nx">next</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <p>If the request object is annotated with a url, proxy the
-request off to the hostname and port.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleProxyRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">url</span>
-    <span class="p">{</span><span class="nx">hostname</span><span class="p">,</span> <span class="nx">port</span><span class="p">}</span> <span class="o">=</span> <span class="nx">url</span><span class="p">.</span><span class="nx">parse</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">url</span>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> application = <span class="hljs-property">@rackApplications</span>[root]
+        <span class="hljs-keyword">delete</span> <span class="hljs-property">@rackApplications</span>[root]
+        application.quit()
 
-    <span class="nv">headers = </span><span class="p">{}</span>
+      next()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>If the request object is annotated with a url, proxy the
+request off to the hostname and port.</p>
 
-    <span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span> <span class="k">of</span> <span class="nx">req</span><span class="p">.</span><span class="nx">headers</span>
-      <span class="nx">headers</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">value</span>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">handleProxyRequest</span>: <span class="hljs-function"><span class="hljs-params">(req, res, next)</span> =&gt;</span>
+    <span class="hljs-keyword">return</span> next() <span class="hljs-keyword">unless</span> req.pow.url
+    {hostname, port} = url.parse req.pow.url
 
-    <span class="nx">headers</span><span class="p">[</span><span class="s">&#39;X-Forwarded-For&#39;</span><span class="p">]</span>    <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">connection</span><span class="p">.</span><span class="nx">address</span><span class="p">().</span><span class="nx">address</span>
-    <span class="nx">headers</span><span class="p">[</span><span class="s">&#39;X-Forwarded-Host&#39;</span><span class="p">]</span>   <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">host</span>
-    <span class="nx">headers</span><span class="p">[</span><span class="s">&#39;X-Forwarded-Server&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">host</span>
+    headers = {}
 
-    <span class="nv">proxy = </span><span class="nx">request</span>
-      <span class="nv">method: </span><span class="nx">req</span><span class="p">.</span><span class="nx">method</span>
-      <span class="nv">url: </span><span class="s">&quot;</span><span class="si">#{</span><span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">url</span><span class="si">}#{</span><span class="nx">req</span><span class="p">.</span><span class="nx">url</span><span class="si">}</span><span class="s">&quot;</span>
-      <span class="nv">headers: </span><span class="nx">headers</span>
-      <span class="nv">jar: </span><span class="kc">false</span>
-      <span class="nv">followRedirect: </span><span class="kc">false</span>
+    <span class="hljs-keyword">for</span> key, value <span class="hljs-keyword">of</span> req.headers
+      headers[key] = value
 
-    <span class="nx">req</span><span class="p">.</span><span class="nx">pipe</span> <span class="nx">proxy</span>
-    <span class="nx">proxy</span><span class="p">.</span><span class="nx">pipe</span> <span class="nx">res</span>
+    headers[<span class="hljs-string">'X-Forwarded-For'</span>]    = req.connection.address().address
+    headers[<span class="hljs-string">'X-Forwarded-Host'</span>]   = req.pow.host
+    headers[<span class="hljs-string">'X-Forwarded-Server'</span>] = req.pow.host
 
-    <span class="nx">proxy</span><span class="p">.</span><span class="kc">on</span> <span class="s">&#39;error&#39;</span><span class="p">,</span> <span class="nf">(err) -&gt;</span>
-      <span class="nx">renderResponse</span> <span class="nx">res</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="s">&quot;proxy_error&quot;</span><span class="p">,</span>
-        <span class="p">{</span><span class="nx">err</span><span class="p">,</span> <span class="nx">hostname</span><span class="p">,</span> <span class="nx">port</span><span class="p">}</span>
+    proxy = request
+      <span class="hljs-attribute">method</span>: req.method
+      <span class="hljs-attribute">url</span>: <span class="hljs-string">"<span class="hljs-subst">#{req.pow.url}</span><span class="hljs-subst">#{req.url}</span>"</span>
+      <span class="hljs-attribute">headers</span>: headers
+      <span class="hljs-attribute">jar</span>: <span class="hljs-literal">false</span>
+      <span class="hljs-attribute">followRedirect</span>: <span class="hljs-literal">false</span>
 
-    <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">resume</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <p>Handle requests for the mini-app that serves RVM deprecation
+    req.pipe proxy
+    proxy.pipe res
+
+    proxy.<span class="hljs-literal">on</span> <span class="hljs-string">'error'</span>, <span class="hljs-function"><span class="hljs-params">(err)</span> -&gt;</span>
+      renderResponse res, <span class="hljs-number">500</span>, <span class="hljs-string">"proxy_error"</span>,
+        {err, hostname, port}
+
+    req.pow.resume()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>Handle requests for the mini-app that serves RVM deprecation
 notices. Manually requesting <code>/__pow__/rvm_deprecation</code> on any
 Rack app will show the notice. The notice is automatically
 displayed in a separate browser window by <code>RackApplication</code> the
-first time you load an app with an <code>.rvmrc</code> file.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleRvmDeprecationRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nv">application = </span><span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">application</span>
+first time you load an app with an <code>.rvmrc</code> file.</p>
 
-    <span class="k">if</span> <span class="nv">match = </span><span class="nx">req</span><span class="p">.</span><span class="nx">url</span><span class="p">.</span><span class="nx">match</span> <span class="sr">/^\/__pow__\/rvm_deprecation(.*)/</span>
-      <span class="nv">action = </span><span class="nx">match</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-      <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">action</span> <span class="o">is</span> <span class="s">&quot;&quot;</span> <span class="o">or</span> <span class="nx">req</span><span class="p">.</span><span class="nx">method</span> <span class="o">is</span> <span class="s">&quot;POST&quot;</span>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">handleRvmDeprecationRequest</span>: <span class="hljs-function"><span class="hljs-params">(req, res, next)</span> =&gt;</span>
+    <span class="hljs-keyword">return</span> next() <span class="hljs-keyword">unless</span> application = req.pow.application
 
-      <span class="k">switch</span> <span class="nx">action</span>
-        <span class="k">when</span> <span class="s">&quot;&quot;</span>
-          <span class="kc">true</span>
-        <span class="k">when</span> <span class="s">&quot;/add_to_powrc&quot;</span>
-          <span class="nx">application</span><span class="p">.</span><span class="nx">writeRvmBoilerplate</span><span class="p">()</span>
-        <span class="k">when</span> <span class="s">&quot;/enable&quot;</span>
-          <span class="nx">@configuration</span><span class="p">.</span><span class="nx">enableRvmDeprecationNotices</span><span class="p">()</span>
-        <span class="k">when</span> <span class="s">&quot;/disable&quot;</span>
-          <span class="nx">@configuration</span><span class="p">.</span><span class="nx">disableRvmDeprecationNotices</span><span class="p">()</span>
-        <span class="k">else</span>
-          <span class="k">return</span> <span class="nx">next</span><span class="p">()</span>
-      <span class="nx">renderResponse</span> <span class="nx">res</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="s">&quot;rvm_deprecation_notice&quot;</span><span class="p">,</span>
-        <span class="nv">boilerplate: </span><span class="nx">RackApplication</span><span class="p">.</span><span class="nx">rvmBoilerplate</span>
-    <span class="k">else</span>
-      <span class="nx">next</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>If the request object is annotated with an application, pass the
-request off to the application's <code>handle</code> method.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleApplicationRequest: </span><span class="nf">(req, res, next) -&gt;</span>
-    <span class="k">if</span> <span class="nv">application = </span><span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">application</span>
-      <span class="nx">application</span><span class="p">.</span><span class="nx">handle</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">,</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">resume</span>
-    <span class="k">else</span>
-      <span class="nx">next</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <p>Serve an empty 200 response for any <code>/favicon.ico</code> requests that
-make it this far.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleFaviconRequest: </span><span class="nf">(req, res, next) -&gt;</span>
-    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">req</span><span class="p">.</span><span class="nx">url</span> <span class="o">is</span> <span class="s">&quot;/favicon.ico&quot;</span>
-    <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span> <span class="mi">200</span>
-    <span class="nx">res</span><span class="p">.</span><span class="nx">end</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <p>Show a friendly message when accessing a hostname that hasn't been
+    <span class="hljs-keyword">if</span> match = req.url.match <span class="hljs-regexp">/^\/__pow__\/rvm_deprecation(.*)/</span>
+      action = match[<span class="hljs-number">1</span>]
+      <span class="hljs-keyword">return</span> next() <span class="hljs-keyword">unless</span> action <span class="hljs-keyword">is</span> <span class="hljs-string">""</span> <span class="hljs-keyword">or</span> req.method <span class="hljs-keyword">is</span> <span class="hljs-string">"POST"</span>
+
+      <span class="hljs-keyword">switch</span> action
+        <span class="hljs-keyword">when</span> <span class="hljs-string">""</span>
+          <span class="hljs-literal">true</span>
+        <span class="hljs-keyword">when</span> <span class="hljs-string">"/add_to_powrc"</span>
+          application.writeRvmBoilerplate()
+        <span class="hljs-keyword">when</span> <span class="hljs-string">"/enable"</span>
+          <span class="hljs-property">@configuration</span>.enableRvmDeprecationNotices()
+        <span class="hljs-keyword">when</span> <span class="hljs-string">"/disable"</span>
+          <span class="hljs-property">@configuration</span>.disableRvmDeprecationNotices()
+        <span class="hljs-keyword">else</span>
+          <span class="hljs-keyword">return</span> next()
+      renderResponse res, <span class="hljs-number">200</span>, <span class="hljs-string">"rvm_deprecation_notice"</span>,
+        <span class="hljs-attribute">boilerplate</span>: RackApplication.rvmBoilerplate
+    <span class="hljs-keyword">else</span>
+      next()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>If the request object is annotated with an application, pass the
+request off to the application’s <code>handle</code> method.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">handleApplicationRequest</span>: <span class="hljs-function"><span class="hljs-params">(req, res, next)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> application = req.pow.application
+      application.handle req, res, next, req.pow.resume
+    <span class="hljs-keyword">else</span>
+      next()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>Serve an empty 200 response for any <code>/favicon.ico</code> requests that
+make it this far.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">handleFaviconRequest</span>: <span class="hljs-function"><span class="hljs-params">(req, res, next)</span> -&gt;</span>
+    <span class="hljs-keyword">return</span> next() <span class="hljs-keyword">unless</span> req.url <span class="hljs-keyword">is</span> <span class="hljs-string">"/favicon.ico"</span>
+    res.writeHead <span class="hljs-number">200</span>
+    res.end()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Show a friendly message when accessing a hostname that hasn’t been
 set up with Pow yet (but only for hosts that the server is
-configured to handle).</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleApplicationNotFound: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="k">if</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span>
+configured to handle).</p>
 
-    <span class="nv">host = </span><span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">host</span>
-    <span class="nv">pattern = </span><span class="nx">@configuration</span><span class="p">.</span><span class="nx">httpDomainPattern</span>
-    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nv">domain = </span><span class="nx">host</span><span class="o">?</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">pattern</span><span class="p">)</span><span class="o">?</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">handleApplicationNotFound</span>: <span class="hljs-function"><span class="hljs-params">(req, res, next)</span> =&gt;</span>
+    <span class="hljs-keyword">return</span> next() <span class="hljs-keyword">if</span> req.pow.root
 
-    <span class="nv">name = </span><span class="nx">host</span><span class="p">.</span><span class="nx">slice</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">host</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="nx">domain</span><span class="p">.</span><span class="nx">length</span>
-    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">name</span><span class="p">.</span><span class="nx">length</span>
+    host = req.pow.host
+    pattern = <span class="hljs-property">@configuration</span>.httpDomainPattern
+    <span class="hljs-keyword">return</span> next() <span class="hljs-keyword">unless</span> domain = host?.match(pattern)?[<span class="hljs-number">1</span>]
 
-    <span class="nx">renderResponse</span> <span class="nx">res</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="s">&quot;application_not_found&quot;</span><span class="p">,</span> <span class="p">{</span><span class="nx">name</span><span class="p">,</span> <span class="nx">host</span><span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-20">&#182;</a>               </div>               <p>If the request is for <code>/</code> on an unsupported domain (like
+    name = host.slice <span class="hljs-number">0</span>, host.length - domain.length
+    <span class="hljs-keyword">return</span> next() <span class="hljs-keyword">unless</span> name.length
+
+    renderResponse res, <span class="hljs-number">503</span>, <span class="hljs-string">"application_not_found"</span>, {name, host}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>If the request is for <code>/</code> on an unsupported domain (like
 <code>http://localhost/</code> or <code>http://127.0.0.1/</code>), show a page
 confirming that Pow is installed and running, with instructions on
-how to set up an app.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleWelcomeRequest: </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="k">if</span> <span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span> <span class="o">or</span> <span class="nx">req</span><span class="p">.</span><span class="nx">url</span> <span class="o">isnt</span> <span class="s">&quot;/&quot;</span>
-    <span class="p">{</span><span class="nx">domains</span><span class="p">}</span> <span class="o">=</span> <span class="nx">@configuration</span>
-    <span class="nv">domain = </span><span class="k">if</span> <span class="s">&quot;dev&quot;</span> <span class="k">in</span> <span class="nx">domains</span> <span class="k">then</span> <span class="s">&quot;dev&quot;</span> <span class="k">else</span> <span class="nx">domains</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="nx">renderResponse</span> <span class="nx">res</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="s">&quot;welcome&quot;</span><span class="p">,</span> <span class="p">{</span><span class="nx">version</span><span class="p">,</span> <span class="nx">domain</span><span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-21">&#182;</a>               </div>               <p>If the request is for an app that looks like a Rails 2 app but
-doesn't have a <code>config.ru</code> file, show a more helpful message.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleRailsAppWithoutRackupFile: </span><span class="nf">(req, res, next) -&gt;</span>
-    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nv">root = </span><span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span>
-    <span class="nx">exists</span> <span class="nx">join</span><span class="p">(</span><span class="nx">root</span><span class="p">,</span> <span class="s">&quot;config/environment.rb&quot;</span><span class="p">),</span> <span class="nf">(looksLikeRailsApp) -&gt;</span>
-      <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">looksLikeRailsApp</span>
-      <span class="nx">renderResponse</span> <span class="nx">res</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="s">&quot;rackup_file_missing&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-22">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-22">&#182;</a>               </div>               <p>If the request ends up here, it's for a static site, but the
-requested file doesn't exist. Show a basic 404 message.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleLocationNotFound: </span><span class="nf">(req, res, next) -&gt;</span>
-    <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span> <span class="mi">404</span><span class="p">,</span> <span class="s">&quot;Content-Type&quot;</span><span class="o">:</span> <span class="s">&quot;text/html&quot;</span>
-    <span class="nx">res</span><span class="p">.</span><span class="nx">end</span> <span class="s">&quot;&lt;!doctype html&gt;&lt;html&gt;&lt;body&gt;&lt;h1&gt;404 Not Found&lt;/h1&gt;&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-23">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-23">&#182;</a>               </div>               <p>If there's an exception thrown while handling a request, show a
-nicely formatted error page along with the full backtrace.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">handleErrorStartingApplication: </span><span class="nf">(err, req, res, next) -&gt;</span>
-    <span class="k">return</span> <span class="nx">next</span><span class="p">()</span> <span class="nx">unless</span> <span class="nv">root = </span><span class="nx">req</span><span class="p">.</span><span class="nx">pow</span><span class="p">.</span><span class="nx">root</span></pre></div>             </td>           </tr>                               <tr id="section-24">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-24">&#182;</a>               </div>               <p>Replace <code>$HOME</code> with <code>~</code> in backtrace lines.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">home = </span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">HOME</span>
-    <span class="nv">stackLines = </span><span class="k">for</span> <span class="nx">line</span> <span class="k">in</span> <span class="nx">err</span><span class="p">.</span><span class="nx">stack</span><span class="p">.</span><span class="nx">split</span> <span class="s">&quot;\n&quot;</span>
-      <span class="k">if</span> <span class="nx">line</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">home</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="o">is</span> <span class="nx">home</span>
-        <span class="s">&quot;~&quot;</span> <span class="o">+</span> <span class="nx">line</span><span class="p">.</span><span class="nx">slice</span> <span class="nx">home</span><span class="p">.</span><span class="nx">length</span>
-      <span class="k">else</span>
-        <span class="nx">line</span></pre></div>             </td>           </tr>                               <tr id="section-25">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-25">&#182;</a>               </div>               <p>Split the backtrace lines into the first five lines and all
-remaining lines, if there are more than 10 lines total.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">if</span> <span class="nx">stackLines</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">10</span>
-      <span class="nv">stack = </span><span class="nx">stackLines</span><span class="p">.</span><span class="nx">slice</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span>
-      <span class="nv">rest = </span><span class="nx">stackLines</span><span class="p">.</span><span class="nx">slice</span> <span class="mi">5</span>
-    <span class="k">else</span>
-      <span class="nv">stack = </span><span class="nx">stackLines</span>
+how to set up an app.</p>
 
-    <span class="nx">renderResponse</span> <span class="nx">res</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="s">&quot;error_starting_application&quot;</span><span class="p">,</span>
-      <span class="p">{</span><span class="nx">err</span><span class="p">,</span> <span class="nx">root</span><span class="p">,</span> <span class="nx">stack</span><span class="p">,</span> <span class="nx">rest</span><span class="p">}</span>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">handleWelcomeRequest</span>: <span class="hljs-function"><span class="hljs-params">(req, res, next)</span> =&gt;</span>
+    <span class="hljs-keyword">return</span> next() <span class="hljs-keyword">if</span> req.pow.root <span class="hljs-keyword">or</span> req.url <span class="hljs-keyword">isnt</span> <span class="hljs-string">"/"</span>
+    {domains} = <span class="hljs-property">@configuration</span>
+    domain = <span class="hljs-keyword">if</span> <span class="hljs-string">"dev"</span> <span class="hljs-keyword">in</span> domains <span class="hljs-keyword">then</span> <span class="hljs-string">"dev"</span> <span class="hljs-keyword">else</span> domains[<span class="hljs-number">0</span>]
+    renderResponse res, <span class="hljs-number">200</span>, <span class="hljs-string">"welcome"</span>, {version, domain}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>If the request is for an app that looks like a Rails 2 app but
+doesn’t have a <code>config.ru</code> file, show a more helpful message.</p>
 
-</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">handleRailsAppWithoutRackupFile</span>: <span class="hljs-function"><span class="hljs-params">(req, res, next)</span> -&gt;</span>
+    <span class="hljs-keyword">return</span> next() <span class="hljs-keyword">unless</span> root = req.pow.root
+    fs.exists join<span class="hljs-function"><span class="hljs-params">(root, <span class="hljs-string">"config/environment.rb"</span>)</span>, <span class="hljs-params">(looksLikeRailsApp)</span> -&gt;</span>
+      <span class="hljs-keyword">return</span> next() <span class="hljs-keyword">unless</span> looksLikeRailsApp
+      renderResponse res, <span class="hljs-number">503</span>, <span class="hljs-string">"rackup_file_missing"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>If the request ends up here, it’s for a static site, but the
+requested file doesn’t exist. Show a basic 404 message.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">handleLocationNotFound</span>: <span class="hljs-function"><span class="hljs-params">(req, res, next)</span> -&gt;</span>
+    res.writeHead <span class="hljs-number">404</span>, <span class="hljs-string">"Content-Type"</span>: <span class="hljs-string">"text/html"</span>
+    res.end <span class="hljs-string">"&lt;!doctype html&gt;&lt;html&gt;&lt;body&gt;&lt;h1&gt;404 Not Found&lt;/h1&gt;"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>If there’s an exception thrown while handling a request, show a
+nicely formatted error page along with the full backtrace.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">handleErrorStartingApplication</span>: <span class="hljs-function"><span class="hljs-params">(err, req, res, next)</span> -&gt;</span>
+    <span class="hljs-keyword">return</span> next() <span class="hljs-keyword">unless</span> root = req.pow.root</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>Replace <code>$HOME</code> with <code>~</code> in backtrace lines.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    home = process.env.HOME
+    stackLines = <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> err.stack.split <span class="hljs-string">"\n"</span>
+      <span class="hljs-keyword">if</span> line.slice(<span class="hljs-number">0</span>, home.length) <span class="hljs-keyword">is</span> home
+        <span class="hljs-string">"~"</span> + line.slice home.length
+      <span class="hljs-keyword">else</span>
+        line</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>Split the backtrace lines into the first five lines and all
+remaining lines, if there are more than 10 lines total.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> stackLines.length &gt; <span class="hljs-number">10</span>
+      stack = stackLines.slice <span class="hljs-number">0</span>, <span class="hljs-number">5</span>
+      rest = stackLines.slice <span class="hljs-number">5</span>
+    <span class="hljs-keyword">else</span>
+      stack = stackLines
+
+    renderResponse res, <span class="hljs-number">500</span>, <span class="hljs-string">"error_starting_application"</span>,
+      {err, root, stack, rest}</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

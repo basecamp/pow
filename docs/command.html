@@ -1,53 +1,348 @@
-<!DOCTYPE html>  <html> <head>   <title>command.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="command.html">                 command.coffee               </a>                                           <a class="source" href="configuration.html">                 configuration.coffee               </a>                                           <a class="source" href="daemon.html">                 daemon.coffee               </a>                                           <a class="source" href="dns_server.html">                 dns_server.coffee               </a>                                           <a class="source" href="http_server.html">                 http_server.coffee               </a>                                           <a class="source" href="index.html">                 index.coffee               </a>                                           <a class="source" href="installer.html">                 installer.coffee               </a>                                           <a class="source" href="logger.html">                 logger.coffee               </a>                                           <a class="source" href="rack_application.html">                 rack_application.coffee               </a>                                           <a class="source" href="util.html">                 util.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               command.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>The <code>command</code> module is loaded when the <code>pow</code> binary runs. It parses
-any command-line arguments and determines whether to install Pow's
-configuration files or start the daemon itself.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="p">{</span><span class="nx">Daemon</span><span class="p">,</span> <span class="nx">Configuration</span><span class="p">,</span> <span class="nx">Installer</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s">&quot;..&quot;</span>
-<span class="nv">util = </span><span class="nx">require</span> <span class="s">&quot;util&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>Set the process's title to <code>pow</code> so it's easier to find in <code>ps</code>,
-<code>top</code>, Activity Monitor, and so on.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">process.title = </span><span class="s">&quot;pow&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>Print valid command-line arguments and exit with a non-zero exit
-code if invalid arguments are passed to the <code>pow</code> binary.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">usage = </span><span class="o">-&gt;</span>
-  <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="s">&quot;usage: pow [--print-config | --install-local | --install-system [--dry-run]]&quot;</span>
-  <span class="nx">process</span><span class="p">.</span><span class="nx">exit</span> <span class="o">-</span><span class="mi">1</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Start by loading the user configuration from <code>~/.powconfig</code>, if it
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>command.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="command.html">
+                command.coffee
+              </a>
+            
+              
+              <a class="source" href="configuration.html">
+                configuration.coffee
+              </a>
+            
+              
+              <a class="source" href="daemon.html">
+                daemon.coffee
+              </a>
+            
+              
+              <a class="source" href="dns_server.html">
+                dns_server.coffee
+              </a>
+            
+              
+              <a class="source" href="http_server.html">
+                http_server.coffee
+              </a>
+            
+              
+              <a class="source" href="index.html">
+                index.coffee
+              </a>
+            
+              
+              <a class="source" href="installer.html">
+                installer.coffee
+              </a>
+            
+              
+              <a class="source" href="logger.html">
+                logger.coffee
+              </a>
+            
+              
+              <a class="source" href="rack_application.html">
+                rack_application.coffee
+              </a>
+            
+              
+              <a class="source" href="util.html">
+                util.coffee
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>command.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <p>The <code>command</code> module is loaded when the <code>pow</code> binary runs. It parses
+any command-line arguments and determines whether to install Pow’s
+configuration files or start the daemon itself.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+{Daemon, Configuration, Installer} = <span class="hljs-built_in">require</span> <span class="hljs-string">".."</span>
+util = <span class="hljs-built_in">require</span> <span class="hljs-string">"util"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Set the process’s title to <code>pow</code> so it’s easier to find in <code>ps</code>,
+<code>top</code>, Activity Monitor, and so on.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>process.title = <span class="hljs-string">"pow"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Print valid command-line arguments and exit with a non-zero exit
+code if invalid arguments are passed to the <code>pow</code> binary.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">usage</span> = -&gt;</span>
+  <span class="hljs-built_in">console</span>.error <span class="hljs-string">"usage: pow [--print-config | --install-local | --install-system [--dry-run]]"</span>
+  process.exit -<span class="hljs-number">1</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Start by loading the user configuration from <code>~/.powconfig</code>, if it
 exists. The user configuration affects both the installer and the
-daemon.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Configuration</span><span class="p">.</span><span class="nx">getUserConfiguration</span> <span class="nf">(err, configuration) -&gt;</span>
-  <span class="k">throw</span> <span class="nx">err</span> <span class="k">if</span> <span class="nx">err</span>
+daemon.</p>
 
-  <span class="nv">printConfig = </span><span class="kc">false</span>
-  <span class="nv">createInstaller = </span><span class="kc">null</span>
-  <span class="nv">dryRun = </span><span class="kc">false</span>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>Configuration.getUserConfiguration <span class="hljs-function"><span class="hljs-params">(err, configuration)</span> -&gt;</span>
+  <span class="hljs-keyword">throw</span> err <span class="hljs-keyword">if</span> err
 
-  <span class="k">for</span> <span class="nx">arg</span> <span class="k">in</span> <span class="nx">process</span><span class="p">.</span><span class="nx">argv</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Set a flag if --print-config is requested.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">if</span> <span class="nx">arg</span> <span class="o">is</span> <span class="s">&quot;--print-config&quot;</span>
-      <span class="nv">printConfig = </span><span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Cache the factory method for creating a local or system
-installer if necessary.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">else</span> <span class="k">if</span> <span class="nx">arg</span> <span class="o">is</span> <span class="s">&quot;--install-local&quot;</span>
-      <span class="nv">createInstaller = </span><span class="nx">Installer</span><span class="p">.</span><span class="nx">getLocalInstaller</span>
-    <span class="k">else</span> <span class="k">if</span> <span class="nx">arg</span> <span class="o">is</span> <span class="s">&quot;--install-system&quot;</span>
-      <span class="nv">createInstaller = </span><span class="nx">Installer</span><span class="p">.</span><span class="nx">getSystemInstaller</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Set a flag if a dry run is requested.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">else</span> <span class="k">if</span> <span class="nx">arg</span> <span class="o">is</span> <span class="s">&quot;--dry-run&quot;</span>
-      <span class="nv">dryRun = </span><span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Abort if we encounter an unknown argument.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">else</span>
-      <span class="nx">usage</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>Abort if a dry run is requested without installing anything.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="k">if</span> <span class="nx">dryRun</span> <span class="o">and</span> <span class="o">not</span> <span class="nx">createInstaller</span>
-    <span class="nx">usage</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>Print out the current configuration in a format that can be
-evaluated by a shell script (<code>eval $(pow --print-config)</code>).</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="k">else</span> <span class="k">if</span> <span class="nx">printConfig</span>
-    <span class="nv">underscore = </span><span class="nf">(string) -&gt;</span>
-      <span class="nx">string</span><span class="p">.</span><span class="nx">replace</span> <span class="sr">/(.)([A-Z])/g</span><span class="p">,</span> <span class="nf">(match, left, right) -&gt;</span>
-        <span class="nx">left</span> <span class="o">+</span> <span class="s">&quot;_&quot;</span> <span class="o">+</span> <span class="nx">right</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">()</span>
+  printConfig = <span class="hljs-literal">false</span>
+  createInstaller = <span class="hljs-literal">null</span>
+  dryRun = <span class="hljs-literal">false</span>
 
-    <span class="nv">shellEscape = </span><span class="nf">(string) -&gt;</span>
-      <span class="s">&quot;&#39;&quot;</span> <span class="o">+</span> <span class="nx">string</span><span class="p">.</span><span class="nx">toString</span><span class="p">().</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/&#39;/g</span><span class="p">,</span> <span class="s">&quot;&#39;\\&#39;&#39;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span> <span class="c1">#&#39;</span>
+  <span class="hljs-keyword">for</span> arg <span class="hljs-keyword">in</span> process.argv.slice(<span class="hljs-number">2</span>)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Set a flag if —print-config is requested.</p>
 
-    <span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span> <span class="k">of</span> <span class="nx">configuration</span><span class="p">.</span><span class="nx">toJSON</span><span class="p">()</span>
-      <span class="nx">util</span><span class="p">.</span><span class="nx">puts</span> <span class="s">&quot;POW_&quot;</span> <span class="o">+</span> <span class="nx">underscore</span><span class="p">(</span><span class="nx">key</span><span class="p">).</span><span class="nx">toUpperCase</span><span class="p">()</span> <span class="o">+</span>
-        <span class="s">&quot;=&quot;</span> <span class="o">+</span> <span class="nx">shellEscape</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>Create the installer, passing in our loaded configuration.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="k">else</span> <span class="k">if</span> <span class="nx">createInstaller</span>
-    <span class="nv">installer = </span><span class="nx">createInstaller</span> <span class="nx">configuration</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>If a dry run was requested, check to see whether any files need
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> arg <span class="hljs-keyword">is</span> <span class="hljs-string">"--print-config"</span>
+      printConfig = <span class="hljs-literal">true</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Cache the factory method for creating a local or system
+installer if necessary.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> arg <span class="hljs-keyword">is</span> <span class="hljs-string">"--install-local"</span>
+      createInstaller = Installer.getLocalInstaller
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> arg <span class="hljs-keyword">is</span> <span class="hljs-string">"--install-system"</span>
+      createInstaller = Installer.getSystemInstaller</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Set a flag if a dry run is requested.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> arg <span class="hljs-keyword">is</span> <span class="hljs-string">"--dry-run"</span>
+      dryRun = <span class="hljs-literal">true</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>Abort if we encounter an unknown argument.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">else</span>
+      usage()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Abort if a dry run is requested without installing anything.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">if</span> dryRun <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> createInstaller
+    usage()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>Print out the current configuration in a format that can be
+evaluated by a shell script (<code>eval $(pow --print-config)</code>).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> printConfig
+    <span class="hljs-function"><span class="hljs-title">underscore</span> = <span class="hljs-params">(string)</span> -&gt;</span>
+      string.replace <span class="hljs-regexp">/(.)([A-Z])/g</span>, <span class="hljs-function"><span class="hljs-params">(match, left, right)</span> -&gt;</span>
+        left + <span class="hljs-string">"_"</span> + right.toLowerCase()
+
+    <span class="hljs-function"><span class="hljs-title">shellEscape</span> = <span class="hljs-params">(string)</span> -&gt;</span>
+      <span class="hljs-string">"'"</span> + string.toString().replace(<span class="hljs-regexp">/'/g</span>, <span class="hljs-string">"'\\''"</span>) + <span class="hljs-string">"'"</span> <span class="hljs-comment">#'</span>
+
+    <span class="hljs-keyword">for</span> key, value <span class="hljs-keyword">of</span> configuration.toJSON()
+      util.puts <span class="hljs-string">"POW_"</span> + underscore(key).toUpperCase() +
+        <span class="hljs-string">"="</span> + shellEscape(value)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>Create the installer, passing in our loaded configuration.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> createInstaller
+    installer = createInstaller configuration</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>If a dry run was requested, check to see whether any files need
 to be installed with root privileges. If yes, exit with a status
-of 1. If no, exit with a status of 0.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">if</span> <span class="nx">dryRun</span>
-      <span class="nx">installer</span><span class="p">.</span><span class="nx">needsRootPrivileges</span> <span class="nf">(needsRoot) -&gt;</span>
-        <span class="nv">exitCode = </span><span class="k">if</span> <span class="nx">needsRoot</span> <span class="k">then</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="nx">installer</span><span class="p">.</span><span class="nx">getStaleFiles</span> <span class="nf">(files) -&gt;</span>
-          <span class="nx">util</span><span class="p">.</span><span class="nx">puts</span> <span class="nx">file</span><span class="p">.</span><span class="nx">path</span> <span class="k">for</span> <span class="nx">file</span> <span class="k">in</span> <span class="nx">files</span>
-          <span class="nx">process</span><span class="p">.</span><span class="nx">exit</span> <span class="nx">exitCode</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>Otherwise, install all the requested files, printing the full
-path of each installed file to stdout.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">else</span>
-      <span class="nx">installer</span><span class="p">.</span><span class="nx">install</span> <span class="nf">(err) -&gt;</span>
-        <span class="k">throw</span> <span class="nx">err</span> <span class="k">if</span> <span class="nx">err</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>Start up the Pow daemon if no arguments were passed. Terminate the
-process if the daemon requests a restart.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="k">else</span>
-    <span class="nv">daemon = </span><span class="k">new</span> <span class="nx">Daemon</span> <span class="nx">configuration</span>
-    <span class="nx">daemon</span><span class="p">.</span><span class="kc">on</span> <span class="s">&quot;restart&quot;</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="nx">process</span><span class="p">.</span><span class="nx">exit</span><span class="p">()</span>
-    <span class="nx">daemon</span><span class="p">.</span><span class="nx">start</span><span class="p">()</span>
+of 1. If no, exit with a status of 0.</p>
 
-</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> dryRun
+      installer.needsRootPrivileges <span class="hljs-function"><span class="hljs-params">(needsRoot)</span> -&gt;</span>
+        exitCode = <span class="hljs-keyword">if</span> needsRoot <span class="hljs-keyword">then</span> <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>
+        installer.getStaleFiles <span class="hljs-function"><span class="hljs-params">(files)</span> -&gt;</span>
+          util.puts file.path <span class="hljs-keyword">for</span> file <span class="hljs-keyword">in</span> files
+          process.exit exitCode</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>Otherwise, install all the requested files, printing the full
+path of each installed file to stdout.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">else</span>
+      installer.install <span class="hljs-function"><span class="hljs-params">(err)</span> -&gt;</span>
+        <span class="hljs-keyword">throw</span> err <span class="hljs-keyword">if</span> err</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Start up the Pow daemon if no arguments were passed. Terminate the
+process if the daemon requests a restart.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">else</span>
+    daemon = <span class="hljs-keyword">new</span> Daemon configuration
+    daemon.<span class="hljs-literal">on</span> <span class="hljs-string">"restart"</span>,<span class="hljs-function"> -&gt;</span> process.exit()
+    daemon.start()</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

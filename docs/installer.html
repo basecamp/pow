@@ -1,86 +1,411 @@
-<!DOCTYPE html>  <html> <head>   <title>installer.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="command.html">                 command.coffee               </a>                                           <a class="source" href="configuration.html">                 configuration.coffee               </a>                                           <a class="source" href="daemon.html">                 daemon.coffee               </a>                                           <a class="source" href="dns_server.html">                 dns_server.coffee               </a>                                           <a class="source" href="http_server.html">                 http_server.coffee               </a>                                           <a class="source" href="index.html">                 index.coffee               </a>                                           <a class="source" href="installer.html">                 installer.coffee               </a>                                           <a class="source" href="logger.html">                 logger.coffee               </a>                                           <a class="source" href="rack_application.html">                 rack_application.coffee               </a>                                           <a class="source" href="util.html">                 util.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               installer.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>The <code>Installer</code> class, in conjunction with the private
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>installer.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="command.html">
+                command.coffee
+              </a>
+            
+              
+              <a class="source" href="configuration.html">
+                configuration.coffee
+              </a>
+            
+              
+              <a class="source" href="daemon.html">
+                daemon.coffee
+              </a>
+            
+              
+              <a class="source" href="dns_server.html">
+                dns_server.coffee
+              </a>
+            
+              
+              <a class="source" href="http_server.html">
+                http_server.coffee
+              </a>
+            
+              
+              <a class="source" href="index.html">
+                index.coffee
+              </a>
+            
+              
+              <a class="source" href="installer.html">
+                installer.coffee
+              </a>
+            
+              
+              <a class="source" href="logger.html">
+                logger.coffee
+              </a>
+            
+              
+              <a class="source" href="rack_application.html">
+                rack_application.coffee
+              </a>
+            
+              
+              <a class="source" href="util.html">
+                util.coffee
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>installer.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <p>The <code>Installer</code> class, in conjunction with the private
 <code>InstallerFile</code> class, creates and installs local and system
-configuration files if they're missing or out of date. It's used by
-the Pow install script to set up the system for local development.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">async    = </span><span class="nx">require</span> <span class="s">&quot;async&quot;</span>
-<span class="nv">fs       = </span><span class="nx">require</span> <span class="s">&quot;fs&quot;</span>
-<span class="nv">path     = </span><span class="nx">require</span> <span class="s">&quot;path&quot;</span>
-<span class="p">{</span><span class="nx">mkdirp</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s">&quot;./util&quot;</span>
-<span class="p">{</span><span class="nx">chown</span><span class="p">}</span>  <span class="o">=</span> <span class="nx">require</span> <span class="s">&quot;./util&quot;</span>
-<span class="nv">util     = </span><span class="nx">require</span> <span class="s">&quot;util&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>Import the Eco templates for the <code>/etc/resolver</code> and <code>launchd</code>
-configuration files.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">resolverSource = </span><span class="nx">require</span> <span class="s">&quot;./templates/installer/resolver&quot;</span>
-<span class="nv">firewallSource = </span><span class="nx">require</span> <span class="s">&quot;./templates/installer/cx.pow.firewall.plist&quot;</span>
-<span class="nv">daemonSource   = </span><span class="nx">require</span> <span class="s">&quot;./templates/installer/cx.pow.powd.plist&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p><code>InstallerFile</code> represents a single file candidate for installation:
-a pathname, a string of the file's source, and optional flags
+configuration files if they’re missing or out of date. It’s used by
+the Pow install script to set up the system for local development.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+async    = <span class="hljs-built_in">require</span> <span class="hljs-string">"async"</span>
+fs       = <span class="hljs-built_in">require</span> <span class="hljs-string">"fs"</span>
+path     = <span class="hljs-built_in">require</span> <span class="hljs-string">"path"</span>
+{mkdirp} = <span class="hljs-built_in">require</span> <span class="hljs-string">"./util"</span>
+{chown}  = <span class="hljs-built_in">require</span> <span class="hljs-string">"./util"</span>
+util     = <span class="hljs-built_in">require</span> <span class="hljs-string">"util"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Import the Eco templates for the <code>/etc/resolver</code> and <code>launchd</code>
+configuration files.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>resolverSource = <span class="hljs-built_in">require</span> <span class="hljs-string">"./templates/installer/resolver"</span>
+firewallSource = <span class="hljs-built_in">require</span> <span class="hljs-string">"./templates/installer/cx.pow.firewall.plist"</span>
+daemonSource   = <span class="hljs-built_in">require</span> <span class="hljs-string">"./templates/installer/cx.pow.powd.plist"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p><code>InstallerFile</code> represents a single file candidate for installation:
+a pathname, a string of the file’s source, and optional flags
 indicating whether the file needs to be installed as root and what
-permission bits it should have.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">InstallerFile</span>
-  <span class="nv">constructor: </span><span class="nf">(@path, source, @root = false, @mode = 0o644) -&gt;</span>
-    <span class="vi">@source = </span><span class="nx">source</span><span class="p">.</span><span class="nx">trim</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Check to see whether the file actually needs to be installed. If
+permission bits it should have.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">InstallerFile</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@path</span>, source, <span class="hljs-property">@root</span> = <span class="hljs-literal">false</span>, <span class="hljs-property">@mode</span> = <span class="hljs-number">0</span>o644)</span> -&gt;</span>
+    <span class="hljs-property">@source</span> = source.trim()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Check to see whether the file actually needs to be installed. If
 the file exists on the filesystem with the specified path and
 contents, <code>callback</code> is invoked with false. Otherwise, <code>callback</code>
-is invoked with true.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">isStale: </span><span class="nf">(callback) -&gt;</span>
-    <span class="nx">path</span><span class="p">.</span><span class="nx">exists</span> <span class="nx">@path</span><span class="p">,</span> <span class="p">(</span><span class="nx">exists</span><span class="p">)</span> <span class="o">=&gt;</span>
-      <span class="k">if</span> <span class="nx">exists</span>
-        <span class="nx">fs</span><span class="p">.</span><span class="nx">readFile</span> <span class="nx">@path</span><span class="p">,</span> <span class="s">&quot;utf8&quot;</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">contents</span><span class="p">)</span> <span class="o">=&gt;</span>
-          <span class="k">if</span> <span class="nx">err</span>
-            <span class="nx">callback</span> <span class="kc">true</span>
-          <span class="k">else</span>
-            <span class="nx">callback</span> <span class="nx">@source</span> <span class="o">isnt</span> <span class="nx">contents</span><span class="p">.</span><span class="nx">trim</span><span class="p">()</span>
-      <span class="k">else</span>
-        <span class="nx">callback</span> <span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Create all the parent directories of the file's path, if
-necessary, and then invoke <code>callback</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">vivifyPath: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="nx">mkdirp</span> <span class="nx">path</span><span class="p">.</span><span class="nx">dirname</span><span class="p">(</span><span class="nx">@path</span><span class="p">),</span> <span class="nx">callback</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Write the file's source to disk and invoke <code>callback</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">writeFile: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="nx">fs</span><span class="p">.</span><span class="nx">writeFile</span> <span class="nx">@path</span><span class="p">,</span> <span class="nx">@source</span><span class="p">,</span> <span class="s">&quot;utf8&quot;</span><span class="p">,</span> <span class="nx">callback</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>If the root flag is set for this file, change its ownership to the
-<code>root</code> user and <code>wheel</code> group. Then invoke <code>callback</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">setOwnership: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="k">if</span> <span class="nx">@root</span>
-      <span class="nx">chown</span> <span class="nx">@path</span><span class="p">,</span> <span class="s">&quot;root:wheel&quot;</span><span class="p">,</span> <span class="nx">callback</span>
-    <span class="k">else</span>
-      <span class="nx">callback</span> <span class="kc">false</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Set permissions on the installed file with <code>chmod</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">setPermissions: </span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
-    <span class="nx">fs</span><span class="p">.</span><span class="nx">chmod</span> <span class="nx">@path</span><span class="p">,</span> <span class="nx">@mode</span><span class="p">,</span> <span class="nx">callback</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>Install a file asynchronously, first by making its parent
+is invoked with true.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">isStale</span>: <span class="hljs-function"><span class="hljs-params">(callback)</span> -&gt;</span>
+    fs.exists <span class="hljs-property">@path</span>, <span class="hljs-function"><span class="hljs-params">(exists)</span> =&gt;</span>
+      <span class="hljs-keyword">if</span> exists
+        fs.readFile <span class="hljs-property">@path</span>, <span class="hljs-string">"utf8"</span>, <span class="hljs-function"><span class="hljs-params">(err, contents)</span> =&gt;</span>
+          <span class="hljs-keyword">if</span> err
+            callback <span class="hljs-literal">true</span>
+          <span class="hljs-keyword">else</span>
+            callback <span class="hljs-property">@source</span> <span class="hljs-keyword">isnt</span> contents.trim()
+      <span class="hljs-keyword">else</span>
+        callback <span class="hljs-literal">true</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Create all the parent directories of the file’s path, if
+necessary, and then invoke <code>callback</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">vivifyPath</span>: <span class="hljs-function"><span class="hljs-params">(callback)</span> =&gt;</span>
+    mkdirp path.dirname(<span class="hljs-property">@path</span>), callback</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Write the file’s source to disk and invoke <code>callback</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">writeFile</span>: <span class="hljs-function"><span class="hljs-params">(callback)</span> =&gt;</span>
+    fs.writeFile <span class="hljs-property">@path</span>, <span class="hljs-property">@source</span>, <span class="hljs-string">"utf8"</span>, callback</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>If the root flag is set for this file, change its ownership to the
+<code>root</code> user and <code>wheel</code> group. Then invoke <code>callback</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">setOwnership</span>: <span class="hljs-function"><span class="hljs-params">(callback)</span> =&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@root</span>
+      chown <span class="hljs-property">@path</span>, <span class="hljs-string">"root:wheel"</span>, callback
+    <span class="hljs-keyword">else</span>
+      callback <span class="hljs-literal">false</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>Set permissions on the installed file with <code>chmod</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">setPermissions</span>: <span class="hljs-function"><span class="hljs-params">(callback)</span> =&gt;</span>
+    fs.chmod <span class="hljs-property">@path</span>, <span class="hljs-property">@mode</span>, callback</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Install a file asynchronously, first by making its parent
 directory, then writing it to disk, and finally setting its
-ownership and permission bits.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">install: </span><span class="nf">(callback) -&gt;</span>
-    <span class="nx">async</span><span class="p">.</span><span class="nx">series</span> <span class="p">[</span>
-      <span class="nx">@vivifyPath</span><span class="p">,</span>
-      <span class="nx">@writeFile</span><span class="p">,</span>
-      <span class="nx">@setOwnership</span><span class="p">,</span>
-      <span class="nx">@setPermissions</span>
-    <span class="p">],</span> <span class="nx">callback</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>The <code>Installer</code> class operates on a set of <code>InstallerFile</code> instances.
+ownership and permission bits.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">install</span>: <span class="hljs-function"><span class="hljs-params">(callback)</span> -&gt;</span>
+    async.series [
+      <span class="hljs-property">@vivifyPath</span>,
+      <span class="hljs-property">@writeFile</span>,
+      <span class="hljs-property">@setOwnership</span>,
+      <span class="hljs-property">@setPermissions</span>
+    ], callback</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>The <code>Installer</code> class operates on a set of <code>InstallerFile</code> instances.
 It can check to see if any files are stale and whether or not root
 access is necessary for installation. It can also install any stale
-files asynchronously.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">module.exports = </span><span class="k">class</span> <span class="nx">Installer</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>Factory method that takes a <code>Configuration</code> instance and returns
-an <code>Installer</code> for system firewall and DNS configuration files.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="vi">@getSystemInstaller: </span><span class="nf">(@configuration) -&gt;</span>
-    <span class="nv">files = </span><span class="p">[</span>
-      <span class="k">new</span> <span class="nx">InstallerFile</span> <span class="s">&quot;/Library/LaunchDaemons/cx.pow.firewall.plist&quot;</span><span class="p">,</span>
-        <span class="nx">firewallSource</span><span class="p">(</span><span class="nx">@configuration</span><span class="p">),</span>
-        <span class="kc">true</span>
-    <span class="p">]</span>
+files asynchronously.</p>
 
-    <span class="k">for</span> <span class="nx">domain</span> <span class="k">in</span> <span class="nx">@configuration</span><span class="p">.</span><span class="nx">domains</span>
-      <span class="nx">files</span><span class="p">.</span><span class="nx">push</span> <span class="k">new</span> <span class="nx">InstallerFile</span> <span class="s">&quot;/etc/resolver/</span><span class="si">#{</span><span class="nx">domain</span><span class="si">}</span><span class="s">&quot;</span><span class="p">,</span>
-        <span class="nx">resolverSource</span><span class="p">(</span><span class="nx">@configuration</span><span class="p">),</span>
-        <span class="kc">true</span>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-built_in">module</span>.<span class="hljs-built_in">exports</span> = <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Installer</span></span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>Factory method that takes a <code>Configuration</code> instance and returns
+an <code>Installer</code> for system firewall and DNS configuration files.</p>
 
-    <span class="k">new</span> <span class="nx">Installer</span> <span class="nx">files</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>Factory method that takes a <code>Configuration</code> instance and returns
-an <code>Installer</code> for the Pow <code>launchctl</code> daemon configuration file.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="vi">@getLocalInstaller: </span><span class="nf">(@configuration) -&gt;</span>
-    <span class="k">new</span> <span class="nx">Installer</span> <span class="p">[</span>
-      <span class="k">new</span> <span class="nx">InstallerFile</span> <span class="s">&quot;</span><span class="si">#{</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">HOME</span><span class="si">}</span><span class="s">/Library/LaunchAgents/cx.pow.powd.plist&quot;</span><span class="p">,</span>
-        <span class="nx">daemonSource</span><span class="p">(</span><span class="nx">@configuration</span><span class="p">)</span>
-    <span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>Create an installer for a set of files.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">constructor: </span><span class="nf">(@files = []) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>Invoke <code>callback</code> with an array of any files that need to be
-installed.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">getStaleFiles: </span><span class="nf">(callback) -&gt;</span>
-    <span class="nx">async</span><span class="p">.</span><span class="nx">select</span> <span class="nx">@files</span><span class="p">,</span> <span class="nf">(file, proceed) -&gt;</span>
-      <span class="nx">file</span><span class="p">.</span><span class="nx">isStale</span> <span class="nx">proceed</span>
-    <span class="p">,</span> <span class="nx">callback</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <p>Invoke <code>callback</code> with a boolean argument indicating whether or
-not any files need to be installed as root.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">needsRootPrivileges: </span><span class="nf">(callback) -&gt;</span>
-    <span class="nx">@getStaleFiles</span> <span class="nf">(files) -&gt;</span>
-      <span class="nx">async</span><span class="p">.</span><span class="nx">detect</span> <span class="nx">files</span><span class="p">,</span> <span class="nf">(file, proceed) -&gt;</span>
-        <span class="nx">proceed</span> <span class="nx">file</span><span class="p">.</span><span class="nx">root</span>
-      <span class="p">,</span> <span class="nf">(result) -&gt;</span>
-        <span class="nx">callback</span> <span class="nx">result</span><span class="o">?</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <p>Installs any stale files asynchronously and then invokes
-<code>callback</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">install: </span><span class="nf">(callback) -&gt;</span>
-    <span class="nx">@getStaleFiles</span> <span class="nf">(files) -&gt;</span>
-      <span class="nx">async</span><span class="p">.</span><span class="nx">forEach</span> <span class="nx">files</span><span class="p">,</span> <span class="nf">(file, proceed) -&gt;</span>
-        <span class="nx">file</span><span class="p">.</span><span class="nx">install</span> <span class="nf">(err) -&gt;</span>
-          <span class="nx">util</span><span class="p">.</span><span class="nx">puts</span> <span class="nx">file</span><span class="p">.</span><span class="nx">path</span> <span class="nx">unless</span> <span class="nx">err</span>
-          <span class="nx">proceed</span> <span class="nx">err</span>
-      <span class="p">,</span> <span class="nx">callback</span>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-property">@getSystemInstaller</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@configuration</span>)</span> -&gt;</span>
+    files = [
+      <span class="hljs-keyword">new</span> InstallerFile <span class="hljs-string">"/Library/LaunchDaemons/cx.pow.firewall.plist"</span>,
+        firewallSource(<span class="hljs-property">@configuration</span>),
+        <span class="hljs-literal">true</span>
+    ]
 
-</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
+    <span class="hljs-keyword">for</span> domain <span class="hljs-keyword">in</span> <span class="hljs-property">@configuration</span>.domains
+      files.push <span class="hljs-keyword">new</span> InstallerFile <span class="hljs-string">"/etc/resolver/<span class="hljs-subst">#{domain}</span>"</span>,
+        resolverSource(<span class="hljs-property">@configuration</span>),
+        <span class="hljs-literal">true</span>
+
+    <span class="hljs-keyword">new</span> Installer files</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>Factory method that takes a <code>Configuration</code> instance and returns
+an <code>Installer</code> for the Pow <code>launchctl</code> daemon configuration file.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-property">@getLocalInstaller</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@configuration</span>)</span> -&gt;</span>
+    <span class="hljs-keyword">new</span> Installer [
+      <span class="hljs-keyword">new</span> InstallerFile <span class="hljs-string">"<span class="hljs-subst">#{process.env.HOME}</span>/Library/LaunchAgents/cx.pow.powd.plist"</span>,
+        daemonSource(<span class="hljs-property">@configuration</span>)
+    ]</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>Create an installer for a set of files.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@files</span> = [])</span> -&gt;</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Invoke <code>callback</code> with an array of any files that need to be
+installed.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">getStaleFiles</span>: <span class="hljs-function"><span class="hljs-params">(callback)</span> -&gt;</span>
+    async.select <span class="hljs-property">@files</span>, <span class="hljs-function"><span class="hljs-params">(file, proceed)</span> -&gt;</span>
+      file.isStale proceed
+    , callback</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>Invoke <code>callback</code> with a boolean argument indicating whether or
+not any files need to be installed as root.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">needsRootPrivileges</span>: <span class="hljs-function"><span class="hljs-params">(callback)</span> -&gt;</span>
+    <span class="hljs-property">@getStaleFiles</span> <span class="hljs-function"><span class="hljs-params">(files)</span> -&gt;</span>
+      async.detect files, <span class="hljs-function"><span class="hljs-params">(file, proceed)</span> -&gt;</span>
+        proceed file.root
+      , <span class="hljs-function"><span class="hljs-params">(result)</span> -&gt;</span>
+        callback result?</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>Installs any stale files asynchronously and then invokes
+<code>callback</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">install</span>: <span class="hljs-function"><span class="hljs-params">(callback)</span> -&gt;</span>
+    <span class="hljs-property">@getStaleFiles</span> <span class="hljs-function"><span class="hljs-params">(files)</span> -&gt;</span>
+      async.forEach files, <span class="hljs-function"><span class="hljs-params">(file, proceed)</span> -&gt;</span>
+        file.install <span class="hljs-function"><span class="hljs-params">(err)</span> -&gt;</span>
+          util.puts file.path <span class="hljs-keyword">unless</span> err
+          proceed err
+      , callback</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

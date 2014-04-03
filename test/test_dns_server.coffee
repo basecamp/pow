@@ -20,9 +20,10 @@ module.exports = testCase
       else
         configuration = createConfiguration POW_DOMAINS: "powtest,powdev"
         dnsServer = new DnsServer configuration
-        dnsServer.listen 0, ->
-          {address, port} = dnsServer.address()
+        address = "0.0.0.0"
+        port = 20561
 
+        dnsServer.listen port, ->
           resolve = (domain, callback) ->
             cmd = "dig -p #{port} @#{address} #{domain} +noall +answer +comments"
             exec cmd, (err, stdout, stderr) ->

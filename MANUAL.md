@@ -457,8 +457,13 @@ looks like.
 
 ## Version History ##
 
-* **0.4.1** (May 16, 2013):
+* **0.4.2** (April 3, 2014):
+  * Fixes the firewall script to ensure ipfw is enabled.
+  * Fixes loading the user environment for Zsh users.
+  * Fixes issues with uploading large files.
+  * Upgrades bundled Node version to 0.10.26.
 
+* **0.4.1** (May 16, 2013):
   * Compatibility with Node 0.10.x.
 
 * **0.4.0** (June 7, 2012):

@@ -20,6 +20,7 @@
     "eco": "~> 1.1.0"
   , "nodeunit": "0.8.0"
   , "coffee-script": "1.6.2"
+  , "docco": "0.6.3"
   }
 , "engines" : { "node" : ">= 0.8.0" }
 , "scripts": {

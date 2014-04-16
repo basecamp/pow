@@ -121,7 +121,7 @@
       function print_troubleshooting_instructions() {
         echo
         echo "For troubleshooting instructions, please see the Pow wiki:"
-        echo "https://github.com/37signals/pow/wiki/Troubleshooting"
+        echo "https://github.com/basecamp/pow/wiki/Troubleshooting"
         echo
         echo "To uninstall Pow, \`curl get.pow.cx/uninstall.sh | sh\`"
       }

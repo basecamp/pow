@@ -59,14 +59,14 @@ set up the `ipfw` rule), if necessary. Then it boots the server.
 
 To install Pow from source, you'll need Node 0.6.0 or higher and npm:
 
-    $ git clone https://github.com/37signals/pow.git
+    $ git clone https://github.com/basecamp/pow.git
     $ cd pow
     $ npm --global install
     $ npm --global run-script pow restart
 
 For detailed instructions on installing Pow from source, including
 instructions on how to install Node and npm, see the
-[Installation](https://github.com/37signals/pow/wiki/Installation)
+[Installation](https://github.com/basecamp/pow/wiki/Installation)
 wiki page.
 
 ### Uninstalling Pow ###
@@ -420,7 +420,7 @@ Process button.
   examples of what it can do.
 
 * [Powify](https://github.com/sethvargo/powify) is "an easy-to-use
-  wrapper for 37signals' Pow." Install the gem (`gem install powify`)
+  wrapper for Basecamp's Pow." Install the gem (`gem install powify`)
   to get a `powify` command for installing, updating, and managing Pow
   and your virtual hosts. See the [Powify
   readme](https://github.com/sethvargo/powify#readme) for the full
@@ -439,11 +439,11 @@ Pow is written in [Node.js](http://nodejs.org/) with
 [CoffeeScript](http://jashkenas.github.com/coffee-script/). You can
 read the [annotated source code](http://pow.cx/docs/) to learn about
 how it works internally. Please report bugs on the [GitHub issue
-tracker](https://github.com/37signals/pow/issues).
+tracker](https://github.com/basecamp/pow/issues).
 
 If you're interested in contributing to Pow, first start by
 [installing Pow from
-source](https://github.com/37signals/pow/wiki/Installation).
+source](https://github.com/basecamp/pow/wiki/Installation).
 
 Make your changes and use `cake` to run the test suite:
 
@@ -451,7 +451,7 @@ Make your changes and use `cake` to run the test suite:
 
 Then submit a pull request on GitHub. Your patch is more likely to be
 merged if it's well-documented and well-tested. Read through the
-[closed issues](https://github.com/37signals/pow/issues?state=closed)
+[closed issues](https://github.com/basecamp/pow/issues?state=closed)
 to get a feel for what's already been proposed and what a good patch
 looks like.
 

@@ -2,17 +2,19 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>Label</key>
-	<string>cx.pow.firewall</string>
-	<key>ProgramArguments</key>
-	<array>
-		<string>/bin/sh</string>
-		<string>-c</string>
-		<string>ipfw add fwd 127.0.0.1,<%= @httpPort %> tcp from any to me dst-port <%= @dstPort %> in &amp;&amp; sysctl -w net.inet.ip.forwarding=1 &amp;&amp; sysctl -w net.inet.ip.fw.enable=1</string>
-	</array>
-	<key>RunAtLoad</key>
-	<true/>
-	<key>UserName</key>
-	<string>root</string>
+        <key>Label</key>
+        <string>cx.pow.firewall</string>
+        <key>Program</key>
+        <string>/bin/sh</string>
+        <key>ProgramArguments</key>
+        <array>
+                <string>sh</string>
+                <string>-c</string>
+                <string>echo "rdr pass on lo0 inet proto tcp from any to any port <%= @dstPort %> -> 127.0.0.1 port <%= @httpPort %>" | pfctl -a "com.apple/250.ApplicationFirewall" -f - -E</string>
+        </array>
+        <key>RunAtLoad</key>
+        <true/>
+        <key>UserName</key>
+        <string>root</string>
 </dict>
 </plist>

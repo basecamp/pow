@@ -6,7 +6,7 @@
 	<string>cx.pow.firewall</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>sh</string>
+		<string>/bin/sh</string>
 		<string>-c</string>
 		<string>ipfw add fwd 127.0.0.1,<%= @httpPort %> tcp from any to me dst-port <%= @dstPort %> in &amp;&amp; sysctl -w net.inet.ip.forwarding=1 net.inet.ip.fw.enable=1</string>
 	</array>

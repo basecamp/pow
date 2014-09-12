@@ -44,8 +44,8 @@
       POW_ROOT="$HOME/Library/Application Support/Pow"
       NODE_BIN="$POW_ROOT/Current/bin/node"
       POW_BIN="$POW_ROOT/Current/bin/pow"
+      INSTALL_ROOT=$PWD
       [[ -z "$VERSION" ]] && VERSION=0.4.3
-
 
 # Fail fast if we're not on OS X >= 10.6.0.
 
@@ -73,7 +73,8 @@
 
 # Download the requested version of Pow and unpack it.
 
-      curl -s http://get.pow.cx/versions/$VERSION.tar.gz | tar xzf -
+      # curl -s http://get.pow.cx/versions/$VERSION.tar.gz | tar xzf -
+      tar xzf "$INSTALL_ROOT/dist/$VERSION.tar.gz"
 
 
 # Update the Current symlink to point to the new version.

@@ -41,6 +41,14 @@ module.exports = class RackApplication
     @quitCallbacks  = []
     @statCallbacks  = []
 
+  # Gets an object describing the server's current status that can be
+  # passed to `JSON.stringify`.
+  toJSON: ->
+    root: @root
+    host: @firstHost
+    started: @started
+    mtime: @mtime
+
   # Queue `callback` to be invoked when the application becomes ready,
   # then start the initialization process. If the application's state
   # is ready, the callback is invoked immediately.
@@ -160,6 +168,7 @@ module.exports = class RackApplication
       # the application's environment or the global configuration.
       else
         @state = "ready"
+        @started = +new Date
 
         @pool = nack.createPool join(@root, "config.ru"),
           env:  env

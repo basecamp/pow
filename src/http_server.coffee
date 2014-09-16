@@ -83,6 +83,14 @@ module.exports = class HttpServer extends connect.HTTPServer
     version: version
     requestCount: @requestCount
 
+  # Gets an array of objects describing the server's currently
+  # running applications passed to `JSON.stringify`.
+  runningApps: ->
+    apps = []
+    for rootPath of @rackApplications
+      apps.push @rackApplications[rootPath]
+    apps
+
   # The first middleware in the stack logs each incoming request's
   # source address, method, hostname, and path to the access log
   # (`~/Library/Logs/Pow/access.log` by default).
@@ -109,6 +117,8 @@ module.exports = class HttpServer extends connect.HTTPServer
   #   applications inherit.
   # * `/status.json`: Returns information about the current server
   #   version, number of requests handled, and process ID.
+  # * `/apps.json`: Returns information about the currently running
+  #   applications from the `rackApplications` instance.
   #
   # Third-party utilities may use these endpoints to inspect a running
   # Pow server.
@@ -125,6 +135,9 @@ module.exports = class HttpServer extends connect.HTTPServer
       when "/status.json"
         res.writeHead 200
         res.end JSON.stringify this
+      when "/apps.json"
+        res.writeHead 200
+        res.end JSON.stringify @runningApps()
       else
         @handleLocationNotFound req, res, next
 

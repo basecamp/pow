@@ -262,3 +262,11 @@ module.exports = testCase
         test.same 200, response.statusCode
         test.same server.toJSON(), JSON.parse body
         done -> test.done()
+
+  "http://pow/apps.json": (test) ->
+    test.expect 2
+    serveRoot "apps", (request, done, server) ->
+      request "GET", "/apps.json", host: "pow", (body, response) ->
+        test.same 200, response.statusCode
+        test.same server.runningApps(), JSON.parse body
+        done -> test.done()

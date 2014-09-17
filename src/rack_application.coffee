@@ -48,6 +48,8 @@ module.exports = class RackApplication
     host: @firstHost
     started: @started
     mtime: @mtime
+    lastRequest: @lastRequestTime
+    requestCount: @requestCount
 
   # Queue `callback` to be invoked when the application becomes ready,
   # then start the initialization process. If the application's state
@@ -146,6 +148,7 @@ module.exports = class RackApplication
   # uninitialized state. (If the application is terminating, queue a
   # call to `initialize` after all workers have exited.)
   initialize: ->
+    @requestCount = 0
     if @state
       if @state is "terminating"
         @quit => @initialize()
@@ -223,6 +226,8 @@ module.exports = class RackApplication
           req.proxyMetaVariables =
             SERVER_PORT: @configuration.dstPort.toString()
           try
+            @lastRequestTime = +new Date
+			@requestCount++
             @pool.proxy req, res, (err) =>
               @quit() if err
               next err

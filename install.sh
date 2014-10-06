@@ -45,6 +45,7 @@
       NODE_BIN="$POW_ROOT/Current/bin/node"
       POW_BIN="$POW_ROOT/Current/bin/pow"
       [[ -z "$VERSION" ]] && VERSION=0.4.3
+      [[ -z "$ARCHIVE_URL" ]] && ARCHIVE_URL="http://get.pow.cx/versions/$VERSION.tar.gz"
 
 
 # Fail fast if we're not on OS X >= 10.6.0.
@@ -73,8 +74,7 @@
 
 # Download the requested version of Pow and unpack it.
 
-      curl -s http://get.pow.cx/versions/$VERSION.tar.gz | tar xzf -
-
+      curl -sL "$ARCHIVE_URL" | tar xzf -
 
 # Update the Current symlink to point to the new version.
 

@@ -4,13 +4,11 @@
 <dict>
         <key>Label</key>
         <string>cx.pow.firewall</string>
-        <key>Program</key>
-        <string>/bin/sh</string>
         <key>ProgramArguments</key>
         <array>
-                <string>sh</string>
+                <string>/bin/sh</string>
                 <string>-c</string>
-                <string>echo "rdr pass on lo0 inet proto tcp from any to any port <%= @dstPort %> -> 127.0.0.1 port <%= @httpPort %>" | pfctl -a "com.apple/250.PowFirewall" -f - -E</string>
+                <string>echo "rdr pass inet proto tcp from any to self port <%= @dstPort %> -> 127.0.0.1 port <%= @httpPort %>" | pfctl -a "com.apple/250.PowFirewall" -f - -E</string>
         </array>
         <key>RunAtLoad</key>
         <true/>

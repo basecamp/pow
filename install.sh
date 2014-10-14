@@ -45,6 +45,7 @@
       NODE_BIN="$POW_ROOT/Current/bin/node"
       POW_BIN="$POW_ROOT/Current/bin/pow"
       [[ -z "$VERSION" ]] && VERSION=0.4.3
+      [[ -z "$ARCHIVE_URL" ]] && ARCHIVE_URL="http://get.pow.cx/versions/$VERSION.tar.gz"
 
 
 # Fail fast if we're not on OS X >= 10.6.0.
@@ -73,8 +74,7 @@
 
 # Download the requested version of Pow and unpack it.
 
-      curl -s http://get.pow.cx/versions/$VERSION.tar.gz | tar xzf -
-
+      curl -sL "$ARCHIVE_URL" | tar xzf -
 
 # Update the Current symlink to point to the new version.
 
@@ -140,7 +140,7 @@
         # Check to see if the server is running at all.
         function check_status() {
           sleep 1
-          curl -sH host:pow "localhost:$POW_HTTP_PORT/status.json" | grep -c "$VERSION" >/dev/null
+          curl -sH host:pow "127.0.0.1:$POW_HTTP_PORT/status.json" | grep -c "$VERSION" >/dev/null
         }
 
         # Attempt to connect to Pow via each configured domain. If a

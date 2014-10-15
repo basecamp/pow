@@ -8,7 +8,10 @@
         <array>
                 <string>/bin/sh</string>
                 <string>-c</string>
-                <string>echo "rdr pass inet proto tcp from any to self port {<%= @dstPort %>,<%= @httpPort %>} -> 127.0.0.1 port <%= @httpPort %>" | pfctl -a "com.apple/250.PowFirewall" -f - -E</string>
+                <string>
+                  sysctl -w net.inet.ip.forwarding=1;
+                  echo "rdr pass proto tcp from any to any port {<%= @dstPort %>,<%= @httpPort %>} -> 127.0.0.1 port <%= @httpPort %>" | pfctl -a "com.apple/250.PowFirewall" -Ef -
+                </string>
         </array>
         <key>RunAtLoad</key>
         <true/>

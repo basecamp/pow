@@ -32,7 +32,7 @@ you use (`myapp.dev`) to access the application it points to
 
 ## Installation ##
 
-Pow requires Mac OS X version 10.6 or newer. To install or upgrade
+Pow requires Mac OS X version 10.9 or newer. To install or upgrade
 Pow, just open a terminal and run this command:
 
     $ curl get.pow.cx | sh
@@ -57,7 +57,7 @@ set up the `ipfw` rule), if necessary. Then it boots the server.
 
 ### Installing From Source ###
 
-To install Pow from source, you'll need Node 0.6.0 or higher and npm:
+To install Pow from source, you'll need Node 0.10.0 or higher and npm:
 
     $ git clone https://github.com/basecamp/pow.git
     $ cd pow
@@ -456,6 +456,12 @@ to get a feel for what's already been proposed and what a good patch
 looks like.
 
 ## Version History ##
+
+* **0.5.0** (October 16, 2014):
+  * Support for OS X Yosemite. Pow no longer uses the ipfw firewall,
+    which was deprecated in OS X 10.9 and removed in 10.10. Port
+    redirection is now handled by the pf packet filter.
+  * Upgrades bundled Node version to 0.10.32.
 
 * **0.4.3** (April 3, 2014):
   * Upgrade Nack to 0.16 to fix issues when requiring the json

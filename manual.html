@@ -89,7 +89,7 @@ you use (<code>myapp.dev</code>) to access the application it points to
 
 <h2><a name="section_1">1</a> Installation</h2>
 
-<p>Pow requires Mac OS X version 10.6 or newer. To install or upgrade
+<p>Pow requires Mac OS X version 10.9 or newer. To install or upgrade
 Pow, just open a terminal and run this command:</p>
 
 <pre><code>$ curl get.pow.cx | sh
@@ -115,9 +115,9 @@ set up the <code>ipfw</code> rule), if necessary. Then it boots the server.</p>
 
 <h3><a name="section_1.1">1.1</a> Installing From Source</h3>
 
-<p>To install Pow from source, you'll need Node 0.6.0 or higher and npm:</p>
+<p>To install Pow from source, you'll need Node 0.10.0 or higher and npm:</p>
 
-<pre><code>$ git clone https://github.com/37signals/pow.git
+<pre><code>$ git clone https://github.com/basecamp/pow.git
 $ cd pow
 $ npm --global install
 $ npm --global run-script pow restart
@@ -125,7 +125,7 @@ $ npm --global run-script pow restart
 
 <p>For detailed instructions on installing Pow from source, including
 instructions on how to install Node and npm, see the
-<a href="https://github.com/37signals/pow/wiki/Installation">Installation</a>
+<a href="https://github.com/basecamp/pow/wiki/Installation">Installation</a>
 wiki page.</p>
 
 <h3><a name="section_1.2">1.2</a> Uninstalling Pow</h3>
@@ -494,7 +494,7 @@ applications, tail your log files, and restart Pow. See the <a href="https://git
 readme</a> for more
 examples of what it can do.</p></li>
 <li><p><a href="https://github.com/sethvargo/powify">Powify</a> is "an easy-to-use
-wrapper for 37signals' Pow." Install the gem (<code>gem install powify</code>)
+wrapper for Basecamp's Pow." Install the gem (<code>gem install powify</code>)
 to get a <code>powify</code> command for installing, updating, and managing Pow
 and your virtual hosts. See the <a href="https://github.com/sethvargo/powify#readme">Powify
 readme</a> for the full
@@ -512,11 +512,11 @@ accessible at <code>https://youraccount.fwd.wf/</code>.</p></li>
 <p>Pow is written in <a href="http://nodejs.org/">Node.js</a> with
 <a href="http://jashkenas.github.com/coffee-script/">CoffeeScript</a>. You can
 read the <a href="http://pow.cx/docs/">annotated source code</a> to learn about
-how it works internally. Please report bugs on the <a href="https://github.com/37signals/pow/issues">GitHub issue
+how it works internally. Please report bugs on the <a href="https://github.com/basecamp/pow/issues">GitHub issue
 tracker</a>.</p>
 
 <p>If you're interested in contributing to Pow, first start by
-<a href="https://github.com/37signals/pow/wiki/Installation">installing Pow from
+<a href="https://github.com/basecamp/pow/wiki/Installation">installing Pow from
 source</a>.</p>
 
 <p>Make your changes and use <code>cake</code> to run the test suite:</p>
@@ -526,13 +526,21 @@ source</a>.</p>
 
 <p>Then submit a pull request on GitHub. Your patch is more likely to be
 merged if it's well-documented and well-tested. Read through the
-<a href="https://github.com/37signals/pow/issues?state=closed">closed issues</a>
+<a href="https://github.com/basecamp/pow/issues?state=closed">closed issues</a>
 to get a feel for what's already been proposed and what a good patch
 looks like.</p>
 
 <h2><a name="section_6">6</a> Version History</h2>
 
 <ul>
+<li><p><strong>0.5.0</strong> (October 16, 2014):</p>
+
+<ul>
+<li>Support for OS X Yosemite. Pow no longer uses the ipfw firewall,
+which was deprecated in OS X 10.9 and removed in 10.10. Port
+redirection is now handled by the pf packet filter.</li>
+<li>Upgrades bundled Node version to 0.10.32.</li>
+</ul></li>
 <li><p><strong>0.4.3</strong> (April 3, 2014):</p>
 
 <ul>

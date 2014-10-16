@@ -38,26 +38,78 @@
 #     curl get.pow.cx/uninstall.sh | sh
 
 
-# Set up the environment. Respect $VERSION if it's set.
+# Set up the environment.
 
       set -e
       POW_ROOT="$HOME/Library/Application Support/Pow"
       NODE_BIN="$POW_ROOT/Current/bin/node"
       POW_BIN="$POW_ROOT/Current/bin/pow"
-      [[ -z "$VERSION" ]] && VERSION=0.4.3
-      [[ -z "$ARCHIVE_URL" ]] && ARCHIVE_URL="http://get.pow.cx/versions/$VERSION.tar.gz"
+      LATEST_VERSION="0.5.0-pre"
+
+      if [ -z "$ARCHIVE_URL_ROOT" ]; then
+        ARCHIVE_URL_ROOT="http://get.pow.cx/versions"
+      else
+        ARCHIVE_URL_ROOT="${ARCHIVE_URL_ROOT%/}"
+      fi
 
 
-# Fail fast if we're not on OS X >= 10.6.0.
+# Fail fast if we're not on OS X.
 
       if [ "$(uname -s)" != "Darwin" ]; then
         echo "Sorry, Pow requires Mac OS X to run." >&2
         exit 1
-      elif [ "$(expr "$(sw_vers -productVersion | cut -f 2 -d .)" \>= 6)" = 0 ]; then
-        echo "Pow requires Mac OS X 10.6 or later." >&2
-        exit 1
       fi
 
+
+# Define a function to extract version number components.
+
+      version_component() {
+        printf "%s" "$1" |
+          sed -e "s/\./"$'\t'"/g" -e "s/-/"$'\t'"/" |
+          cut -f "$2"
+      }
+
+
+# Pow 0.4.3 and earlier require OS X 10.6; 0.5.0 and up require OS X 10.9.
+# If $VERSION is unspecified, default to the highest supported version for
+# each platform. Otherwise, ensure the platform version is recent enough.
+
+      MAC_OS_VERSION="$(sw_vers -productVersion)"
+      MAC_OS_MINOR_VERSION="$(version_component "$MAC_OS_VERSION" 2)"
+
+      if [ "$MAC_OS_MINOR_VERSION" -lt 6 ]; then
+        echo "Pow requires Mac OS X 10.6 or later." >&2
+        exit 1
+
+      elif [ -z "$VERSION" ]; then
+        if [ "$MAC_OS_MINOR_VERSION" -lt 9 ]; then
+          VERSION="0.4.3"
+        else
+          VERSION="$LATEST_VERSION"
+        fi
+
+      else
+        POW_MAJOR_VERSION="$(version_component "$VERSION" 1)"
+        POW_MINOR_VERSION="$(version_component "$VERSION" 2)"
+
+        if [ "$MAC_OS_MINOR_VERSION" -gt 9 ]; then
+          if [ "$POW_MAJOR_VERSION" -le 0 ] && [ "$POW_MINOR_VERSION" -lt 5 ]; then
+            echo "OS X $MAC_OS_VERSION requires Pow 0.5.0 or later." >&2
+            exit 1
+          fi
+
+        elif [ "$MAC_OS_MINOR_VERSION" -lt 9 ]; then
+          if [ "$POW_MAJOR_VERSION" -gt 0 ] || [ "$POW_MINOR_VERSION" -ge 5 ]; then
+            echo "Pow $VERSION requires OS X 10.9 or later." >&2
+            exit 1
+          fi
+        fi
+      fi
+
+
+# Prepare for installation.
+
+      ARCHIVE_URL="$ARCHIVE_URL_ROOT/$VERSION.tar.gz"
       echo "*** Installing Pow $VERSION..."
 
 
@@ -76,6 +128,7 @@
 
       curl -sL "$ARCHIVE_URL" | tar xzf -
 
+
 # Update the Current symlink to point to the new version.
 
       cd "$POW_ROOT"
@@ -86,7 +139,7 @@
 # Create the ~/.pow symlink if it doesn't exist.
 
       cd "$HOME"
-      [[ -a .pow ]] || ln -s "$POW_ROOT/Hosts" .pow
+      [ -a .pow ] || ln -s "$POW_ROOT/Hosts" .pow
 
 
 # Install local configuration files.
@@ -105,15 +158,29 @@
       if [ $NEEDS_ROOT -eq 1 ]; then
         echo "*** Installing system configuration files as root..."
         sudo "$NODE_BIN" "$POW_BIN" --install-system
-        sudo launchctl load -Fw /Library/LaunchDaemons/cx.pow.firewall.plist 2>/dev/null
+
+        if [ "$MAC_OS_MINOR_VERSION" -ge 10 ]; then
+          sudo launchctl bootstrap system /Library/LaunchDaemons/cx.pow.firewall.plist 2>/dev/null
+          sudo launchctl enable system/cx.pow.firewall 2>/dev/null
+          sudo launchctl kickstart -k system/cx.pow.firewall 2>/dev/null
+        else
+          sudo launchctl load -Fw /Library/LaunchDaemons/cx.pow.firewall.plist 2>/dev/null
+        fi
       fi
 
 
 # Start (or restart) Pow.
 
       echo "*** Starting the Pow server..."
-      launchctl unload "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null || true
-      launchctl load -Fw "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null
+
+      if [ "$MAC_OS_MINOR_VERSION" -ge 10 ]; then
+        launchctl bootstrap gui/"$UID" "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null
+        launchctl enable gui/"$UID"/cx.pow.powd 2>/dev/null
+        launchctl kickstart -k gui/"$UID"/cx.pow.powd 2>/dev/null
+      else
+        launchctl unload "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null || true
+        launchctl load -Fw "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null
+      fi
 
 
 # Show a message about where to go for help.
@@ -133,7 +200,7 @@
       # source the configuration and use it to run a self-test.
       CONFIG=$("$NODE_BIN" "$POW_BIN" --print-config 2>/dev/null || true)
 
-      if [[ -n "$CONFIG" ]]; then
+      if [ -n "$CONFIG" ]; then
         eval "$CONFIG"
         echo "*** Performing self-test..."
 
@@ -157,6 +224,7 @@
         # delete the temporary location. This forces reloading of the
         # system network configuration.
         function reload_network_configuration() {
+          [ "$MAC_OS_MINOR_VERSION" -lt 10 ] || return
           echo "*** Reloading system network configuration..."
           local location=$(networksetup -getcurrentlocation)
           networksetup -createlocation "pow$$" >/dev/null 2>&1

@@ -45,9 +45,10 @@
       FIREWALL_PLIST_PATH="/Library/LaunchDaemons/cx.pow.firewall.plist"
       POW_CONFIG_PATH="$HOME/.powconfig"
 
+
 # Fail fast if Pow isn't present.
 
-      if [[ ! -d "$POW_CURRENT_PATH" ]] && [[ ! -a "$POWD_PLIST_PATH" ]] && [[ ! -a "$FIREWALL_PLIST_PATH" ]]; then
+      if [ ! -d "$POW_CURRENT_PATH" ] && [ ! -a "$POWD_PLIST_PATH" ] && [ ! -a "$FIREWALL_PLIST_PATH" ]; then
         echo "error: can't find Pow" >&2
         exit 1
       fi
@@ -61,7 +62,7 @@
 # Make sure we really want to uninstall.
 
       read -p "Sorry to see you go. Uninstall Pow [y/n]? " ANSWER < $TTY
-      [[ $ANSWER == "y" ]] || exit 1
+      [ $ANSWER == "y" ] || exit 1
       echo "*** Uninstalling Pow..."
 
 
@@ -77,26 +78,38 @@
       rm -f "$POWD_PLIST_PATH"
 
 
-# Read the firewall plist, if possible, to figure out what ports are in use.
+# Determine if the firewall uses ipfw or pf.
 
-      if [[ -a "$FIREWALL_PLIST_PATH" ]]; then
-        ports=($(ruby -e'puts $<.read.scan(/fwd .*?,([\d]+).*?dst-port ([\d]+)/)' "$FIREWALL_PLIST_PATH"))
-
-        HTTP_PORT=${ports[0]}
-        DST_PORT=${ports[1]}
+      if grep ipfw "$FIREWALL_PLIST_PATH" >/dev/null; then
+        FIREWALL_TYPE=ipfw
+      elif grep pfctl "$FIREWALL_PLIST_PATH" >/dev/null; then
+        FIREWALL_TYPE=pf
       fi
 
 
-# Assume reasonable defaults otherwise.
+# If ipfw, extract the port numbers from the plist.
 
-      [[ -z "$HTTP_PORT" ]] && HTTP_PORT=20559
-      [[ -z "$DST_PORT" ]] && DST_PORT=80
+      if [ "$FIREWALL_TYPE" = "ipfw" ]; then
+        ports=( $(ruby -e'puts $<.read.scan(/fwd .*?,([\d]+).*?dst-port ([\d]+)/)' "$FIREWALL_PLIST_PATH") )
+
+        HTTP_PORT="${ports[0]:-80}"
+        DST_PORT="${ports[1]:-20559}"
+      fi
 
 
 # Try to find the ipfw rule and delete it.
 
-      RULE=$(sudo ipfw show | (grep ",$HTTP_PORT .* dst-port $DST_PORT in" || true) | cut -f 1 -d " ")
-      [[ -n "$RULE" ]] && sudo ipfw del "$RULE"
+      if [ "$FIREWALL_TYPE" = "ipfw" ] && [ -x /sbin/ipfw ]; then
+        RULE=$(sudo ipfw show | (grep ",$HTTP_PORT .* dst-port $DST_PORT in" || true) | cut -f 1 -d " ")
+        [ -z "$RULE" ] || sudo ipfw del "$RULE"
+      fi
+
+
+# If pf, just flush all rules from the Pow anchor.
+
+      if [ "$FIREWALL_TYPE" = "pf" ]; then
+        sudo pfctl -a "com.apple/250.PowFirewall" -F all 2>/dev/null || true
+      fi
 
 
 # Unload the firewall plist and remove it.

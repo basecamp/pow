@@ -1,6 +1,6 @@
 { "name": "pow"
 , "description": "Zero-configuration Rack server for Mac OS X"
-, "version": "0.4.4"
+, "version": "0.5.0"
 , "author": "Sam Stephenson"
 , "repository":
   { "type": "git"
@@ -17,12 +17,12 @@
   , "dnsserver": "https://github.com/sstephenson/dnsserver.js/tarball/4f2c713b2e"
   }
 , "devDependencies": {
-    "eco": "~> 1.1.0"
+    "eco": "1.1.0-rc-3"
   , "nodeunit": "0.8.0"
   , "coffee-script": "1.6.2"
   , "docco": "0.6.3"
   }
-, "engines" : { "node" : ">= 0.8.0" }
+, "engines" : { "node" : ">= 0.10.0" }
 , "scripts": {
     "pretest": "cake pretest"
   , "test": "cake test"

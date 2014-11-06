@@ -134,14 +134,20 @@ choice.
 #### Port Proxying ####
 
 Pow's port proxying feature lets you route all web traffic on a
-particular hostname to another port on your computer. To use it, just
+particular hostname to another port or IP address. To use it, just
 create a file in `~/.pow` (instead of a symlink) with the destination
 port number as its contents.
 
 For example, to forward all traffic for `http://proxiedapp.dev/` to
-port 8080:
+port 8080 on your localhost:
 
     $ echo 8080 > ~/.pow/proxiedapp
+
+To forward traffic for `http://proxiedapp.dev/` to an IP address other
+than localhost (such as a virtual machine), create a file with the destination
+protocol, IP, and port:
+
+    $ echo http://1.2.3.4:8080 > ~/.pow/proxiedapp
 
 You can also use port proxying to access web apps written for other
 runtimes such as Python or Node.js. Remember that services behind the

@@ -10,7 +10,7 @@
                 <string>-c</string>
                 <string>
                   sysctl -w net.inet.ip.forwarding=1;
-                  echo "rdr pass proto tcp from any to any port {<%= @dstPort %>,<%= @httpPort %>} -> 127.0.0.1 port <%= @httpPort %>" | pfctl -a "com.apple/250.PowFirewall" -Ef -
+                  echo "rdr pass proto tcp from any to any port {<%= @dstPort %>,<%= @httpPort %>} -> 127.0.0.1 port <%= @httpPort %>" | pfctl -Ef -
                 </string>
         </array>
         <key>RunAtLoad</key>

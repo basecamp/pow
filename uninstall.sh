@@ -68,7 +68,10 @@
 
 # Remove the Versions directory and the Current symlink.
 
-      rm -fr "$POW_VERSIONS_PATH"
+      if [ "$POW_VERSIONS_PATH" != "/" ] && [ "$POW_VERSIONS_PATH" != "/*" ]; then
+        rm -fr "$POW_VERSIONS_PATH"
+      else echo "Uninstall aborted because POW_VERSIONS_PATH was set wrong"
+      fi
       rm -f "$POW_CURRENT_PATH"
 
 

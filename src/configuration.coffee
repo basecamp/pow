@@ -52,7 +52,7 @@ module.exports = class Configuration
   # A list of option names accessible on `Configuration` instances.
   @optionNames: [
     "bin", "dstPort", "httpPort", "dnsPort", "timeout", "workers",
-    "domains", "extDomains", "hostRoot", "logRoot", "rvmPath"
+    "domains", "extDomains", "hostRoot", "logRoot", "rvmPath", "ip"
   ]
 
   # Pass in any environment variables you'd like to override when
@@ -123,6 +123,9 @@ module.exports = class Configuration
     # `POW_RVM_PATH` (**deprecated**): path to the rvm initialization
     # script. Defaults to `~/.rvm/scripts/rvm`.
     @rvmPath    = env.POW_RVM_PATH    ? path.join process.env.HOME, ".rvm/scripts/rvm"
+
+    # `POW_IP`: the ip that should be resolved. Defaults to 127.0.0.1
+    @ip         = env.POW_IP          ? "127.0.0.1"
 
     # ---
     # Precompile regular expressions for matching domain names to be

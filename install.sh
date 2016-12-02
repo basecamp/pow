@@ -112,6 +112,9 @@
       ARCHIVE_URL="$ARCHIVE_URL_ROOT/$VERSION.tar.gz"
       echo "*** Installing Pow $VERSION..."
 
+# Some people use umask 002 which makes launchctl script unstartable
+
+      umask 022
 
 # Create the Pow directory structure if it doesn't already exist.
 

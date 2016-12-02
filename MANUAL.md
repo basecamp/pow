@@ -266,6 +266,13 @@ site and want to keep your files in the root of your project (i.e. not in a
     $ cd !$
     $ ln -s ~/Projects/your-app public
 
+In case all what you want is just to serve up a folder over http://
+you can use this bare minimum `config.ru`:
+
+    require 'rack'
+    root=Dir.pwd
+    run Rack::Directory.new("#{root}")
+
 ### Restarting Applications ###
 
 You can tell Pow to restart an application the next time it's

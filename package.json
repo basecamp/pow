@@ -4,7 +4,7 @@
 , "author": "Sam Stephenson"
 , "repository":
   { "type": "git"
-  , "url": "http://github.com/sstephenson/pow.git"
+  , "url": "http://github.com/basecamp/pow.git"
   }
 , "bin": { "pow": "./bin/pow" }
 , "main": "./lib/index.js"

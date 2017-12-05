@@ -36,7 +36,7 @@
 
 -----
 
-Current Version: **0.5.0**
+Current Version: **0.6.0**
 
 To install or upgrade Pow, open a terminal and run this command:
 

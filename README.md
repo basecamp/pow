@@ -47,7 +47,7 @@ To set up a Rack app, just symlink it into `~/.pow`:
     $ cd ~/.pow
     $ ln -s /path/to/myapp
 
-That's it! Your app will be up and running at `http://myapp.dev/`.
+That's it! Your app will be up and running at `http://myapp.test/`.
 See the [user's manual](http://pow.cx/manual) for more information.
 
 -----

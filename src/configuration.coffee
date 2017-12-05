@@ -16,7 +16,7 @@ module.exports = class Configuration
   # boot.  You can configure options such as the top-level domain,
   # number of workers, the worker idle timeout, and listening ports.
   #
-  #     export POW_DOMAINS=dev,test
+  #     export POW_DOMAINS=test,local
   #     export POW_WORKERS=3
   #
   # See the `Configuration` constructor for a complete list of
@@ -89,18 +89,18 @@ module.exports = class Configuration
     @workers    = env.POW_WORKERS     ? 2
 
     # `POW_DOMAINS`: the top-level domains for which Pow will respond
-    # to DNS `A` queries with `127.0.0.1`. Defaults to `dev`. If you
-    # configure this in your `~/.powconfig` you will need to re-run
-    # `sudo pow --install-system` to make `/etc/resolver` aware of
-    # the new TLDs.
-    @domains    = env.POW_DOMAINS     ? env.POW_DOMAIN ? "dev"
+    # to DNS `A` queries with `127.0.0.1`. Defaults to `test,dev`.
+    # If you configure this in your `~/.powconfig` you will need to
+    # re-run `sudo pow --install-system` to make `/etc/resolver` aware
+    # of the new TLDs.
+    @domains    = env.POW_DOMAINS     ? env.POW_DOMAIN ? "test,dev"
 
     # `POW_EXT_DOMAINS`: additional top-level domains for which Pow
     # will serve HTTP requests (but not DNS requests -- hence the
     # "ext").
     @extDomains = env.POW_EXT_DOMAINS ? []
 
-    # Allow for comma-separated domain lists, e.g. `POW_DOMAINS=dev,test`
+    # Allow for comma-separated domain lists, e.g. `POW_DOMAINS=test,dev`
     @domains    = @domains.split?(",")    ? @domains
     @extDomains = @extDomains.split?(",") ? @extDomains
     @allDomains = @domains.concat @extDomains
@@ -223,8 +223,8 @@ libraryPath = (args...) ->
 # Strip a trailing `domain` from the given `host`, then generate a
 # sorted array of possible entry names for finding which application
 # should serve the host. For example, a `host` of
-# `asset0.37s.basecamp.dev` will produce `["asset0.37s.basecamp",
-# "37s.basecamp", "basecamp"]`, and `basecamp.dev` will produce
+# `asset0.37s.basecamp.test` will produce `["asset0.37s.basecamp",
+# "37s.basecamp", "basecamp"]`, and `basecamp.test` will produce
 # `["basecamp"]`.
 getFilenamesForHost = (host, domain) ->
   host = host.toLowerCase()

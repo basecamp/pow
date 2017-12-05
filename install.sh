@@ -44,7 +44,7 @@
       POW_ROOT="$HOME/Library/Application Support/Pow"
       NODE_BIN="$POW_ROOT/Current/bin/node"
       POW_BIN="$POW_ROOT/Current/bin/pow"
-      LATEST_VERSION="0.5.0"
+      LATEST_VERSION="0.6.0"
 
       if [ -z "$ARCHIVE_URL_ROOT" ]; then
         ARCHIVE_URL_ROOT="http://get.pow.cx/versions"

@@ -468,6 +468,13 @@ looks like.
 
 ## Version History ##
 
+* **0.6.0** (December 8, 2017):
+  * Switch top-level domain from .dev to .test. Google owns .dev and
+    enabled HSTS on it, breaking non-HTTPS sites. The .dev TLD is still
+    enabled for backward compatibility, but .test is the new default.
+  * This is the last release for the forseeable future. Check out
+    [puma-dev](https://github.com/puma/puma-dev#readme) for a contemporary alternative.
+
 * **0.5.0** (October 16, 2014):
   * Support for OS X Yosemite. Pow no longer uses the ipfw firewall,
     which was deprecated in OS X 10.9 and removed in 10.10. Port

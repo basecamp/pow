@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>logger.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="command.html">
+                command.coffee
+              </a>
+            
+              
+              <a class="source" href="configuration.html">
+                configuration.coffee
+              </a>
+            
+              
+              <a class="source" href="daemon.html">
+                daemon.coffee
+              </a>
+            
+              
+              <a class="source" href="dns_server.html">
+                dns_server.coffee
+              </a>
+            
+              
+              <a class="source" href="http_server.html">
+                http_server.coffee
+              </a>
+            
+              
+              <a class="source" href="index.html">
+                index.coffee
+              </a>
+            
+              
+              <a class="source" href="installer.html">
+                installer.coffee
+              </a>
+            
+              
+              <a class="source" href="logger.html">
+                logger.coffee
+              </a>
+            
+              
+              <a class="source" href="rack_application.html">
+                rack_application.coffee
+              </a>
+            
+              
+              <a class="source" href="util.html">
+                util.coffee
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>logger.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <p>Pow’s <code>Logger</code> wraps the
+<a href="https://github.com/visionmedia/log.js">Log.js</a> library in a class
+that adds log file autovivification. The log file you specify is
+automatically created the first time you call a log method.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+fs        = <span class="hljs-built_in">require</span> <span class="hljs-string">"fs"</span>
+{dirname} = <span class="hljs-built_in">require</span> <span class="hljs-string">"path"</span>
+Log       = <span class="hljs-built_in">require</span> <span class="hljs-string">"log"</span>
+{mkdirp}  = <span class="hljs-built_in">require</span> <span class="hljs-string">"./util"</span>
+
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Logger</span></span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Log level method names that will be forwarded to the underlying
+<code>Log</code> instance.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  @LEVELS: [<span class="hljs-string">"debug"</span>, <span class="hljs-string">"info"</span>, <span class="hljs-string">"notice"</span>, <span class="hljs-string">"warning"</span>, <span class="hljs-string">"error"</span>,
+            <span class="hljs-string">"critical"</span>, <span class="hljs-string">"alert"</span>, <span class="hljs-string">"emergency"</span>]</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Create a <code>Logger</code> that writes to the file at the given path and
+log level. The logger begins life in the uninitialized state.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  constructor: <span class="hljs-function"><span class="hljs-params">(@path, @level = <span class="hljs-string">"debug"</span>)</span> -&gt;</span>
+    @readyCallbacks = []</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Invoke <code>callback</code> if the logger’s state is ready. Otherwise, queue
+the callback to be invoked when the logger becomes ready, then
+start the initialization process.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  ready: <span class="hljs-function"><span class="hljs-params">(callback)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> @state <span class="hljs-keyword">is</span> <span class="hljs-string">"ready"</span>
+      callback.call @
+    <span class="hljs-keyword">else</span>
+      @readyCallbacks.push callback
+      <span class="hljs-keyword">unless</span> @state
+        @state = <span class="hljs-string">"initializing"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Make the log file’s directory if it doesn’t already
+exist. Reset the logger’s state if an error is thrown.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        mkdirp dirname(@path), <span class="hljs-function"><span class="hljs-params">(err)</span> =&gt;</span>
+          <span class="hljs-keyword">if</span> err
+            @state = <span class="hljs-literal">null</span>
+          <span class="hljs-keyword">else</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Open a write stream for the log file and create the
+underlying <code>Log</code> instance. Then set the logger state to
+ready and invoke all queued callbacks.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            @stream = fs.createWriteStream @path, flags: <span class="hljs-string">"a"</span>
+            @stream.<span class="hljs-literal">on</span> <span class="hljs-string">"open"</span>, <span class="hljs-function">=&gt;</span>
+              @log = <span class="hljs-keyword">new</span> Log @level, @stream
+              @state = <span class="hljs-string">"ready"</span>
+              <span class="hljs-keyword">for</span> callback <span class="hljs-keyword">in</span> @readyCallbacks
+                callback.call @
+              @readyCallbacks = []</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Define the log level methods as wrappers around the corresponding
+<code>Log</code> methods passing through <code>ready</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">for</span> level <span class="hljs-keyword">in</span> Logger.LEVELS <span class="hljs-keyword">then</span> <span class="hljs-keyword">do</span> (level) -&gt;
+  Logger::[level] = <span class="hljs-function"><span class="hljs-params">(args...)</span> -&gt;</span>
+    @ready -&gt; @log[level].apply @log, args</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

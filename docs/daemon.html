@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>daemon.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="command.html">
+                command.coffee
+              </a>
+            
+              
+              <a class="source" href="configuration.html">
+                configuration.coffee
+              </a>
+            
+              
+              <a class="source" href="daemon.html">
+                daemon.coffee
+              </a>
+            
+              
+              <a class="source" href="dns_server.html">
+                dns_server.coffee
+              </a>
+            
+              
+              <a class="source" href="http_server.html">
+                http_server.coffee
+              </a>
+            
+              
+              <a class="source" href="index.html">
+                index.coffee
+              </a>
+            
+              
+              <a class="source" href="installer.html">
+                installer.coffee
+              </a>
+            
+              
+              <a class="source" href="logger.html">
+                logger.coffee
+              </a>
+            
+              
+              <a class="source" href="rack_application.html">
+                rack_application.coffee
+              </a>
+            
+              
+              <a class="source" href="util.html">
+                util.coffee
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>daemon.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <p>A <code>Daemon</code> is the root object in a Pow process. It’s responsible for
+starting and stopping an <code>HttpServer</code> and a <code>DnsServer</code> in tandem.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+{EventEmitter} = <span class="hljs-built_in">require</span> <span class="hljs-string">"events"</span>
+HttpServer     = <span class="hljs-built_in">require</span> <span class="hljs-string">"./http_server"</span>
+DnsServer      = <span class="hljs-built_in">require</span> <span class="hljs-string">"./dns_server"</span>
+fs             = <span class="hljs-built_in">require</span> <span class="hljs-string">"fs"</span>
+path           = <span class="hljs-built_in">require</span> <span class="hljs-string">"path"</span>
+
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Daemon</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">EventEmitter</span></span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Create a new <code>Daemon</code> with the given <code>Configuration</code> instance.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  constructor: <span class="hljs-function"><span class="hljs-params">(@configuration)</span> -&gt;</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p><code>HttpServer</code> and <code>DnsServer</code> instances are created accordingly.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @httpServer = <span class="hljs-keyword">new</span> HttpServer @configuration
+    @dnsServer  = <span class="hljs-keyword">new</span> DnsServer @configuration</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>The daemon stops in response to <code>SIGINT</code>, <code>SIGTERM</code> and
+<code>SIGQUIT</code> signals.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    process.<span class="hljs-literal">on</span> <span class="hljs-string">"SIGINT"</span>,  @stop
+    process.<span class="hljs-literal">on</span> <span class="hljs-string">"SIGTERM"</span>, @stop
+    process.<span class="hljs-literal">on</span> <span class="hljs-string">"SIGQUIT"</span>, @stop</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Watch for changes to the host root directory once the daemon has
+started. When the directory changes and the <code>restart.txt</code> file
+is present, remove it and emit a <code>restart</code> event.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    hostRoot = @configuration.hostRoot
+    @restartFilename = path.join hostRoot, <span class="hljs-string">"restart.txt"</span>
+    @on <span class="hljs-string">"start"</span>, <span class="hljs-function">=&gt;</span> @watcher = fs.watch hostRoot, persistent: <span class="hljs-literal">false</span>, @hostRootChanged
+    @on <span class="hljs-string">"stop"</span>, <span class="hljs-function">=&gt;</span> @watcher?.close()
+
+  hostRootChanged: <span class="hljs-function">=&gt;</span>
+    fs.exists @restartFilename, <span class="hljs-function"><span class="hljs-params">(exists)</span> =&gt;</span>
+      @restart() <span class="hljs-keyword">if</span> exists</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Remove the <code>~/.pow/restart.txt</code> file, if present, and emit a
+<code>restart</code> event. The <code>pow</code> command observes this event and
+terminates the process in response, causing Launch Services to
+restart the server.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  restart: <span class="hljs-function">-&gt;</span>
+    fs.unlink @restartFilename, <span class="hljs-function"><span class="hljs-params">(err)</span> =&gt;</span>
+      @emit <span class="hljs-string">"restart"</span> <span class="hljs-keyword">unless</span> err</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Start the daemon if it’s stopped. The process goes like this:</p>
+<ul>
+<li>First, start the HTTP server. If the HTTP server can’t boot,
+emit an <code>error</code> event and abort.</li>
+<li>Next, start the DNS server. If the DNS server can’t boot, stop
+the HTTP server, emit an <code>error</code> event and abort.</li>
+<li>If both servers start up successfully, emit a <code>start</code> event and
+mark the daemon as started.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  start: <span class="hljs-function">-&gt;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> @starting <span class="hljs-keyword">or</span> @started
+    @starting = <span class="hljs-literal">true</span>
+<span class="hljs-function">
+    <span class="hljs-title">startServer</span> = <span class="hljs-params">(server, port, callback)</span> -&gt;</span> process.nextTick -&gt;
+      <span class="hljs-keyword">try</span>
+        server.<span class="hljs-literal">on</span> <span class="hljs-string">'error'</span>, callback
+
+        server.once <span class="hljs-string">'listening'</span>, <span class="hljs-function">-&gt;</span>
+          server.removeListener <span class="hljs-string">'error'</span>, callback
+          callback()
+
+        server.listen port
+
+      <span class="hljs-keyword">catch</span> err
+        callback err
+<span class="hljs-function">
+    <span class="hljs-title">pass</span> = =&gt;</span>
+      @starting = <span class="hljs-literal">false</span>
+      @started = <span class="hljs-literal">true</span>
+      @emit <span class="hljs-string">"start"</span>
+<span class="hljs-function">
+    <span class="hljs-title">flunk</span> = <span class="hljs-params">(err)</span> =&gt;</span>
+      @starting = <span class="hljs-literal">false</span>
+      <span class="hljs-keyword">try</span> @httpServer.close()
+      <span class="hljs-keyword">try</span> @dnsServer.close()
+      @emit <span class="hljs-string">"error"</span>, err
+
+    {httpPort, dnsPort} = @configuration
+    startServer @httpServer, httpPort, <span class="hljs-function"><span class="hljs-params">(err)</span> =&gt;</span>
+      <span class="hljs-keyword">if</span> err <span class="hljs-keyword">then</span> flunk err
+      <span class="hljs-keyword">else</span> startServer @dnsServer, dnsPort, <span class="hljs-function"><span class="hljs-params">(err)</span> =&gt;</span>
+        <span class="hljs-keyword">if</span> err <span class="hljs-keyword">then</span> flunk err
+        <span class="hljs-keyword">else</span> pass()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>Stop the daemon if it’s started. This means calling <code>close</code> on
+both servers in succession, beginning with the HTTP server, and
+waiting for the servers to notify us that they’re done. The daemon
+emits a <code>stop</code> event when this process is complete.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  stop: <span class="hljs-function">=&gt;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> @stopping <span class="hljs-keyword">or</span> !@started
+    @stopping = <span class="hljs-literal">true</span>
+<span class="hljs-function">
+    <span class="hljs-title">stopServer</span> = <span class="hljs-params">(server, callback)</span> -&gt;</span> process.nextTick -&gt;
+      <span class="hljs-keyword">try</span>
+<span class="hljs-function">        <span class="hljs-title">close</span> = -&gt;</span>
+          server.removeListener <span class="hljs-string">"close"</span>, close
+          callback <span class="hljs-literal">null</span>
+        server.<span class="hljs-literal">on</span> <span class="hljs-string">"close"</span>, close
+        server.close()
+      <span class="hljs-keyword">catch</span> err
+        callback err
+
+    stopServer @httpServer, <span class="hljs-function">=&gt;</span>
+      stopServer @dnsServer, <span class="hljs-function">=&gt;</span>
+        @stopping = <span class="hljs-literal">false</span>
+        @started  = <span class="hljs-literal">false</span>
+        @emit <span class="hljs-string">"stop"</span></pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

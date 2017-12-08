@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>configuration.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="command.html">
+                command.coffee
+              </a>
+            
+              
+              <a class="source" href="configuration.html">
+                configuration.coffee
+              </a>
+            
+              
+              <a class="source" href="daemon.html">
+                daemon.coffee
+              </a>
+            
+              
+              <a class="source" href="dns_server.html">
+                dns_server.coffee
+              </a>
+            
+              
+              <a class="source" href="http_server.html">
+                http_server.coffee
+              </a>
+            
+              
+              <a class="source" href="index.html">
+                index.coffee
+              </a>
+            
+              
+              <a class="source" href="installer.html">
+                installer.coffee
+              </a>
+            
+              
+              <a class="source" href="logger.html">
+                logger.coffee
+              </a>
+            
+              
+              <a class="source" href="rack_application.html">
+                rack_application.coffee
+              </a>
+            
+              
+              <a class="source" href="util.html">
+                util.coffee
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>configuration.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <p>The <code>Configuration</code> class encapsulates various options for a Pow
+daemon (port numbers, directories, etc.). It’s also responsible for
+creating <code>Logger</code> instances and mapping hostnames to application
+root paths.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+fs                = <span class="hljs-built_in">require</span> <span class="hljs-string">"fs"</span>
+path              = <span class="hljs-built_in">require</span> <span class="hljs-string">"path"</span>
+async             = <span class="hljs-built_in">require</span> <span class="hljs-string">"async"</span>
+Logger            = <span class="hljs-built_in">require</span> <span class="hljs-string">"./logger"</span>
+{mkdirp}          = <span class="hljs-built_in">require</span> <span class="hljs-string">"./util"</span>
+{sourceScriptEnv} = <span class="hljs-built_in">require</span> <span class="hljs-string">"./util"</span>
+{getUserEnv}      = <span class="hljs-built_in">require</span> <span class="hljs-string">"./util"</span>
+
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Configuration</span></span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>The user configuration file, <code>~/.powconfig</code>, is evaluated on
+boot.  You can configure options such as the top-level domain,
+number of workers, the worker idle timeout, and listening ports.</p>
+<pre><code><span class="hljs-keyword">export</span> POW_DOMAINS=test,local
+<span class="hljs-keyword">export</span> POW_WORKERS=<span class="hljs-number">3</span>
+</code></pre><p>See the <code>Configuration</code> constructor for a complete list of
+environment options.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  @userConfigurationPath: path.join process.env.HOME, <span class="hljs-string">".powconfig"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Evaluates the user configuration script and calls the <code>callback</code>
+with the environment variables if the config file exists. Any
+script errors are passed along in the first argument. (No error
+occurs if the file does not exist.)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  @loadUserConfigurationEnvironment: <span class="hljs-function"><span class="hljs-params">(callback)</span> -&gt;</span>
+    getUserEnv (err, env) =&gt;
+      <span class="hljs-keyword">if</span> err
+        callback err
+      <span class="hljs-keyword">else</span>
+        fs.exists p = @userConfigurationPath, <span class="hljs-function"><span class="hljs-params">(exists)</span> -&gt;</span>
+          <span class="hljs-keyword">if</span> exists
+            sourceScriptEnv p, env, callback
+          <span class="hljs-keyword">else</span>
+            callback <span class="hljs-literal">null</span>, env</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Creates a Configuration object after evaluating the user
+configuration file. Any environment variables in <code>~/.powconfig</code>
+affect the process environment and will be copied to spawned
+subprocesses.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  @getUserConfiguration: <span class="hljs-function"><span class="hljs-params">(callback)</span> -&gt;</span>
+    @loadUserConfigurationEnvironment (err, env) -&gt;
+      <span class="hljs-keyword">if</span> err
+        callback err
+      <span class="hljs-keyword">else</span>
+        callback <span class="hljs-literal">null</span>, <span class="hljs-keyword">new</span> Configuration env</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>A list of option names accessible on <code>Configuration</code> instances.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  @optionNames: [
+    <span class="hljs-string">"bin"</span>, <span class="hljs-string">"dstPort"</span>, <span class="hljs-string">"httpPort"</span>, <span class="hljs-string">"dnsPort"</span>, <span class="hljs-string">"timeout"</span>, <span class="hljs-string">"workers"</span>,
+    <span class="hljs-string">"domains"</span>, <span class="hljs-string">"extDomains"</span>, <span class="hljs-string">"hostRoot"</span>, <span class="hljs-string">"logRoot"</span>, <span class="hljs-string">"rvmPath"</span>
+  ]</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Pass in any environment variables you’d like to override when
+creating a <code>Configuration</code> instance.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  constructor: <span class="hljs-function"><span class="hljs-params">(env = process.env)</span> -&gt;</span>
+    @loggers = {}
+    @initialize env</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Valid environment variables and their defaults:</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  initialize: <span class="hljs-function"><span class="hljs-params">(@env)</span> -&gt;</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p><code>POW_BIN</code>: the path to the <code>pow</code> binary. (This should be
+correctly configured for you.)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @bin        = env.POW_BIN         ? path.join __dirname, <span class="hljs-string">"../bin/pow"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p><code>POW_DST_PORT</code>: the public port Pow expects to be forwarded or
+otherwise proxied for incoming HTTP requests. Defaults to <code>80</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @dstPort    = env.POW_DST_PORT    ? <span class="hljs-number">80</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p><code>POW_HTTP_PORT</code>: the TCP port Pow opens for accepting incoming
+HTTP requests. Defaults to <code>20559</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @httpPort   = env.POW_HTTP_PORT   ? <span class="hljs-number">20559</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p><code>POW_DNS_PORT</code>: the UDP port Pow listens on for incoming DNS
+queries. Defaults to <code>20560</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @dnsPort    = env.POW_DNS_PORT    ? <span class="hljs-number">20560</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p><code>POW_TIMEOUT</code>: how long (in seconds) to leave inactive Rack
+applications running before they’re killed. Defaults to 15
+minutes (900 seconds).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @timeout    = env.POW_TIMEOUT     ? <span class="hljs-number">15</span> * <span class="hljs-number">60</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p><code>POW_WORKERS</code>: the maximum number of worker processes to spawn
+for any given application. Defaults to <code>2</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @workers    = env.POW_WORKERS     ? <span class="hljs-number">2</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p><code>POW_DOMAINS</code>: the top-level domains for which Pow will respond
+to DNS <code>A</code> queries with <code>127.0.0.1</code>. Defaults to <code>test,dev</code>.
+If you configure this in your <code>~/.powconfig</code> you will need to
+re-run <code>sudo pow --install-system</code> to make <code>/etc/resolver</code> aware
+of the new TLDs.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @domains    = env.POW_DOMAINS     ? env.POW_DOMAIN ? <span class="hljs-string">"test,dev"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p><code>POW_EXT_DOMAINS</code>: additional top-level domains for which Pow
+will serve HTTP requests (but not DNS requests – hence the
+“ext”).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @extDomains = env.POW_EXT_DOMAINS ? []</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>Allow for comma-separated domain lists, e.g. <code>POW_DOMAINS=test,dev</code></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @domains    = @domains.split?(<span class="hljs-string">","</span>)    ? @domains
+    @extDomains = @extDomains.split?(<span class="hljs-string">","</span>) ? @extDomains
+    @allDomains = @domains.concat @extDomains</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Support *.xip.io top-level domains.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @allDomains.push <span class="hljs-regexp">/\d+\.\d+\.\d+\.\d+\.xip\.io$/</span>, <span class="hljs-regexp">/[0-9a-z]{1,7}\.xip\.io$/</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>Runtime support files live in <code>~/Library/Application Support/Pow</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @supportRoot = libraryPath <span class="hljs-string">"Application Support"</span>, <span class="hljs-string">"Pow"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p><code>POW_HOST_ROOT</code>: path to the directory containing symlinks to
+applications that will be served by Pow. Defaults to
+<code>~/Library/Application Support/Pow/Hosts</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @hostRoot   = env.POW_HOST_ROOT   ? path.join @supportRoot, <span class="hljs-string">"Hosts"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p><code>POW_LOG_ROOT</code>: path to the directory that Pow will use to store
+its log files. Defaults to <code>~/Library/Logs/Pow</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @logRoot    = env.POW_LOG_ROOT    ? libraryPath <span class="hljs-string">"Logs"</span>, <span class="hljs-string">"Pow"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p><code>POW_RVM_PATH</code> (<strong>deprecated</strong>): path to the rvm initialization
+script. Defaults to <code>~/.rvm/scripts/rvm</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @rvmPath    = env.POW_RVM_PATH    ? path.join process.env.HOME, <span class="hljs-string">".rvm/scripts/rvm"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>Precompile regular expressions for matching domain names to be
+served by the DNS server and hosts to be served by the HTTP
+server.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @dnsDomainPattern  = compilePattern @domains
+    @httpDomainPattern = compilePattern @allDomains</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>Gets an object of the <code>Configuration</code> instance’s options that can
+be passed to <code>JSON.stringify</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  toJSON: <span class="hljs-function">-&gt;</span>
+    result = {}
+    result[key] = @[key] <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> @constructor.optionNames
+    result</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>Retrieve a <code>Logger</code> instance with the given <code>name</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  getLogger: <span class="hljs-function"><span class="hljs-params">(name)</span> -&gt;</span>
+    @loggers[name] ||= <span class="hljs-keyword">new</span> Logger path.join @logRoot, name + <span class="hljs-string">".log"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>Globally disable or enable RVM deprecation notices by touching or
+removing the <code>~/Library/Application
+Support/Pow/.disableRvmDeprecationNotices</code> file.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  disableRvmDeprecationNotices: <span class="hljs-function">-&gt;</span>
+    fs.writeFile path.join(@supportRoot, <span class="hljs-string">".disableRvmDeprecationNotices"</span>), <span class="hljs-string">""</span>
+
+  enableRvmDeprecationNotices: <span class="hljs-function">-&gt;</span>
+    fs.unlink path.join @supportRoot, <span class="hljs-string">".disableRvmDeprecationNotices"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p>Search <code>hostRoot</code> for files, symlinks or directories matching the
+domain specified by <code>host</code>. If a match is found, the matching domain
+name and its configuration are passed as second and third arguments
+to <code>callback</code>.  The configuration will either have a <code>root</code> or
+a <code>port</code> property.  If no match is found, <code>callback</code> is called
+without any arguments.  If an error is raised, <code>callback</code> is called
+with the error as its first argument.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  findHostConfiguration: <span class="hljs-function"><span class="hljs-params">(host = <span class="hljs-string">""</span>, callback)</span> -&gt;</span>
+    @gatherHostConfigurations (err, hosts) =&gt;
+      <span class="hljs-keyword">return</span> callback err <span class="hljs-keyword">if</span> err
+      <span class="hljs-keyword">for</span> domain <span class="hljs-keyword">in</span> @allDomains
+        <span class="hljs-keyword">for</span> file <span class="hljs-keyword">in</span> getFilenamesForHost host, domain
+          <span class="hljs-keyword">if</span> config = hosts[file]
+            <span class="hljs-keyword">return</span> callback <span class="hljs-literal">null</span>, domain, config
+
+      <span class="hljs-keyword">if</span> config = hosts[<span class="hljs-string">"default"</span>]
+        <span class="hljs-keyword">return</span> callback <span class="hljs-literal">null</span>, @allDomains[<span class="hljs-number">0</span>], config
+
+      callback <span class="hljs-literal">null</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>Asynchronously build a mapping of entries in <code>hostRoot</code> to
+application root paths and proxy ports. For each symlink, store the
+symlink’s name and the real path of the application it points to.
+For each directory, store the directory’s name and its full path.
+For each file that contains a port number, store the file’s name and
+the port.  The mapping is passed as an object to the second argument
+of <code>callback</code>. If an error is raised, <code>callback</code> is called with the
+error as its first argument.</p>
+<p>The mapping object will look something like this:</p>
+<pre><code>{
+  <span class="hljs-string">"basecamp"</span>:  { <span class="hljs-string">"root"</span>: <span class="hljs-string">"/Volumes/37signals/basecamp"</span> },
+  <span class="hljs-string">"launchpad"</span>: { <span class="hljs-string">"root"</span>: <span class="hljs-string">"/Volumes/37signals/launchpad"</span> },
+  <span class="hljs-string">"37img"</span>:     { <span class="hljs-string">"root"</span>: <span class="hljs-string">"/Volumes/37signals/portfolio"</span> },
+  <span class="hljs-string">"couchdb"</span>:   { <span class="hljs-string">"url"</span>:  <span class="hljs-string">"http://localhost:5984"</span> }
+}
+</code></pre>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  gatherHostConfigurations: <span class="hljs-function"><span class="hljs-params">(callback)</span> -&gt;</span>
+    hosts = {}
+    mkdirp @hostRoot, <span class="hljs-function"><span class="hljs-params">(err)</span> =&gt;</span>
+      <span class="hljs-keyword">return</span> callback err <span class="hljs-keyword">if</span> err
+      fs.readdir @hostRoot, <span class="hljs-function"><span class="hljs-params">(err, files)</span> =&gt;</span>
+        <span class="hljs-keyword">return</span> callback err <span class="hljs-keyword">if</span> err
+        async.forEach files, <span class="hljs-function"><span class="hljs-params">(file, next)</span> =&gt;</span>
+          root = path.join @hostRoot, file
+          name = file.toLowerCase()
+          rstat root, <span class="hljs-function"><span class="hljs-params">(err, stats, path)</span> -&gt;</span>
+            <span class="hljs-keyword">if</span> stats?.isDirectory()
+              hosts[name] = root: path
+              next()
+            <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> stats?.isFile()
+              fs.readFile path, <span class="hljs-string">'utf-8'</span>, <span class="hljs-function"><span class="hljs-params">(err, data)</span> -&gt;</span>
+                <span class="hljs-keyword">return</span> next() <span class="hljs-keyword">if</span> err
+                data = data.trim()
+                <span class="hljs-keyword">if</span> data.length &lt; <span class="hljs-number">10</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> isNaN(parseInt(data))
+                  hosts[name] = {url: <span class="hljs-string">"http://localhost:<span class="hljs-subst">#{parseInt(data)}</span>"</span>}
+                <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> data.match(<span class="hljs-string">"https?://"</span>)
+                  hosts[name] = {url: data}
+                next()
+            <span class="hljs-keyword">else</span>
+              next()
+        , <span class="hljs-function"><span class="hljs-params">(err)</span> -&gt;</span>
+          callback err, hosts</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p>Convenience wrapper for constructing paths to subdirectories of
+<code>~/Library</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">libraryPath</span> = <span class="hljs-params">(args...)</span> -&gt;</span>
+  path.join process.env.HOME, <span class="hljs-string">"Library"</span>, args...</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>Strip a trailing <code>domain</code> from the given <code>host</code>, then generate a
+sorted array of possible entry names for finding which application
+should serve the host. For example, a <code>host</code> of
+<code>asset0.37s.basecamp.test</code> will produce <code>[&quot;asset0.37s.basecamp&quot;,
+&quot;37s.basecamp&quot;, &quot;basecamp&quot;]</code>, and <code>basecamp.test</code> will produce
+<code>[&quot;basecamp&quot;]</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">getFilenamesForHost</span> = <span class="hljs-params">(host, domain)</span> -&gt;</span>
+  host = host.toLowerCase()
+  domain = host.match(domain)?[<span class="hljs-number">0</span>] ? <span class="hljs-string">""</span> <span class="hljs-keyword">if</span> domain.test?
+
+  <span class="hljs-keyword">if</span> host.slice(-domain.length - <span class="hljs-number">1</span>) <span class="hljs-keyword">is</span> <span class="hljs-string">".<span class="hljs-subst">#{domain}</span>"</span>
+    parts  = host.slice(<span class="hljs-number">0</span>, -domain.length - <span class="hljs-number">1</span>).split <span class="hljs-string">"."</span>
+    length = parts.length
+    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..length]
+      parts.slice(i, length).join <span class="hljs-string">"."</span>
+  <span class="hljs-keyword">else</span>
+    []</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>Similar to <code>fs.stat</code>, but passes the realpath of the file as the
+third argument to the callback.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">rstat</span> = <span class="hljs-params">(path, callback)</span> -&gt;</span>
+  fs.lstat path, <span class="hljs-function"><span class="hljs-params">(err, stats)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> err
+      callback err
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> stats?.isSymbolicLink()
+      fs.realpath path, <span class="hljs-function"><span class="hljs-params">(err, realpath)</span> -&gt;</span>
+        <span class="hljs-keyword">if</span> err <span class="hljs-keyword">then</span> callback err
+        <span class="hljs-keyword">else</span> rstat realpath, callback
+    <span class="hljs-keyword">else</span>
+      callback err, stats, path</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-32">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <p>Helper function for compiling a list of top-level domains into a
+regular expression for matching purposes.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">compilePattern</span> = <span class="hljs-params">(domains)</span> -&gt;</span>
+  <span class="hljs-regexp">/// ( (^|\.) (<span class="hljs-subst">#{domains.join(<span class="hljs-string">"|"</span>)}</span>) ) \.? $ ///</span>i</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

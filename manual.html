@@ -25,19 +25,19 @@ tedious configuration. Pow runs as your user on an unprivileged port,
 and includes both an HTTP and a DNS server. The installation process
 sets up a firewall rule to forward incoming requests on port 80 to
 Pow. It also sets up a system hook so that all DNS queries for a
-special top-level domain (<code>.dev</code>) resolve to your local machine.</p>
+special top-level domain (<code>.test</code>) resolve to your local machine.</p>
 
 <p>To serve a Rack app, just symlink it into your <code>~/.pow</code>
 directory. Let's say you're working on an app that lives in
 <code>~/Projects/myapp</code>. You'd like to access it at
-<code>http://myapp.dev/</code>. Setting it up is as easy as:</p>
+<code>http://myapp.test/</code>. Setting it up is as easy as:</p>
 
 <pre><code>$ cd ~/.pow
 $ ln -s ~/Projects/myapp
 </code></pre>
 
 <p>That's it! The name of the symlink (<code>myapp</code>) determines the hostname
-you use (<code>myapp.dev</code>) to access the application it points to
+you use (<code>myapp.test</code>) to access the application it points to
 (<code>~/Projects/myapp</code>).</p>
 
 <hr />
@@ -50,7 +50,7 @@ you use (<code>myapp.dev</code>) to access the application it points to
 </ul></li>
 <li><a href="#section_2">2 Managing Applications</a>
 <ul>
-<li><a href="#section_2.1">2.1 Using Virtual Hosts and the .dev Domain</a>
+<li><a href="#section_2.1">2.1 Using Virtual Hosts and the .test Domain</a>
 <ul>
 <li><a href="#section_2.1.1">2.1.1 Subdomains</a></li>
 <li><a href="#section_2.1.2">2.1.2 Multiple Virtual Hosts</a></li>
@@ -150,13 +150,13 @@ time it's accessed, and will keep up to two workers running for each
 application. Workers are automatically terminated after 15 minutes of
 inactivity.</p>
 
-<h3><a name="section_2.1">2.1</a> Using Virtual Hosts and the .dev Domain</h3>
+<h3><a name="section_2.1">2.1</a> Using Virtual Hosts and the .test Domain</h3>
 
 <p>A <em>virtual host</em> specifies a mapping between a hostname and an
 application. To install a virtual host, symlink a Rack application
 into your <code>~/.pow</code> directory. The name of the symlink tells Pow which
 hostname you want to use to access the application. For example, a
-symlink named <code>myapp</code> will be accessible at <code>http://myapp.dev/</code>.</p>
+symlink named <code>myapp</code> will be accessible at <code>http://myapp.test/</code>.</p>
 
 <p><strong>Note</strong>: The Pow installer creates <code>~/.pow</code> as a convenient symlink
   to <code>~/Library/Application Support/Pow/Hosts</code>, the actual location
@@ -167,8 +167,8 @@ symlink named <code>myapp</code> will be accessible at <code>http://myapp.dev/</
 <p>Once a virtual host is installed, it's also automatically accessible
 from all subdomains of the named host. For example, the <code>myapp</code>
 virtual host described above could also be accessed at
-<code>http://www.myapp.dev/</code> and <code>http://assets.www.myapp.dev/</code>. You can
-override this behavior to, say, point <code>www.myapp.dev</code> to a different
+<code>http://www.myapp.test/</code> and <code>http://assets.www.myapp.test/</code>. You can
+override this behavior to, say, point <code>www.myapp.test</code> to a different
 application &mdash; just create another virtual host symlink named
 <code>www.myapp</code> for the application you want.</p>
 
@@ -198,13 +198,13 @@ particular hostname to another port or IP address. To use it, just
 create a file in <code>~/.pow</code> (instead of a symlink) with the destination
 port number as its contents.</p>
 
-<p>For example, to forward all traffic for <code>http://proxiedapp.dev/</code> to
+<p>For example, to forward all traffic for <code>http://proxiedapp.test/</code> to
 port 8080 on your localhost:</p>
 
 <pre><code>$ echo 8080 &gt; ~/.pow/proxiedapp
 </code></pre>
 
-<p>To forward traffic for <code>http://proxiedapp.dev/</code> to an IP address other
+<p>To forward traffic for <code>http://proxiedapp.test/</code> to an IP address other
 than localhost (such as a virtual machine), create a file with the destination
 protocol, IP, and port:</p>
 
@@ -221,14 +221,14 @@ proxy won't automatically be started or stopped like Rack apps.</p>
 computer on your local network &mdash; for example, when testing your
 application on a mobile device or from a Windows or Linux VM.</p>
 
-<p>The <code>.dev</code> domain will only work on your development
+<p>The <code>.test</code> domain will only work on your development
 computer. However, you can use the special <a href="http://xip.io/"><code>.xip.io</code>
 domain</a> to remotely access your Pow virtual hosts.</p>
 
 <p>Construct your xip.io domain by appending your application's name to
 your LAN IP address followed by <code>.xip.io</code>. For example, if your
 development computer's LAN IP address is <code>10.0.1.43</code>, you can visit
-<code>myapp.dev</code> from another computer on your local network using the URL
+<code>myapp.test</code> from another computer on your local network using the URL
 <code>http://myapp.10.0.1.43.xip.io/</code>.</p>
 
 <h3><a name="section_2.2">2.2</a> Customizing Environment Variables</h3>
@@ -415,13 +415,18 @@ full list of settings that you can change.</p>
 
 <p>The <code>POW_DOMAINS</code> environment variable specifies a comma-separated
 list of top-level domains for which Pow will serve DNS queries and
-HTTP requests. The default value for this list is a single domain,
-<code>dev</code>, meaning Pow will configure your system to resolve <code>*.dev</code> to
-127.0.0.1 and serve apps in <code>~/.pow</code> under the <code>.dev</code> domain.</p>
+HTTP requests. The default value for this list are the two <code>test,dev</code>
+domains, meaning Pow will configure your system to resolve <code>*.test</code>
+and <code>*.dev</code> to 127.0.0.1 and serve apps in <code>~/.pow</code> under the
+<code>.test</code> and <code>.dev</code> domains.</p>
+
+<p>The <code>.test</code> domain is preferred since Google owns the <code>.dev</code> TLD and
+has recently enabled HSTS, forcing all requests to use HTTPS. Pow
+supports <code>.dev</code> by default for backward compatibility only.</p>
 
 <p>You can add additional domains to <code>POW_DOMAINS</code>:</p>
 
-<pre><code>export POW_DOMAINS=dev,test
+<pre><code>export POW_DOMAINS=test,local
 </code></pre>
 
 <p>If you want Pow to serve apps under additional top-level domains, but
@@ -510,7 +515,7 @@ list of commands.</p></li>
 over the web." It creates a tunnel between your computer and the
 Forward server, then gives you a publicly accessible URL so others
 can see the app or site you're working on. Install the gem via (<code>gem install forward</code>) and
-then run <code>forward yourapp.dev</code>. Your Pow application will be
+then run <code>forward yourapp.test</code>. Your Pow application will be
 accessible at <code>https://youraccount.fwd.wf/</code>.</p></li>
 </ul>
 
@@ -540,6 +545,15 @@ looks like.</p>
 <h2><a name="section_6">6</a> Version History</h2>
 
 <ul>
+<li><p><strong>0.6.0</strong> (December 8, 2017):</p>
+
+<ul>
+<li>Switch top-level domain from .dev to .test. Google owns .dev and
+enabled HSTS on it, breaking non-HTTPS sites. The .dev TLD is still
+enabled for backward compatibility, but .test is the new default.</li>
+<li>This is the last release for the forseeable future. Check out
+<a href="https://github.com/puma/puma-dev#readme">puma-dev</a> for a contemporary alternative.</li>
+</ul></li>
 <li><p><strong>0.5.0</strong> (October 16, 2014):</p>
 
 <ul>
@@ -651,7 +665,7 @@ about the running Pow server via the <code>http://pow/config.json</code> and
 
 <p>(The MIT License)</p>
 
-<p>Copyright &copy; 2014 Sam Stephenson, Basecamp</p>
+<p>Copyright &copy; 2017 Sam Stephenson, Basecamp</p>
 
 <p>Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

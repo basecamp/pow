@@ -52,4 +52,4 @@ See the [user's manual](http://pow.cx/manual) for more information.
 
 -----
 
-&copy; 2014 Sam Stephenson, Basecamp
+&copy; 2017 Sam Stephenson, Basecamp

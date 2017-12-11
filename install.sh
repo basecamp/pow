@@ -160,8 +160,7 @@
         sudo "$NODE_BIN" "$POW_BIN" --install-system
 
         if [ "$MAC_OS_MINOR_VERSION" -ge 10 ]; then
-          sudo launchctl bootstrap system /Library/LaunchDaemons/cx.pow.firewall.plist 2>/dev/null
-          sudo launchctl enable system/cx.pow.firewall 2>/dev/null
+          sudo launchctl load -Fw /Library/LaunchDaemons/cx.pow.firewall.plist 2>/dev/null
           sudo launchctl kickstart -k system/cx.pow.firewall 2>/dev/null
         else
           sudo launchctl load -Fw /Library/LaunchDaemons/cx.pow.firewall.plist 2>/dev/null
@@ -174,8 +173,7 @@
       echo "*** Starting the Pow server..."
 
       if [ "$MAC_OS_MINOR_VERSION" -ge 10 ]; then
-        launchctl bootstrap gui/"$UID" "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null
-        launchctl enable gui/"$UID"/cx.pow.powd 2>/dev/null
+        launchctl load -Fw "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null
         launchctl kickstart -k gui/"$UID"/cx.pow.powd 2>/dev/null
       else
         launchctl unload "$HOME/Library/LaunchAgents/cx.pow.powd.plist" 2>/dev/null || true

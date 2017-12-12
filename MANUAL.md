@@ -222,21 +222,34 @@ documentation](https://github.com/sstephenson/rbenv#readme).
 [RVM](http://rvm.io/) is another option for specifying per-application
 Ruby versions for use with Pow.
 
-You can create a [project `.rvmrc`
-file](https://rvm.io/workflow/rvmrc#project) to specify an
+You can create a [project `.ruby-version`
+file](https://rvm.io/workflow/projects#project-file-ruby-version) to specify an
 application's Ruby version. For example, to configure your application
-to run with Ruby 1.8.7, add the following to `.rvmrc` in the
+to run with Ruby 2.1.5, add the following to `.ruby-version` in the
 application's root directory:
 
-    rvm 1.8.7
+    2.1.5
 
 Because RVM works by injecting itself into your shell, you must first
 load it in each application's `.powrc` or `.powenv` file using the
 following code:
 
-    if [ -f "$rvm_path/scripts/rvm" ] && [ -f ".rvmrc" ]; then
+    if [ -f "$rvm_path/scripts/rvm" ] && [ -f ".ruby-version" ]; then
       source "$rvm_path/scripts/rvm"
-      source ".rvmrc"
+      rvm $(< "$PWD/.ruby-version")
+    fi
+
+You can also create a project `.ruby-gemset` file to specify your
+RVM gemset. For example if your project gemset name is `rails4.2`,
+add the following to `.ruby-gemset` in the application's root directory:
+
+    rails4.2
+
+And then update your code in `.powrc` or `.powenv` file this way:
+
+    if [ -f "$rvm_path/scripts/rvm" ] && [ -f ".ruby-version" ] && [ -f ".ruby-gemset" ]; then
+      source "$rvm_path/scripts/rvm"
+      rvm $(< "$PWD/.ruby-version")@$(< "$PWD/.ruby-gemset")
     fi
 
 For more information, see the [RVM web site](http://rvm.io/).

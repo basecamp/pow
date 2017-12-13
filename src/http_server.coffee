@@ -278,7 +278,7 @@ module.exports = class HttpServer extends connect.HTTPServer
   handleWelcomeRequest: (req, res, next) =>
     return next() if req.pow.root or req.url isnt "/"
     {domains} = @configuration
-    domain = if "dev" in domains then "dev" else domains[0]
+    domain = if "test" in domains then "test" else domains[0]
     renderResponse res, 200, "welcome", {version, domain}
 
   # If the request is for an app that looks like a Rails 2 app but

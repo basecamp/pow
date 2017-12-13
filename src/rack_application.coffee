@@ -28,7 +28,7 @@ async = require "async"
 fs    = require "fs"
 nack  = require "nack"
 
-{bufferLines, pause, sourceScriptEnv} = require "./util"
+{bufferLines, pause, sourceScriptEnv, quote} = require "./util"
 {join, basename, resolve} = require "path"
 
 module.exports = class RackApplication
@@ -88,15 +88,24 @@ module.exports = class RackApplication
 
     @statCallbacks.push callback
 
-  # Collect environment variables from `.powrc` and `.powenv`, in that
-  # order, if present. The idea is that `.powrc` files can be checked
-  # into a source code repository for global configuration, leaving
-  # `.powenv` free for any necessary local overrides.
+  # Collect environment variables from `~/.powrc`, `.powrc` and `.powenv`,
+  # in that order, if present. The idea is that `.powrc` files can be checked
+  # into a source code repository for global configuration, leaving `.powenv`
+  # free for any necessary local overrides. The files will be executed from
+  # the project root.
   loadScriptEnvironment: (env, callback) ->
-    async.reduce [".powrc", ".envrc", ".powenv"], env, (env, filename, callback) =>
-      fs.exists script = join(@root, filename), (scriptExists) ->
+    home = process.env["HOME"]
+    envFiles = [
+      join(home, ".powrc"),
+      join(@root, ".powrc"),
+      join(@root, ".envrc"),
+      join(@root, ".powenv"),
+    ]
+    before = "cd #{quote @root}"
+    async.reduce envFiles, env, (env, script, callback) =>
+      fs.exists script, (scriptExists) ->
         if scriptExists
-          sourceScriptEnv script, env, callback
+          sourceScriptEnv script, env, {before}, callback
         else
           callback null, env
     , callback

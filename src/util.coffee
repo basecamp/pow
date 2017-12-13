@@ -170,6 +170,7 @@ exec = (command, options, callback) ->
 
 # Single-quote a string for command line execution.
 quote = (string) -> "'" + string.replace(/\'/g, "'\\''") + "'"
+exports.quote = quote
 
 # Generate and return a unique temporary filename based on the
 # current process's PID, the number of milliseconds elapsed since the

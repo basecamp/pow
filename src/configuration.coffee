@@ -93,7 +93,7 @@ module.exports = class Configuration
     # If you configure this in your `~/.powconfig` you will need to
     # re-run `sudo pow --install-system` to make `/etc/resolver` aware
     # of the new TLDs.
-    @domains    = env.POW_DOMAINS     ? env.POW_DOMAIN ? "test,dev"
+    @domains    = env.POW_DOMAINS     ? env.POW_DOMAINS ? "test,dev"
 
     # `POW_EXT_DOMAINS`: additional top-level domains for which Pow
     # will serve HTTP requests (but not DNS requests -- hence the

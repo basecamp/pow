@@ -23,8 +23,7 @@ module.exports = class DnsServer extends dnsserver.Server
   # `DnsServer` quack like a `HttpServer` (for initialization, at
   # least).
   listen: (port, callback) ->
-    @bind port
-    callback?()
+    @bind port, -> callback?()
 
   # Each incoming DNS request ends up here. If it's an `A` query
   # and the domain name matches the top-level domain specified in our

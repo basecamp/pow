@@ -233,7 +233,7 @@ getUserLocale = (callback) ->
 parseEnv = (stdout) ->
   env = {}
   for line in stdout.split "\n"
-    if matches = line.match /([^=]+)=(.+)/
+    if matches = line.match /([^=]+)=(.*)/
       [match, name, value] = matches
       env[name] = value
   env

@@ -41,6 +41,19 @@ module.exports = class RackApplication
     @quitCallbacks  = []
     @statCallbacks  = []
 
+  # Gets an object describing the server's current status that can be
+  # passed to `JSON.stringify`.
+  toJSON: ->
+    root: @root
+    host: @firstHost
+    startedAt: Math.round(@started / 1000)
+    lastRestartedAt: Math.round(@mtime / 1000)
+    lastRequestAt: Math.round(@lastRequestTime / 1000)
+    requestCount: @requestCount
+    timeout: Math.round(@timeout / 1000)
+    mightIdleAt: Math.round((@lastRequestTime + @timeout) / 1000)
+    status: if ((+new Date) - @lastRequestTime) > @timeout then 'idle' else 'active'
+
   # Queue `callback` to be invoked when the application becomes ready,
   # then start the initialization process. If the application's state
   # is ready, the callback is invoked immediately.
@@ -138,6 +151,7 @@ module.exports = class RackApplication
   # uninitialized state. (If the application is terminating, queue a
   # call to `initialize` after all workers have exited.)
   initialize: ->
+    @requestCount = 0
     if @state
       if @state is "terminating"
         @quit => @initialize()
@@ -160,11 +174,12 @@ module.exports = class RackApplication
       # the application's environment or the global configuration.
       else
         @state = "ready"
-
+        @started = +new Date
+        @timeout = (env?.POW_TIMEOUT ? @configuration.timeout) * 1000
         @pool = nack.createPool join(@root, "config.ru"),
           env:  env
           size: env?.POW_WORKERS ? @configuration.workers
-          idle: (env?.POW_TIMEOUT ? @configuration.timeout) * 1000
+          idle: @timeout
 
         # Log the workers' stderr and stdout, and log each worker's
         # PID as it spawns and exits.
@@ -214,6 +229,8 @@ module.exports = class RackApplication
           req.proxyMetaVariables =
             SERVER_PORT: @configuration.dstPort.toString()
           try
+            @lastRequestTime = +new Date
+            @requestCount++
             @pool.proxy req, res, (err) =>
               @quit() if err
               next err

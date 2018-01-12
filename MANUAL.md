@@ -392,6 +392,8 @@ request with the header `Host: pow`. The available endpoints are:
   environment, which is inherited by each application worker.
 * `/config.json`: A JSON-encoded object representing the running
   server's [configuration](http://pow.cx/docs/configuration.html).
+* `/apps.json`: A JSON-encoded object representing the running
+  server's running applications.
 
 Example of requesting an endpoint with `curl`:
 
@@ -480,6 +482,9 @@ looks like.
     which was deprecated in OS X 10.9 and removed in 10.10. Port
     redirection is now handled by the pf packet filter.
   * Upgrades bundled Node version to 0.10.32.
+
+* **0.4.4** (September 16, 2014):
+  * Added support for `http://pow/apps.json` endpoint.
 
 * **0.4.3** (April 3, 2014):
   * Upgrade Nack to 0.16 to fix issues when requiring the json
